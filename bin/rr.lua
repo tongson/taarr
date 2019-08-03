@@ -59,7 +59,7 @@ if main then
 else
     msg.fatal"Unable to read main script!"
 end
-if args.host == "local" then
+if args.host == "local" or args.host == "localhost" then
     local r, o = popen(table.concat(script, "\n"))
     if not r then
         msg.debug("%s", table.concat(o.output, "\n"))
