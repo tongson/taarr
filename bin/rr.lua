@@ -1,4 +1,3 @@
-require"strict"
 local lib = require"lib"
 local msg, file = lib.msg, lib.file
 local table, io = table, io
