@@ -95,7 +95,6 @@ else
     ssh.errexit = true
     ssh.stdin = tc(script, "\n")
     msg.info(sf("Running script over '%s'", args.host))
-    local t = "./"..(util.random_string(16))
     ssh("-a", "-P", "-x", "-C", args.host)
     msg.ok "Success."
 end
