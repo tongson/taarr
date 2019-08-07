@@ -12,6 +12,7 @@ parser:argument"task_command"
 parser:handle_options(false)
 parser:argument"pargs":args"*"
 local args = parser:parse()
+local host = args.host
 local task, command = args.task_command:match("([^:]+):([^:]+)")
 local popen = function(str)
     local R = {}
@@ -36,6 +37,14 @@ local test = function(m, i)
     if attrib and attrib.mode == m then
         return true
     end
+end
+local copy = function(host, dir)
+    local sftp = exec.ctx"/usr/bin/sftp"
+    sftp.stdin = sf("lcd %s\ncd /\nput -rP .\n bye\n", dir)
+    sftp.env = { LC_ALL="C" }
+    sftp.errexit = true
+    msg.info(sf("Copying files to '%s'", host))
+    sftp("-v", "-C", "-b", "/dev/fd/0", host)
 end
 
 local script = {}
@@ -62,28 +71,26 @@ if main then
 else
     msg.fatal"Unable to read main script!"
 end
-if args.host == "local" or args.host == "localhost" then
+if host == "local" or host == "localhost" then
     local r, o = popen(tc(script, "\n"))
     if not r then
         msg.debug("%s", tc(o.output, "\n"))
         msg.fatal("%s %s %s", o.exe, o.code, o.status)
     end
 else
-    msg.info(sf("Checking if %s exist", args.host))
+    msg.info(sf("Checking if %s exist", host))
     local ssh = exec.ctx"/usr/bin/ssh"
     ssh.env = { LC_ALL="C" }
-    local ok, rs = ssh("-a", "-P", "-x", args.host, "uname -n")
-    if not ok and (args.host ~= rs.stdout[1]) then
+    local ok, rs = ssh("-a", "-P", "-x", host, "uname -n")
+    if not ok and (host ~= rs.stdout[1]) then
         msg.fatal "Host does not exist."
         fmt.panic "Exiting.\n"
     end
-    if test("directory", task.."/files") then
-        local sftp = exec.ctx"/usr/bin/sftp"
-        sftp.stdin = sf("lcd %s/files\ncd /\nput -rP .\n bye\n", task)
-        sftp.env = { LC_ALL="C" }
-        sftp.errexit = true
-        msg.info(sf("Copying files to '%s'", args.host))
-        sftp("-v", "-C", "-b", "/dev/fd/0", args.host)
+    local dirs = { "files", "files-"..host, task.."/files", task.."/files-"..host }
+    for _, d in ipairs(dirs) do
+        if test("directory", d) then
+            copy(host, d)
+        end
     end
     ssh.errexit = true
     ssh.stdin = tc(script, "\n")
