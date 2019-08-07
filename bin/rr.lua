@@ -77,9 +77,9 @@ else
         msg.fatal "Host does not exist."
         fmt.panic "Exiting.\n"
     end
-    if test("directory", "files") then
+    if test("directory", task.."/files") then
         local sftp = exec.ctx"/usr/bin/sftp"
-        sftp.stdin = "lcd files\ncd /\nput -rP .\n bye\n"
+        sftp.stdin = sf("lcd %s/files\ncd /\nput -rP .\n bye\n", task)
         sftp.env = { LC_ALL="C" }
         sftp.errexit = true
         msg.info(sf("Copying files to '%s'", args.host))
