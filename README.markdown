@@ -24,3 +24,18 @@ In the source tree, the *TUTORIAL* directory contains a hierarchy that persisten
     cd TUTORIAL
     rr avocado sysctl:apply
 
+
+# REFERENCE
+
+### Hierarchy
+
+    TOPLEVEL
+    ├── files                          <--- synced to any host
+    ├── files-avocado                  <--- synced to the avocado host
+    ├── lib                            <--- sourced by all scripts
+    └── task
+        ├── files                      <--- synced to any host when task:* is called
+        ├── files-avocado              <--- synced to the avocado host then task:* is called
+        ├── lib                        <--- sourced along with task:* scripts
+        └── script
+
