@@ -8,8 +8,13 @@ shell script runner via SSH inspired by rerun[1], bashing[2] and drist[3]
 [2] https://github.com/xsc/bashing  
 [3] git://bitreich.org/drist  
 
+# NOTES
+
 Tested on Linux only.  
-Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, a workaround is to use heredocs.
+
+Remote host only requires OpenSSH installed. It's recommended that the host running `rr` should configure remote hosts through `~/.ssh/config`.  
+
+Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, a workaround is to use heredocs.  
 
 # BUILDING
 
