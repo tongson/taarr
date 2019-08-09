@@ -49,9 +49,9 @@ sysctl --system
 
 ### Invocation
     
-    rr avocado sysctl:apply
-         ^       ^     ^
-        host    group script
+    rr avocado sysctl:apply --quiet --names
+        ^       ^     ^       ^
+        host    group script  arguments
 
 ### Hierarchy
 
