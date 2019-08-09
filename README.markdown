@@ -29,6 +29,19 @@ In the source tree, the *TUTORIAL* directory contains a hierarchy that persisten
     cd TUTORIAL
     rr avocado sysctl:apply
 
+Steps that `rr` performs:
+
+1. Copy files-avocado/etc/sysctl.d/forwarding.conf to avocado:/etc/sysctl.d/forwarding.conf
+2. Generates the script:
+
+    #!/bin/sh
+    unset IFS
+    set -efu
+    PATH=/bin:/sbin:/usr/bin:/usr/sbin
+    LC_ALL=C
+    sysctl --system
+
+3. Runs the script on host avocado via SSH.
 
 # REFERENCE
 
