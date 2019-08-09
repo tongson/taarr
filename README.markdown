@@ -31,7 +31,7 @@ In the source tree, the *TUTORIAL* directory contains a hierarchy that persisten
 
 Steps that `rr` performs:
 
-1. Copy via sftp `files-avocado/etc/sysctl.d/forwarding.conf` to `avocado:/etc/sysctl.d/forwarding.conf`
+1. Copy via sftp `files-avocado/` to `avocado:/`
 2. Generates the script:
 
 ```
