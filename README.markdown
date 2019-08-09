@@ -13,7 +13,7 @@ Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, 
 
 # BUILDING
 
-Requires OmniaJIT to build.  
+Requires [OmniaJIT](https://github.com/tongson/OmniaJIT/) to build.  
 Rename rr.mk to Makefile then `make`.
 
 
