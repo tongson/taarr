@@ -8,12 +8,13 @@ shell script runner inspired by rerun[1], bashing[2] and drist[3]
 [2] https://github.com/xsc/bashing  
 [3] git://bitreich.org/drist&nbsp  
 
-Tested on Linux only.
+Tested on Linux only.  
 Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, a workaround is to use heredocs.
 
 ### BUILDING
 
-Requires OmniaJIT to build. Rename rr.mk to Makefile then `make`.
+Requires OmniaJIT to build.  
+Rename rr.mk to Makefile then `make`.
 
 
 ### TUTORIAL
