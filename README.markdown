@@ -51,7 +51,7 @@ sysctl --system
     
     rr avocado sysctl:apply
          ^       ^     ^
-        host    task  script
+        host    group script
 
 ### Hierarchy
 
@@ -59,9 +59,9 @@ sysctl --system
     ├── files                          <--- synced to any host
     ├── files-avocado                  <--- synced to the avocado host
     ├── lib                            <--- sourced by all scripts
-    └── task
-        ├── files                      <--- synced to any host when task:* is called
-        ├── files-avocado              <--- synced to the avocado host then task:* is called
-        ├── lib                        <--- sourced along with task:* scripts
+    └── group 
+        ├── files                      <--- synced to any host when group:* is called
+        ├── files-avocado              <--- synced to the avocado host then group:* is called
+        ├── lib                        <--- sourced along with group:* scripts
         └── script
 
