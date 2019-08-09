@@ -47,6 +47,12 @@ sysctl --system
 
 # REFERENCE
 
+### Invocation
+    
+    rr avocado sysctl:apply
+         ^       ^     ^
+        host    task  script
+
 ### Hierarchy
 
     TOPLEVEL
