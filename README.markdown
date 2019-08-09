@@ -2,7 +2,7 @@
 
 # WHAT
 
-remote or local shell script runner inspired by rerun[1], bashing[2] and drist[3]
+shell script runner via SSH inspired by rerun[1], bashing[2] and drist[3]
 
 [1] https://github.com/rerun/rerun  
 [2] https://github.com/xsc/bashing  
