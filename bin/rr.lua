@@ -14,6 +14,8 @@ parser:argument"pargs":args"*"
 local args = parser:parse()
 local host = args.host
 local group, command = args.group_command:match("([^:]+):([^:]+)")
+
+-- Funcs: "A little copying is better than a little dependency"
 local template = function(s, v) return (string.gsub(s, "%${[%s]-([^}%G]+)[%s]-}", v)) end
 local popen = function(str)
     local R = {}
@@ -69,6 +71,7 @@ if test("file", "rr.lua") then
     end
 end
 
+-- Main
 local script = {}
 for l in lfs.dir("lib") do
     local libsh = "lib/"..l
