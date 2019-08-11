@@ -1,5 +1,5 @@
 local lib = require"lib"
-local util, msg, file, fmt = lib.util, lib.msg, lib.file, lib.fmt
+local msg, file, fmt = lib.msg, lib.file, lib.fmt
 local table, io, string = table, io, string
 local exec = require"exec"
 local lfs = require"lfs"
