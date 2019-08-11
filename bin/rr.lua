@@ -44,7 +44,7 @@ local copy = function(shost, dir)
     sftp.stdin = sf("lcd %s\ncd /\nput -rP .\n bye\n", dir)
     sftp.env = { LC_ALL="C" }
     sftp.errexit = true
-    msg.info(sf("Copying files to '%s'", shost))
+    msg.info(sf("Copying %s to '%s'", dir, shost))
     sftp("-C", "-b", "/dev/fd/0", shost)
 end
 
