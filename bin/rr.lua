@@ -56,16 +56,16 @@ if test("file", "rr.lua") then
         setfenv(chunk, ENV)
         chunk()
     else
-       local tbl = {}
-       local src = io.open("rr.lua")
-       for ln in src:lines() do
-           tbl[#tbl + 1] = ln
-       end
-       local ln = string.match(err, "^.+:([%d]+):%s.*")
-       local sp = string.rep(" ", string.len(ln))
-       local lerr = string.match(err, "^.+:[%d]+:%s(.*)")
-       msg.fatal"Problem parsing rr.lua."
-       return fmt.panic("error: %s\n%s |\n%s | %s\n%s |\n", lerr, sp, ln, tbl[tonumber(ln)], sp)
+        local tbl = {}
+        local src = io.open("rr.lua")
+        for ln in src:lines() do
+            tbl[#tbl + 1] = ln
+        end
+        local ln = string.match(err, "^.+:([%d]+):%s.*")
+        local sp = string.rep(" ", string.len(ln))
+        local lerr = string.match(err, "^.+:[%d]+:%s(.*)")
+        msg.fatal"Problem parsing rr.lua."
+        return fmt.panic("error: %s\n%s |\n%s | %s\n%s |\n", lerr, sp, ln, tbl[tonumber(ln)], sp)
     end
 end
 
