@@ -44,7 +44,7 @@ local copy = function(shost, dir)
     sftp.stdin = sf("lcd %s\ncd /\nput -rP .\n bye\n", dir)
     sftp.env = { LC_ALL="C" }
     sftp.errexit = true
-    msg.info(sf("Copying %s to '%s'", dir, shost))
+    msg.debug(sf("Copying %s to '%s'", dir, shost))
     sftp("-C", "-b", "/dev/fd/0", shost)
 end
 
@@ -130,7 +130,7 @@ else
     end
     ssh.errexit = true
     ssh.stdin = tc(script, "\n")
-    msg.info(sf("Running script over '%s'", args.host))
+    msg.debug(sf("Running script over '%s'", args.host))
     ssh("-T", "-a", "-P", "-x", "-C", args.host)
     msg.ok "Success."
 end
