@@ -64,6 +64,7 @@ if test("file", "rr.lua") then
     local ln = string.match(err, "^.+:([%d]+):%s.*")
     local sp = string.rep(" ", string.len(ln))
     local lerr = string.match(err, "^.+:[%d]+:%s(.*)")
+    msg.fatal"Problem parsing rr.lua."
     return fmt.panic("error: %s\n%s |\n%s | %s\n%s |\n", lerr, sp, ln, tbl[tonumber(ln)], sp)
   end
 end
