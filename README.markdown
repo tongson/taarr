@@ -12,7 +12,7 @@ shell script manager and runner inspired by rerun[1], bashing[2] and drist[3]
 
 CFEngine, Puppet, Chef and others did not offer tangible advantages over a combination of rerun/bashing + drist. Cons mostly outweight the pros. Slow and complicated are the common complaints.
 
-I tried building by own Lua-based configuration management software but found the oneshot nature of shell scripts more convenient. Configuration drift? Throw away the machine and rerun shell scripts over the replacement.
+I tried building by own Lua-based configuration management software but found the oneshot nature of shell scripts more convenient.
 
 # NOTES
 
