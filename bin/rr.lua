@@ -1,3 +1,4 @@
+-- Includes
 local lib = require"lib"
 local msg, file, fmt = lib.msg, lib.file, lib.fmt
 local table, io, string = table, io, string
@@ -6,6 +7,8 @@ local lfs = require"lfs"
 local sf = string.format
 local tc = table.concat
 local argparse = require "argparse"
+
+-- Arguments
 local parser = argparse("rr", "run shell scripts locally or remotely over SSH.")
 parser:argument"host"
 parser:argument"group_command"
