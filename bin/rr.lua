@@ -39,13 +39,13 @@ local test = function(m, i)
         return true
     end
 end
-local copy = function(host, dir)
+local copy = function(shost, dir)
     local sftp = exec.ctx"/usr/bin/sftp"
     sftp.stdin = sf("lcd %s\ncd /\nput -rP .\n bye\n", dir)
     sftp.env = { LC_ALL="C" }
     sftp.errexit = true
-    msg.info(sf("Copying files to '%s'", host))
-    sftp("-v", "-C", "-b", "/dev/fd/0", host)
+    msg.info(sf("Copying files to '%s'", shost))
+    sftp("-v", "-C", "-b", "/dev/fd/0", shost)
 end
 
 local ENV = {}
