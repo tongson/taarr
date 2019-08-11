@@ -104,12 +104,14 @@ if main then
     end
 else
     msg.fatal"Unable to read main script!"
+    fmt.panic"Exiting.\n"
 end
 if host == "local" or host == "localhost" then
     local r, o = popen(tc(script, "\n"))
     if not r then
         msg.debug("%s", tc(o.output, "\n"))
         msg.fatal("%s %s %s", o.exe, o.code, o.status)
+        fmt.panic"Exiting.\n"
     end
 else
     msg.info(sf("Checking if %s exist", host))
