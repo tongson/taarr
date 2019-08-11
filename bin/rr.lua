@@ -114,7 +114,7 @@ else
     msg.info(sf("Checking if %s exist", host))
     local ssh = exec.ctx"/usr/bin/ssh"
     ssh.env = { LC_ALL="C" }
-    local ok, rs = ssh("-a", "-P", "-x", host, "uname -n")
+    local ok, rs = ssh("-T", "-a", "-P", "-x", host, "uname -n")
     if not ok and (host ~= rs.stdout[1]) then
         msg.fatal "Host does not exist."
         fmt.panic "Exiting.\n"
@@ -128,6 +128,6 @@ else
     ssh.errexit = true
     ssh.stdin = tc(script, "\n")
     msg.info(sf("Running script over '%s'", args.host))
-    ssh("-a", "-P", "-x", "-C", args.host)
+    ssh("-T", "-a", "-P", "-x", "-C", args.host)
     msg.ok "Success."
 end
