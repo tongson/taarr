@@ -22,7 +22,7 @@ Remote host only requires OpenSSH installed. It's recommended that the host runn
 
 Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, a workaround is to use heredocs.  
 
-Scripts should specify `$@` if it wants the arguments passed.
+Scripts should specify `$@` if it wants to use arguments passed.
 
 # BUILDING
 
