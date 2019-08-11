@@ -8,12 +8,12 @@ local tc = table.concat
 local argparse = require "argparse"
 local parser = argparse("rr", "run shell scripts locally or remotely over SSH.")
 parser:argument"host"
-parser:argument"task_command"
+parser:argument"group_command"
 parser:handle_options(false)
 parser:argument"pargs":args"*"
 local args = parser:parse()
 local host = args.host
-local task, command = args.task_command:match("([^:]+):([^:]+)")
+local group, command = args.group_command:match("([^:]+):([^:]+)")
 local template = function(s, v) return (string.gsub(s, "%${[%s]-([^}%G]+)[%s]-}", v)) end
 local popen = function(str)
     local R = {}
@@ -79,7 +79,7 @@ for l in lfs.dir("lib") do
         end
     end
 end
-local tlib = task.."/lib"
+local tlib = group.."/lib"
 if test("directory", tlib) then
     for l in lfs.dir(tlib) do
         local libsh = tlib.."/"..l
@@ -94,12 +94,12 @@ if test("directory", tlib) then
 end
 local pargs = args.pargs or ""
 script[#script+1] = "set -- "..(tc(pargs, " "))
-local main = file.read_all(task.."/"..command)
+local main = file.read_all(group.."/"..command)
 if main then
     if next(ENV) then
-        script[#script+1] = template(file.read_all(task.."/"..command), ENV)
+        script[#script+1] = template(file.read_all(group.."/"..command), ENV)
     else
-        script[#script+1] = file.read_all(task.."/"..command)
+        script[#script+1] = file.read_all(group.."/"..command)
     end
 else
     msg.fatal"Unable to read main script!"
@@ -119,7 +119,7 @@ else
         msg.fatal "Host does not exist."
         fmt.panic "Exiting.\n"
     end
-    local dirs = { "files", "files-"..host, task.."/files", task.."/files-"..host }
+    local dirs = { "files", "files-"..host, group.."/files", group.."/files-"..host }
     for _, d in ipairs(dirs) do
         if test("directory", d) then
             copy(host, d)
