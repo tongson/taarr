@@ -1,6 +1,6 @@
 local lib = require"lib"
 local util, msg, file, fmt = lib.util, lib.msg, lib.file, lib.fmt
-local table, io = table, io
+local table, io, string = table, io, string
 local exec = require"exec"
 local lfs = require"lfs"
 local sf = string.format
@@ -14,6 +14,7 @@ parser:argument"pargs":args"*"
 local args = parser:parse()
 local host = args.host
 local task, command = args.task_command:match("([^:]+):([^:]+)")
+local template = function(s, v) return (string.gsub(s, "%${[%s]-([^}%G]+)[%s]-}", v)) end
 local popen = function(str)
     local R = {}
     local pipe = io.popen(str, "r")
@@ -47,11 +48,35 @@ local copy = function(host, dir)
     sftp("-v", "-C", "-b", "/dev/fd/0", host)
 end
 
+local ENV = {}
+if test("file", "rr.lua") then
+  local source = file.read_all("rr.lua")
+  local chunk, err = loadstring(source)
+  if chunk then
+    setfenv(chunk, ENV)
+    chunk()
+  else
+    local tbl = {}
+    local src = io.open("rr.lua")
+    for ln in src:lines() do
+      tbl[#tbl + 1] = ln
+    end
+    local ln = string.match(err, "^.+:([%d]+):%s.*")
+    local sp = string.rep(" ", string.len(ln))
+    local lerr = string.match(err, "^.+:[%d]+:%s(.*)")
+    return fmt.panic("error: %s\n%s |\n%s | %s\n%s |\n", lerr, sp, ln, tbl[tonumber(ln)], sp)
+  end
+end
+
 local script = {}
 for l in lfs.dir("lib") do
     local libsh = "lib/"..l
     if test("file", libsh) then
-        script[#script+1] = file.read_all(libsh)
+        if next(ENV) then
+            script[#script+1] = template(file.read_all(libsh, ENV))
+        else
+            script[#script+1] = file.read_all(libsh)
+        end
     end
 end
 local tlib = task.."/lib"
@@ -59,7 +84,11 @@ if test("directory", tlib) then
     for l in lfs.dir(tlib) do
         local libsh = tlib.."/"..l
         if test("file", libsh) then
-            script[#script+1] = file.read_all(libsh)
+            if next(ENV) then
+                script[#script+1] = template(file.read_all(libsh, ENV))
+            else
+                script[#script+1] = file.read_all(libsh)
+            end
         end
     end
 end
@@ -67,7 +96,11 @@ local pargs = args.pargs or ""
 script[#script+1] = "set -- "..(tc(pargs, " "))
 local main = file.read_all(task.."/"..command)
 if main then
-    script[#script+1] = main
+    if next(ENV) then
+        script[#script+1] = template(file.read_all(task.."/"..command), ENV)
+    else
+        script[#script+1] = file.read_all(task.."/"..command)
+    end
 else
     msg.fatal"Unable to read main script!"
 end
