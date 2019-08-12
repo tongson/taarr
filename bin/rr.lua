@@ -40,15 +40,6 @@ local test = function(m, i)
         return true
     end
 end
-local copy = function(shost, dir)
-    local sftp = exec.ctx"/usr/bin/sftp"
-    sftp.stdin = sf("lcd %s\ncd /\nput -rP .\n bye\n", dir)
-    sftp.env = { LC_ALL="C" }
-    sftp.errexit = true
-    msg.debug(sf("Copying %s to '%s'", dir, shost))
-    sftp("-C", "-b", "/dev/fd/0", shost)
-end
-
 local ENV = {}
 if test("file", "rr.lua") then
     local source = file.read_all("rr.lua")
@@ -131,6 +122,14 @@ else
     if not ok and (host ~= rs.stdout[1]) then
         msg.fatal "Host does not exist."
         fmt.panic "Exiting.\n"
+    end
+    local copy = function(shost, dir)
+        local sftp = exec.ctx"/usr/bin/sftp"
+        sftp.stdin = sf("lcd %s\ncd /\nput -rP .\n bye\n", dir)
+        sftp.env = { LC_ALL="C" }
+        sftp.errexit = true
+        msg.debug(sf("Copying %s to '%s'", dir, shost))
+        sftp("-C", "-b", "/dev/fd/0", shost)
     end
     local dirs = { "files", "files-"..host, group.."/files", group.."/files-"..host }
     for _, d in ipairs(dirs) do
