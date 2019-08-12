@@ -21,21 +21,17 @@ local group, command = args.group_command:match("([^:]+):([^:]+)")
 -- Funcs: "A little copying is better than a little dependency"
 local template = function(s, v) return (string.gsub(s, "%${[%s]-([^}%G]+)[%s]-}", v)) end
 local popen = function(str)
-    local R = {}
     local pipe = io.popen(str, "r")
     io.flush(pipe)
-    R.output = {}
+    local output = {}
     for ln in pipe:lines() do
-        R.output[#R.output + 1] = ln
+        output[#output + 1] = ln
     end
     local _, status, code = io.close(pipe)
-    R.exe = "io.popen"
-    R.code = code
-    R.status = status
-    if code == 0 then
-        return code, R
-    else
-        return nil, R
+    if code ~= 0 then
+        msg.debug("%s", tc(output, "\n"))
+        msg.fatal("%s %s %s", "io.open", code, status)
+        fmt.panic"Exiting.\n"
     end
 end
 local test = function(m, i)
@@ -113,12 +109,20 @@ else
     fmt.panic"Exiting.\n"
 end
 if host == "local" or host == "localhost" then
-    local r, o = popen(tc(script, "\n"))
-    if not r then
-        msg.debug("%s", tc(o.output, "\n"))
-        msg.fatal("%s %s %s", o.exe, o.code, o.status)
-        fmt.panic"Exiting.\n"
+    local tar = [[#!/bin/sh
+        LC_ALL=C
+        set -efu
+        unset IFS
+        PATH=/bin:/usr/bin
+        tar -C %s -cpf - . | tar -C / -xpf -
+    ]]
+    local dirs = { "files", "files-"..host, group.."/files", group.."/files-"..host }
+    for _, d in ipairs(dirs) do
+        if test("directory", d) then
+            popen(sf(tar, d))
+        end
     end
+    popen(tc(script, "\n"))
 else
     msg.info(sf("Checking if %s exist", host))
     local ssh = exec.ctx"/usr/bin/ssh"
