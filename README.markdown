@@ -12,23 +12,14 @@ shell script manager and runner inspired by rerun[1], bashing[2] and drist[3]
 
 CFEngine, Puppet, Chef and others did not offer tangible advantages over a combination of rerun/bashing + drist. Cons mostly outweight the pros. Slow and complicated are the common complaints.
 
+According to the Lindy effect, shell scripts, openssh and tar will outlive these mention CM software.
+
 I tried building by own Lua-based configuration management software but found the oneshot nature of shell scripts more convenient.
-
-# NOTES
-
-Tested on Linux only.  
-
-Remote host only requires OpenSSH installed. It's recommended that the host running `rr` should configure remote hosts through `~/.ssh/config`.  
-
-Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, a workaround is to use heredocs.  
-
-Scripts should specify `$@` if it wants to use arguments passed.
 
 # BUILDING
 
 Requires [OmniaJIT](https://github.com/tongson/OmniaJIT/) to build.  
 Rename rr.mk to Makefile then `make`.
-
 
 # TUTORIAL
 
@@ -72,4 +63,15 @@ sysctl --system
         ├── files-avocado              <--- synced to the avocado host then group:* is called
         ├── lib                        <--- sourced along with group:* scripts
         └── script
+
+### NOTES
+
+Tested on Linux only.  
+
+Remote host only requires OpenSSH installed. It's recommended that the host running `rr` should configure remote hosts through `~/.ssh/config`.  
+
+Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, a workaround is to use heredocs.  
+
+Scripts should specify `$@` if it wants to use arguments passed.
+
 
