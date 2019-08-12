@@ -12,7 +12,7 @@ shell script manager and runner inspired by rerun[1], bashing[2] and drist[3]
 
 CFEngine, Puppet, Chef and others did not offer tangible advantages over a combination of rerun/bashing + drist. Cons mostly outweight the pros. Slow and complicated are the common complaints.
 
-According to the Lindy effect, shell scripts, openssh and tar will outlive these mention CM software.
+According to the Lindy effect, shell scripts, openssh and tar will outlive these mentioned CM software.
 
 I tried building by own Lua-based configuration management software but found the oneshot nature of shell scripts more convenient.
 
@@ -64,7 +64,7 @@ sysctl --system
         ├── lib                        <--- sourced along with group:* scripts
         └── script
 
-### NOTES
+### Notes
 
 Tested on Linux only.  
 
