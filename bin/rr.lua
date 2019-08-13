@@ -29,8 +29,8 @@ local popen = function(str)
     end
     local _, status, code = io.close(pipe)
     if code ~= 0 then
-        msg.debug("%s", tc(output, "\n"))
-        msg.fatal("%s %s %s", "io.open", code, status)
+        msg.debug(sf("%s", tc(output, "\n")))
+        msg.fatal(sf("%s %s %s", "io.open", code, status))
         fmt.panic"Exiting.\n"
     end
 end
