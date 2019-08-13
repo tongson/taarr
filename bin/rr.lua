@@ -62,6 +62,10 @@ if test("file", "rr.lua") then
 end
 
 -- Main
+if not test("directory", group) then
+    msg.fatal(sf("Unable to find script group %s.", group))
+    fmt.panic"Exiting.\n"
+end
 local script = {}
 for l in lfs.dir("lib") do
     local libsh = "lib/"..l
