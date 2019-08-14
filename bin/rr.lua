@@ -19,6 +19,16 @@ local host = args.host
 local group, command = args.group_command:match("([^:]+):([^:]+)")
 
 -- Funcs: "A little copying is better than a little dependency"
+local lfs_test = function(m)
+    return function(i)
+        local attrib = lfs.attributes(i)
+        if attrib and attrib.mode == m then
+            return true
+        end
+    end
+end
+local isFile = lfs_test"file"
+local isDir = lfs_test"directory"
 local template = function(s, v) return (string.gsub(s, "%${[%s]-([^}%G]+)[%s]-}", v)) end
 local popen = function(str)
     local pipe = io.popen(str, "r")
@@ -34,14 +44,8 @@ local popen = function(str)
         fmt.panic"Exiting.\n"
     end
 end
-local test = function(m, i)
-    local attrib = lfs.attributes(i)
-    if attrib and attrib.mode == m then
-        return true
-    end
-end
 local ENV = {}
-if test("file", "rr.lua") then
+if isFile"rr.lua" then
     local source = file.read_all("rr.lua")
     local chunk, err = loadstring(source)
     if chunk then
@@ -62,14 +66,14 @@ if test("file", "rr.lua") then
 end
 
 -- Main
-if not test("directory", group) then
+if not isDir(group) then
     msg.fatal(sf("Unable to find script group '%s'.", group))
     fmt.panic"Exiting.\n"
 end
 local script = {}
 for l in lfs.dir("lib") do
     local libsh = "lib/"..l
-    if test("file", libsh) then
+    if isFile(libsh) then
         if next(ENV) then
             script[#script+1] = template(file.read_all(libsh, ENV))
         else
@@ -78,10 +82,10 @@ for l in lfs.dir("lib") do
     end
 end
 local tlib = group.."/lib"
-if test("directory", tlib) then
+if isDir(tlib) then
     for l in lfs.dir(tlib) do
         local libsh = tlib.."/"..l
-        if test("file", libsh) then
+        if isFile(libsh) then
             if next(ENV) then
                 script[#script+1] = template(file.read_all(libsh, ENV))
             else
@@ -113,7 +117,7 @@ if host == "local" or host == "localhost" then
     ]]
     local dirs = { "files", "files-local", "files-localhost", group.."/files", group.."/files-local", group.."/files-localhost" }
     for _, d in ipairs(dirs) do
-        if test("directory", d) then
+        if isDir(d) then
             popen(sf(tar, d))
         end
     end
@@ -137,7 +141,7 @@ else
     end
     local dirs = { "files", "files-"..host, group.."/files", group.."/files-"..host }
     for _, d in ipairs(dirs) do
-        if test("directory", d) then
+        if isDir(d) then
             copy(host, d)
         end
     end
