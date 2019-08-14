@@ -128,16 +128,19 @@ else
         msg.fatal "Host does not exist."
         fmt.panic "Exiting.\n"
     end
-    local copy = function(shost, dir)
-        local sftp = exec.ctx"/usr/bin/sftp"
-        sftp.stdin = sf("lcd %s\ncd /\nput -rP .\n bye\n", dir)
-        sftp.env = { LC_ALL="C" }
-        sftp.errexit = true
-        msg.debug(sf("Copying %s to '%s'", dir, shost))
-        sftp("-C", "-b", "/dev/fd/0", shost)
+    local copy = function(shost)
+        return function(dir)
+            local sftp = exec.ctx"/usr/bin/sftp"
+            sftp.stdin = sf("lcd %s\ncd /\nput -rP .\n bye\n", dir)
+            sftp.env = { LC_ALL="C" }
+            sftp.errexit = true
+            msg.debug(sf("Copying %s to '%s'", dir, shost))
+            sftp("-C", "-b", "/dev/fd/0", shost)
+        end
     end
+    local toHost = copy(host)
     for _, d in ipairs{ "files", "files-"..host, group.."/files", group.."/files-"..host } do
-        if isDir(d) then copy(host, d) end
+        if isDir(d) then toHost(d) end
     end
     ssh.errexit = true
     ssh.stdin = tc(script, "\n")
