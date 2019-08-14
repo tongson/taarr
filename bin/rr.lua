@@ -139,11 +139,8 @@ else
         msg.debug(sf("Copying %s to '%s'", dir, shost))
         sftp("-C", "-b", "/dev/fd/0", shost)
     end
-    local dirs = { "files", "files-"..host, group.."/files", group.."/files-"..host }
-    for _, d in ipairs(dirs) do
-        if isDir(d) then
-            copy(host, d)
-        end
+    for _, d in ipairs{ "files", "files-"..host, group.."/files", group.."/files-"..host } do
+        if isDir(d) then copy(host, d) end
     end
     ssh.errexit = true
     ssh.stdin = tc(script, "\n")
