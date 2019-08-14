@@ -115,11 +115,8 @@ if host == "local" or host == "localhost" then
         PATH=/bin:/usr/bin
         tar -C %s -cpf - . | tar -C / -xpf -
     ]]
-    local dirs = { "files", "files-local", "files-localhost", group.."/files", group.."/files-local", group.."/files-localhost" }
-    for _, d in ipairs(dirs) do
-        if isDir(d) then
-            popen(sf(tar, d))
-        end
+    for _, d in ipairs{ "files", "files-local", "files-localhost", group.."/files", group.."/files-local", group.."/files-localhost" } do
+        if isDir(d) then popen(sf(tar, d)) end
     end
     popen(tc(script, "\n"))
 else
