@@ -1,6 +1,9 @@
+-- Constants
+local SRC = "rr.lua"
+
 -- Includes
 local lib = require"lib"
-local msg, file, fmt = lib.msg, lib.file, lib.fmt
+local msg, file, fmt, str = lib.msg, lib.file, lib.fmt, lib.str
 local table, io, string = table, io, string
 local exec = require"exec"
 local lfs = require"lfs"
@@ -27,11 +30,9 @@ local lfs_test = function(m)
         end
     end
 end
-local isFile = lfs_test"file"
-local isDir = lfs_test"directory"
 local template = function(s, v) return (string.gsub(s, "%${[%s]-([^}%G]+)[%s]-}", v)) end
-local popen = function(str)
-    local pipe = io.popen(str, "r")
+local popen = function(s)
+    local pipe = io.popen(s, "r")
     io.flush(pipe)
     local output = {}
     for ln in pipe:lines() do
@@ -44,28 +45,38 @@ local popen = function(str)
         fmt.panic"Exiting.\n"
     end
 end
-local ENV = {}
-if isFile"rr.lua" then
-    local source = file.read_all("rr.lua")
-    local chunk, err = loadstring(source)
-    if chunk then
-        setfenv(chunk, ENV)
-        chunk()
-    else
-        local tbl = {}
-        local src = io.open("rr.lua")
-        for ln in src:lines() do
-            tbl[#tbl + 1] = ln
+
+local lua_parse = function(f)
+    local source = file.read_all(f)
+    return function(e)
+        local chunk, err = loadstring(source)
+        if chunk then
+            setfenv(chunk, e)
+            chunk()
+            return true
+        else
+            local tbl = str.to_table(source)
+            local ln = string.match(err, "^.+:([%d]+):%s.*")
+            local sp = string.rep(" ", string.len(ln))
+            local lerr = string.match(err, "^.+:[%d]+:%s(.*)")
+            return fmt.panic("error: %s\n%s |\n%s | %s\n%s |\n", lerr, sp, ln, tbl[tonumber(ln)], sp)
         end
-        local ln = string.match(err, "^.+:([%d]+):%s.*")
-        local sp = string.rep(" ", string.len(ln))
-        local lerr = string.match(err, "^.+:[%d]+:%s(.*)")
-        msg.fatal"Problem parsing rr.lua."
-        return fmt.panic("error: %s\n%s |\n%s | %s\n%s |\n", lerr, sp, ln, tbl[tonumber(ln)], sp)
     end
 end
 
 -- Main
+local isFile = lfs_test"file"
+local isDir = lfs_test"directory"
+local env = {}
+
+if isFile(SRC) then
+    msg.debug(sf("%s found. Parsing.", SRC))
+    local runLua = lua_parse(SRC)
+    runLua(env)
+else
+    msg.debug(sf("%s not found. Skipping.", SRC))
+end
+
 if not isDir(group) then
     msg.fatal(sf("Unable to find script group '%s'.", group))
     fmt.panic"Exiting.\n"
@@ -74,8 +85,8 @@ local script = {}
 for l in lfs.dir("lib") do
     local libsh = "lib/"..l
     if isFile(libsh) then
-        if next(ENV) then
-            script[#script+1] = template(file.read_all(libsh, ENV))
+        if next(env) then
+            script[#script+1] = template(file.read_all(libsh, env))
         else
             script[#script+1] = file.read_all(libsh)
         end
@@ -86,8 +97,8 @@ if isDir(tlib) then
     for l in lfs.dir(tlib) do
         local libsh = tlib.."/"..l
         if isFile(libsh) then
-            if next(ENV) then
-                script[#script+1] = template(file.read_all(libsh, ENV))
+            if next(env) then
+                script[#script+1] = template(file.read_all(libsh, env))
             else
                 script[#script+1] = file.read_all(libsh)
             end
@@ -98,8 +109,8 @@ local pargs = args.pargs or ""
 script[#script+1] = "set -- "..(tc(pargs, " "))
 local main = file.read_all(group.."/"..command)
 if main then
-    if next(ENV) then
-        script[#script+1] = template(file.read_all(group.."/"..command), ENV)
+    if next(env) then
+        script[#script+1] = template(file.read_all(group.."/"..command), env)
     else
         script[#script+1] = file.read_all(group.."/"..command)
     end
