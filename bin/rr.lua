@@ -1,6 +1,3 @@
--- Constants
-local SRC = "rr.lua"
-
 -- Includes
 local lib = require"lib"
 local msg, file, fmt, str = lib.msg, lib.file, lib.fmt, lib.str
@@ -67,14 +64,16 @@ end
 -- Main
 local isFile = lfs_test"file"
 local isDir = lfs_test"directory"
-local env = {}
 
-if isFile(SRC) then
-    msg.debug(sf("%s found. Parsing.", SRC))
-    local runLua = lua_parse(SRC)
-    runLua(env)
-else
-    msg.debug(sf("%s not found. Skipping.", SRC))
+local env = {}
+for _, f in ipairs{ "vars", "vars-"..host, group.."/vars", group.."/vars-"..host } do
+    if isFile(f) then
+        msg.debug(sf("%s found. Parsing.", f))
+        local runLua = lua_parse(f)
+        runLua(env)
+    else
+        msg.debug(sf("%s not found. Skipping.", SRC))
+    end
 end
 
 if not isDir(group) then
