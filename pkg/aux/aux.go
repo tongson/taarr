@@ -75,7 +75,7 @@ func PathWalker(sh *strings.Builder) func(string, os.FileInfo, error) error {
 			if err != nil {
 				log.Panic(err)
 			}
-			sh.WriteString(string(str))
+			sh.WriteString(string(str)) // length of string and nil err ignored
 		}
 		return nil
 	}
