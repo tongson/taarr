@@ -23,6 +23,7 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 }
 
 func main() {
+	defer aux.RecoverPanic()
 	log.SetFlags(0)
 	if os.Getenv("RR_LOUD") == "1" {
 		log.SetOutput(new(logWriter))
@@ -37,40 +38,31 @@ func main() {
 	var sh strings.Builder
 
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Missing arguments. Exiting.")
-		os.Exit(1)
+		aux.Panic("Missing arguments. Exiting.")
 	}
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "`module:script` not specified. Exiting.")
-		os.Exit(1)
+		aux.Panic("`module:script` not specified. Exiting.")
 	}
 	hostname := os.Args[1]
 	s := strings.Split(os.Args[2], ":")
 	if len(s) < 2 {
-		fmt.Fprintln(os.Stderr, "`module:script` not specified. Exiting.")
-		os.Exit(1)
+		aux.Panic("`module:script` not specified. Exiting.")
 	}
 	module, script := s[0], s[1]
 	if !isDir(module) {
-		fmt.Fprintf(os.Stderr, "`%s`(module) is not a directory. Exiting.", module)
-		os.Exit(1)
+		aux.Panic(fmt.Sprintf("`%s`(module) is not a directory. Exiting.", module))
 	}
 	if !isFile(fmt.Sprintf("%s/%s", module, script)) {
-		fmt.Fprintf(os.Stderr, "`%s`(script) is not a file. Exiting.", script)
-		os.Exit(1)
+		aux.Panic(fmt.Sprintf("`%s`(script) is not a file. Exiting.", script))
 	}
 	arguments := os.Args[3:]
 
 	fnwalk := aux.PathWalker(&sh)
 	err = filepath.Walk("lib", fnwalk)
-	if err != nil {
-		log.Fatal(err)
-	}
+	aux.Assert(err, "filepath.Walk(\"lib\")")
 	if isDir(module + "/lib") {
 		err = filepath.Walk(module+"/lib", fnwalk)
-		if err != nil {
-			log.Fatal(err)
-		}
+		aux.Assert(err, "filepath.Walk(module+\"lib\")")
 	}
 	arguments = aux.InsertStr(arguments, "set --", 0)
 	sh.WriteString(strings.Join(arguments, " "))
