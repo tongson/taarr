@@ -82,6 +82,7 @@ func PathWalker(sh *strings.Builder) func(string, os.FileInfo, error) error {
 }
 
 func FileRead(path string) string {
+        isFile := StatPath("file")
         if isFile(path) {
             file, err := os.Open(path)
             if err != nil {
