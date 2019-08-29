@@ -2,6 +2,7 @@ package aux
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -14,6 +15,11 @@ type RunArgs struct {
 	Args  []string
 	Env   []string
 	Input []byte
+}
+
+type panicT struct {
+	msg  string
+	code int
 }
 
 func RunCmd(r RunArgs) (bool, string, string) {
@@ -104,4 +110,23 @@ func InsertStr(a []string, b string, i int) []string {
 	copy(a[i+1:], a[i:]) // number of elements copied ignored
 	a[i] = b
 	return a
+}
+
+func RecoverPanic() {
+	if rec := recover(); rec != nil {
+		err := rec.(panicT)
+		fmt.Fprintln(os.Stderr, err.msg)
+		os.Exit(err.code)
+	}
+}
+
+func Assert(e error, s string) {
+	if e != nil {
+		strerr := strings.Replace(e.Error(), "\n", "\n | ", -1)
+		panic(panicT{msg: fmt.Sprintf("assertion failed: %s\n | \n | %s\n | ", s, strerr), code: 255})
+	}
+}
+
+func Panic(s string) {
+	panic(panicT{msg: fmt.Sprintf("fatal error: %s", s), code: 1})
 }
