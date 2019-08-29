@@ -120,12 +120,6 @@ func RecoverPanic() {
 	}
 }
 
-func Pipestr(s string) string {
-	str := strings.Replace(s, "\n", "\n | ", -1)
-	str = " | \n | " + str
-	return str + "\n | "
-}
-
 func Assert(e error, s string) {
 	if e != nil {
 		strerr := strings.Replace(e.Error(), "\n", "\n | ", -1)
@@ -139,4 +133,10 @@ func Panic(s string) {
 
 func Panicf(f string, a ...interface{}) {
 	panic(panicT{msg: fmt.Sprintf("fatal error: "+f, a...), code: 1})
+}
+
+func Pipestr(s string) string {
+	str := strings.Replace(s, "\n", "\n | ", -1)
+	str = " | \n | " + str
+	return str + "\n | "
 }
