@@ -50,10 +50,10 @@ func main() {
 	}
 	module, script := s[0], s[1]
 	if !isDir(module) {
-		aux.Panic(fmt.Sprintf("`%s`(module) is not a directory. Exiting.", module))
+		aux.Panicf("`%s`(module) is not a directory. Exiting.", module)
 	}
 	if !isFile(fmt.Sprintf("%s/%s", module, script)) {
-		aux.Panic(fmt.Sprintf("`%s`(script) is not a file. Exiting.", script))
+		aux.Panicf("`%s`(script) is not a file. Exiting.", script)
 	}
 	arguments := os.Args[3:]
 
@@ -83,14 +83,14 @@ func main() {
 				rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := aux.RunCmd(rargs)
 				if !ret {
-					log.Fatalf("\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
+					aux.Panicf("Failure copying files!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
 				}
 			}
 		}
 		rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		ret, stdout, stderr := aux.RunCmd(rargs)
 		if !ret {
-			log.Fatalf("Failed:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
+			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
 		} else {
 			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
 		}
@@ -101,12 +101,12 @@ func main() {
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
 			if hostname != sshhost[0] {
-				log.Fatalf("hostname %s does not match remote host. Exiting.", hostname)
+				aux.Panicf("hostname %s does not match remote host. Exiting.", hostname)
 			} else {
 				log.Printf("Remote host is %s\n", sshhost[0])
 			}
 		} else {
-			log.Fatalf("%s does not exist or unreachable. Exiting.", hostname)
+			aux.Panicf("%s does not exist or unreachable. Exiting.", hostname)
 		}
 		for _, d := range []string{"files", "files-local", "files-localhost", module + "/files", module + "/files-local", module + "/files-localhost"} {
 			if isDir(d) {
@@ -115,7 +115,7 @@ func main() {
 				sftpa := aux.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", "/dev/fd/0", hostname}, Env: sshenv, Input: sftpc}
 				ret, _, _ := aux.RunCmd(sftpa)
 				if !ret {
-					log.Fatal("Running sftp failed. Exiting.")
+					aux.Panic("Running sftp failed. Exiting.")
 				}
 			}
 		}
@@ -123,7 +123,7 @@ func main() {
 		sshb := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-P", "-x", "-C", hostname}, Env: sshenv, Input: []byte(modscript)}
 		ret, stdout, stderr := aux.RunCmd(sshb)
 		if !ret {
-			log.Fatalf("Failed:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
+			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
 		} else {
 			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
 
