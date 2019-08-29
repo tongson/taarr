@@ -101,7 +101,7 @@ func FileRead(path string) string {
 
 func InsertStr(a []string, b string, i int) []string {
 	a = append(a, "")
-	copy(a[i+1:], a[i:])
+        copy(a[i+1:], a[i:]) // number of elements copied ignored
 	a[i] = b
 	return a
 }
