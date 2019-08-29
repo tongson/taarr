@@ -27,7 +27,8 @@ vet:
 
 fmt:
 	@echo "$(BLUE)$(TIME)$(GREEN) + go fmt $(RESET)"
-	@go fmt ./...
+	@go fmt cmd/rr/main.go
+	@go fmt pkg/aux/aux.go
 
 build: fmt vet errcheck
 	@go mod tidy
