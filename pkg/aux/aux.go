@@ -1,29 +1,29 @@
 package aux
 
 import (
-        "bytes"
-        "os"
-        "os/exec"
-        "strings"
-        "io/ioutil"
-        "log"
+	"bytes"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
 )
 
 type RunArgs struct {
-        Exe   string
-        Args  []string
-        Env   []string
-        Input []byte
+	Exe   string
+	Args  []string
+	Env   []string
+	Input []byte
 }
 
 func RunCmd(r RunArgs) (bool, string, string) {
 	ret := true
 	cmd := exec.Command(r.Exe, r.Args...)
 	if r.Env != nil || len(r.Env) > 0 {
-            cmd.Env = append(os.Environ(), r.Env...)
+		cmd.Env = append(os.Environ(), r.Env...)
 	}
 	if r.Input != nil || len(r.Input) > 0 {
-            cmd.Stdin = bytes.NewBuffer(r.Input)
+		cmd.Stdin = bytes.NewBuffer(r.Input)
 	}
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -82,26 +82,26 @@ func PathWalker(sh *strings.Builder) func(string, os.FileInfo, error) error {
 }
 
 func FileRead(path string) string {
-        isFile := StatPath("file")
-        if isFile(path) {
-            file, err := os.Open(path)
-            if err != nil {
-                    log.Panic(err)
-            }
-            defer file.Close()
-            str, err := ioutil.ReadAll(file)
-            if err != nil {
-                    log.Panic(err)
-            }
-            return string(str)
-        } else {
-            return  ""
-        }
+	isFile := StatPath("file")
+	if isFile(path) {
+		file, err := os.Open(path)
+		if err != nil {
+			log.Panic(err)
+		}
+		defer file.Close()
+		str, err := ioutil.ReadAll(file)
+		if err != nil {
+			log.Panic(err)
+		}
+		return string(str)
+	} else {
+		return ""
+	}
 }
 
 func InsertStr(a []string, b string, i int) []string {
 	a = append(a, "")
-        copy(a[i+1:], a[i:]) // number of elements copied ignored
+	copy(a[i+1:], a[i:]) // number of elements copied ignored
 	a[i] = b
 	return a
 }
