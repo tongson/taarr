@@ -82,16 +82,20 @@ func PathWalker(sh *strings.Builder) func(string, os.FileInfo, error) error {
 }
 
 func FileRead(path string) string {
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	str, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return string(str)
+        if isFile(path) {
+            file, err := os.Open(path)
+            if err != nil {
+                    log.Panic(err)
+            }
+            defer file.Close()
+            str, err := ioutil.ReadAll(file)
+            if err != nil {
+                    log.Panic(err)
+            }
+            return string(str)
+        } else {
+            return  ""
+        }
 }
 
 func InsertStr(a []string, b string, i int) []string {
