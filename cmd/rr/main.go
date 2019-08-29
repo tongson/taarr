@@ -37,22 +37,27 @@ func main() {
 	var sh strings.Builder
 
 	if len(os.Args) < 2 {
-		log.Fatal("Missing arguments. Exiting.")
+		fmt.Fprintf(os.Stderr, "Missing arguments. Exiting.")
+		os.Exit(1)
 	}
 	if len(os.Args) < 3 {
-		log.Fatal("`module:script` not specified. Exiting.")
+		fmt.Fprintf(os.Stderr, "`module:script` not specified. Exiting.")
+		os.Exit(1)
 	}
 	hostname := os.Args[1]
 	s := strings.Split(os.Args[2], ":")
 	if len(s) < 2 {
-		log.Fatal("`module:script` not specified. Exiting.")
+		fmt.Fprintln(os.Stderr, "`module:script` not specified. Exiting.")
+		os.Exit(1)
 	}
 	module, script := s[0], s[1]
 	if !isDir(module) {
-		log.Fatalf("`%s`(module) is not a directory. Exiting.", module)
+		fmt.Fprintf(os.Stderr, "`%s`(module) is not a directory. Exiting.", module)
+		os.Exit(1)
 	}
 	if !isFile(fmt.Sprintf("%s/%s", module, script)) {
-		log.Fatalf("`%s`(script) is not a file. Exiting.", script)
+		fmt.Fprintf(os.Stderr, "`%s`(script) is not a file. Exiting.", script)
+		os.Exit(1)
 	}
 	arguments := os.Args[3:]
 
