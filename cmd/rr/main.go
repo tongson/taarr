@@ -25,10 +25,13 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 func main() {
 	defer aux.RecoverPanic()
 	log.SetFlags(0)
-	if os.Getenv("RR_LOUD") == "1" {
+	call := os.Args[0]
+	if len(call) < 3 || call[len(call)-2:] == "rr" {
+		log.SetOutput(ioutil.Discard)
+	} else if call[len(call)-3:] == "rrv" {
 		log.SetOutput(new(logWriter))
 	} else {
-		log.SetOutput(ioutil.Discard)
+		aux.Bug("unhandled os.Args[0] length.")
 	}
 	log.Printf("rr %s %s", versionNumber, codeName)
 
