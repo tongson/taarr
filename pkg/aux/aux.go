@@ -127,6 +127,10 @@ func Assert(e error, s string) {
 	}
 }
 
+func Bug(s string) {
+	panic(panicT{msg: fmt.Sprintf("bug: %s", s), code: 255})
+}
+
 func Panic(s string) {
 	panic(panicT{msg: fmt.Sprintf("fatal error: %s", s), code: 1})
 }
