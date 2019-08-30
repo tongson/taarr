@@ -92,7 +92,7 @@ func main() {
 		if !ret {
 			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s", aux.Pipestr(stdout), aux.Pipestr(stderr))
 		} else {
-			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
+			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 		}
 	} else {
 		sshenv := []string{"LC_ALL=C"}
@@ -125,7 +125,7 @@ func main() {
 		if !ret {
 			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 		} else {
-			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", stdout, stderr)
+			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 
 		}
 	}
