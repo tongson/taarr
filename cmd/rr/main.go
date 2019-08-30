@@ -31,7 +31,7 @@ func main() {
 	} else if call[len(call)-3:] == "rrv" {
 		log.SetOutput(new(logWriter))
 	} else {
-		aux.Bug("unhandled os.Args[0] length.")
+		aux.Bug("unhandled os.Args[0] length or value.")
 	}
 	log.Printf("rr %s %s", versionNumber, codeName)
 
