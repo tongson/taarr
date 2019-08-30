@@ -87,7 +87,7 @@ func main() {
 				}
 			}
 		}
-		rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
+		rargs := aux.RunArgs{Exe: "bash", Args: []string{"-c", modscript}}
 		ret, stdout, stderr := aux.RunCmd(rargs)
 		if !ret {
 			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s", aux.Pipestr(stdout), aux.Pipestr(stderr))
