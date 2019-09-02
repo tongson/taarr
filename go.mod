@@ -1,4 +1,4 @@
-module grr
+module rr
 
 replace aux v0.0.0 => ./pkg/aux
 
