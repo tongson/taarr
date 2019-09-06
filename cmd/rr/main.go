@@ -61,11 +61,13 @@ func main() {
 	arguments := os.Args[3:]
 
 	fnwalk := aux.PathWalker(&sh)
-	err = filepath.Walk("lib", fnwalk)
-	aux.Assert(err, "filepath.Walk(\"lib\")")
-	if isDir(module + "/lib") {
-		err = filepath.Walk(module+"/lib", fnwalk)
-		aux.Assert(err, "filepath.Walk(module+\"lib\")")
+	if isDir(".lib") {
+		err = filepath.Walk(".lib", fnwalk)
+		aux.Assert(err, "filepath.Walk(\".lib\")")
+		if isDir(module + "/.lib") {
+			err = filepath.Walk(module+"/.lib", fnwalk)
+			aux.Assert(err, "filepath.Walk(module+\".lib\")")
+		}
 	}
 	arguments = aux.InsertStr(arguments, "set --", 0)
 	sh.WriteString(strings.Join(arguments, " "))
@@ -81,7 +83,7 @@ func main() {
                 PATH=/bin:/usr/bin
                 tar -C %s -cpf - . | tar -C / -xpf -
                 `
-		for _, d := range []string{"files", "files-local", "files-localhost", module + "/files", module + "/files-local", module + "/files-localhost"} {
+		for _, d := range []string{".files", ".files-local", ".files-localhost", module + "/.files", module + "/.files-local", module + "/.files-localhost"} {
 			if isDir(d) {
 				rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := aux.RunCmd(rargs)
@@ -111,7 +113,7 @@ func main() {
 		} else {
 			aux.Panicf("%s does not exist or unreachable. Exiting.", hostname)
 		}
-		for _, d := range []string{"files", "files-" + hostname, module + "/files", module + "/files-" + hostname} {
+		for _, d := range []string{".files", ".files-" + hostname, module + "/.files", module + "/.files-" + hostname} {
 			if isDir(d) {
 				log.Printf("Copying %s to %s...", d, hostname)
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -rP .\n bye\n", d))
