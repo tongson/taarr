@@ -30,7 +30,7 @@ In the source tree, the *TUTORIAL* directory contains a hierarchy that persisten
 
 Steps that `rr` performs:
 
-1. Copy via sftp `files-avocado/` to `avocado:/`
+1. Copy via sftp `.files-avocado/` to `avocado:/`
 2. Generates the script:
 
 ```
@@ -55,13 +55,13 @@ sysctl --system
 ### Hierarchy
 
     TOPLEVEL
-    ├── files                          <--- synced to any host
-    ├── files-avocado                  <--- synced to the avocado host
-    ├── lib                            <--- sourced by all scripts
+    ├── .files                          <--- synced to any host
+    ├── .files-avocado                  <--- synced to the avocado host
+    ├── .lib                            <--- sourced by all scripts
     └── group 
-        ├── files                      <--- synced to any host when group:* is called
-        ├── files-avocado              <--- synced to the avocado host then group:* is called
-        ├── lib                        <--- sourced along with group:* scripts
+        ├── .files                      <--- synced to any host when group:* is called
+        ├── .files-avocado              <--- synced to the avocado host then group:* is called
+        ├── .lib                        <--- sourced along with group:* scripts
         └── script
 
 ### Notes
