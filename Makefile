@@ -2,8 +2,7 @@
 .SILENT:
 .SHELL := /usr/bin/env bash
 .PHONY: staticcheck errcheck fmt build test clean
-SRC= "cmd/..."
-SRC+= " aux/..."
+SRC= "rr/... aux/..."
 BOLD=$(shell tput bold)
 RED=$(shell tput setaf 1)
 GREEN=$(shell tput setaf 2)
