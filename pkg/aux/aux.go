@@ -39,7 +39,7 @@ func RunCmd(r RunArgs) (bool, string, string) {
 	if err != nil {
 		ret = false
 	}
-	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+	outStr, errStr := stdout.String(), stderr.String()
 	return ret, outStr, errStr
 }
 
