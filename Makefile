@@ -1,7 +1,9 @@
 .ONESHELL:
 .SILENT:
 .SHELL := /usr/bin/env bash
-.PHONY: errcheck vet fmt build test clean
+.PHONY: staticcheck errcheck fmt build test clean
+SRC= "cmd/..."
+SRC+= " aux/..."
 BOLD=$(shell tput bold)
 RED=$(shell tput setaf 1)
 GREEN=$(shell tput setaf 2)
@@ -14,29 +16,31 @@ TIME=$(shell date "+%Y-%m-%d %H:%M:%S")
 all: build test
 
 setup:
-	@go get -u "github.com/kisielk/errcheck"
-	@zypper --non-interactive install --no-recommends install upx
-
-errcheck:
-	@echo "$(BLUE)$(TIME)$(GREEN) + errcheck $(RESET)"
-	@~/go/bin/errcheck ./...
-
-vet:
-	@echo "$(BLUE)$(TIME)$(GREEN) + go vet $(RESET)"
-	@go vet ./...
+	mkdir -p bin
+	test -x /usr/bin/upx || zypper --non-interactive install --no-recommends install upx
+	cd tools
+	GO111MODULE=on go build -o ../bin/golint golang.org/x/lint/golint
+	GO111MODULE=on go build -o ../bin/staticcheck honnef.co/go/tools/cmd/staticcheck
+	GO111MODULE=on go build -o ../bin/errcheck github.com/kisielk/errcheck
 
 fmt:
 	@echo "$(BLUE)$(TIME)$(GREEN) + go fmt $(RESET)"
 	@go fmt cmd/rr/main.go
 	@go fmt pkg/aux/aux.go
 
-build: fmt vet errcheck
+errcheck:
+	@echo "$(BLUE)$(TIME)$(GREEN) + errcheck $(RESET)"
+	bin/errcheck "$(SRC)"
+
+staticcheck:
+	@echo "$(BLUE)$(TIME)$(GREEN) + staticheck $(RESET)"
+	bin/staticcheck "$(SRC)" 
+
+build: fmt errcheck staticcheck
 	@go mod tidy
 	@echo "$(BLUE)$(TIME)$(GREEN) + BUILD START$(RESET)"
-	@mkdir -p bin/
-	#@go build ./cmd/rr 
-	@/usr/bin/env GOOS=linux go build -ldflags="-s -w" ./...
-	@mv rr bin/rr
+	@mkdir -p bin
+	@/usr/bin/env GOOS=linux go build -o bin/rr -ldflags="-s -w" ./...
 	@echo "$(BLUE)$(TIME)$(CYAN) ! BUILD DONE $(RESET)"
 
 release: build
@@ -54,7 +58,7 @@ test:
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . arguments handling 3$(RESET)"
 	../bin/rr local test:args3 -v
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . untar files $(RESET)"
-	../bin/rr local test:_files
+	../bin/rr local test:files
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . failure conditioin $(RESET)"
 	../bin/rr local test:fail || true
 	@echo "$(BLUE)$(TIME)$(CYAN) ! TEST DONE $(RESET)"
