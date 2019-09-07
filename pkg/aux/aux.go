@@ -76,7 +76,12 @@ func PathWalker(sh *strings.Builder) func(string, os.FileInfo, error) error {
 			if err != nil {
 				log.Panic(err)
 			}
-			defer file.Close()
+			defer func() {
+				err := file.Close()
+				if err != nil {
+					log.Panic(err)
+				}
+			}()
 			str, err := ioutil.ReadAll(file)
 			if err != nil {
 				log.Panic(err)
@@ -94,7 +99,12 @@ func FileRead(path string) string {
 		if err != nil {
 			log.Panic(err)
 		}
-		defer file.Close()
+		defer func() {
+			err := file.Close()
+			if err != nil {
+				log.Panic(err)
+			}
+		}()
 		str, err := ioutil.ReadAll(file)
 		if err != nil {
 			log.Panic(err)
