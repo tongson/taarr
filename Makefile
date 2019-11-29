@@ -2,7 +2,7 @@
 .SILENT:
 .SHELL := /usr/bin/env bash
 .PHONY: staticcheck errcheck fmt build test clean
-SRC= "rr/... aux/..."
+SRC= "cmd/rr/... pkg/aux/..."
 BOLD=$(shell tput bold)
 RED=$(shell tput setaf 1)
 GREEN=$(shell tput setaf 2)
@@ -35,11 +35,19 @@ staticcheck:
 	@echo "$(BLUE)$(TIME)$(GREEN) + staticheck $(RESET)"
 	bin/staticcheck "$(SRC)" 
 
-build: fmt errcheck staticcheck
+lint:
+	@echo "$(BLUE)$(TIME)$(GREEN) + golint $(RESET)"
+	bin/golint "cmd/rr/main.go"
+
+check: errcheck staticcheck lint
+	@echo "$(BLUE)$(TIME)$(GREEN) + CHECK DONE$(RESET)"
+
+build: fmt
 	@go mod tidy
 	@echo "$(BLUE)$(TIME)$(GREEN) + BUILD START$(RESET)"
 	@mkdir -p bin
-	@/usr/bin/env GOOS=linux go build -o bin/rr -ldflags="-s -w" ./...
+	#@/usr/bin/env GOOS=linux go build -o bin/rr -ldflags="-s -w" ./...
+	@/usr/bin/env GOOS=linux CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w -extldflags "-static"' ./cmd/rr
 	@echo "$(BLUE)$(TIME)$(CYAN) ! BUILD DONE $(RESET)"
 
 release: build
