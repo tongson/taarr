@@ -3,6 +3,7 @@ package aux
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -13,6 +14,7 @@ import (
 type RunArgs struct {
 	Exe   string
 	Args  []string
+	Dir   string
 	Env   []string
 	Input []byte
 }
@@ -25,6 +27,9 @@ type panicT struct {
 func RunCmd(r RunArgs) (bool, string, string) {
 	ret := true
 	cmd := exec.Command(r.Exe, r.Args...)
+	if len(r.Dir) > 0 {
+		cmd.Dir = r.Dir
+	}
 	if r.Env != nil || len(r.Env) > 0 {
 		cmd.Env = append(os.Environ(), r.Env...)
 	}
@@ -153,4 +158,21 @@ func Pipestr(s string) string {
 	str := strings.Replace(s, "\n", "\n | ", -1)
 	str = " | \n | " + str
 	return str + "\n | "
+}
+
+func StringToFile(filepath, s string) error {
+	fo, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = fo.Close()
+	}()
+
+	_, err = io.Copy(fo, strings.NewReader(s))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
