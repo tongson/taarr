@@ -89,14 +89,14 @@ func main() {
 		for _, d := range []string{".files", ".files-local", ".files-localhost", module + "/.files", module + "/.files-local", module + "/.files-localhost"} {
 			if isDir(d) {
 				rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
-				ret, stdout, stderr := aux.RunCmd(rargs)
+				ret, stdout, stderr := rargs.Run()
 				if !ret {
 					aux.Panicf("Failure copying files!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 				}
 			}
 		}
 		rargs := aux.RunArgs{Exe: "bash", Args: []string{"-c", modscript}}
-		ret, stdout, stderr := aux.RunCmd(rargs)
+		ret, stdout, stderr := rargs.Run()
 		if !ret {
 			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s", aux.Pipestr(stdout), aux.Pipestr(stderr))
 		} else {
@@ -105,7 +105,7 @@ func main() {
 	} else {
 		sshenv := []string{"LC_ALL=C"}
 		ssha := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-P", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
-		ret, stdout, _ := aux.RunCmd(ssha)
+		ret, stdout, _ := ssha.Run()
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
 			if hostname != sshhost[0] {
@@ -121,7 +121,7 @@ func main() {
 				log.Printf("Copying %s to %s...", d, hostname)
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -rP .\n bye\n", d))
 				sftpa := aux.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", "/dev/fd/0", hostname}, Env: sshenv, Input: sftpc}
-				ret, _, _ := aux.RunCmd(sftpa)
+				ret, _, _ := sftpa.Run()
 				if !ret {
 					aux.Panic("Running sftp failed. Exiting.")
 				}
@@ -129,7 +129,7 @@ func main() {
 		}
 		log.Println("Running script...")
 		sshb := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-P", "-x", "-C", hostname}, Env: sshenv, Input: []byte(modscript)}
-		ret, stdout, stderr := aux.RunCmd(sshb)
+		ret, stdout, stderr := sshb.Run()
 		if !ret {
 			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 		} else {
