@@ -24,7 +24,7 @@ type panicT struct {
 	code int
 }
 
-func RunCmd(r RunArgs) (bool, string, string) {
+func (r RunArgs) Run() (bool, string, string) {
 	ret := true
 	cmd := exec.Command(r.Exe, r.Args...)
 	if len(r.Dir) > 0 {
