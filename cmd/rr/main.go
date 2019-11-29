@@ -47,7 +47,10 @@ func main() {
 		aux.Panic("`module:script` not specified. Exiting.")
 	}
 	hostname := os.Args[1]
-	s := strings.Split(os.Args[2], ":")
+	s := strings.Split(os.Args[2], "/")
+	if len(s) < 2 {
+		s = strings.Split(os.Args[2], ":")
+	}
 	if len(s) < 2 {
 		aux.Panic("`module:script` not specified. Exiting.")
 	}

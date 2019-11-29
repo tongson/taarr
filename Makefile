@@ -60,6 +60,17 @@ test:
 	../bin/rr local test:files
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . failure conditioin $(RESET)"
 	../bin/rr local test:fail || true
+	@echo "$(BLUE)$(TIME)$(MAGENTA) . arguments handling 1$(RESET)"
+	../bin/rr local test/args1 --one --two --three
+	@echo "$(BLUE)$(TIME)$(MAGENTA) . arguments handling 2$(RESET)"
+	../bin/rr local test/args2 one 1
+	@echo "$(BLUE)$(TIME)$(MAGENTA) . arguments handling 3$(RESET)"
+	../bin/rr local test/args3 -v
+	@echo "$(BLUE)$(TIME)$(MAGENTA) . untar files $(RESET)"
+	../bin/rr local test/files
+	@echo "$(BLUE)$(TIME)$(MAGENTA) . failure conditioin $(RESET)"
+	../bin/rr local test:fail || true
+
 	@echo "$(BLUE)$(TIME)$(CYAN) ! TEST DONE $(RESET)"
 
 clean:
