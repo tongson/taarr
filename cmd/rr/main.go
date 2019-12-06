@@ -44,7 +44,7 @@ func main() {
 		aux.Panic("Missing arguments. Exiting.")
 	}
 	if len(os.Args) < 3 {
-		aux.Panic("`module:script` not specified. Exiting.")
+		aux.Panic("`namespace:script` not specified. Exiting.")
 	}
 	hostname := os.Args[1]
 	s := strings.Split(os.Args[2], "/")
@@ -52,13 +52,13 @@ func main() {
 		s = strings.Split(os.Args[2], ":")
 	}
 	if len(s) < 2 {
-		aux.Panic("`module:script` not specified. Exiting.")
+		aux.Panic("`namespace:script` not specified. Exiting.")
 	}
-	module, script := s[0], s[1]
-	if !isDir(module) {
-		aux.Panicf("`%s`(module) is not a directory. Exiting.", module)
+	namespace, script := s[0], s[1]
+	if !isDir(namespace) {
+		aux.Panicf("`%s`(namespace) is not a directory. Exiting.", namespace)
 	}
-	if !isFile(fmt.Sprintf("%s/%s", module, script)) {
+	if !isFile(fmt.Sprintf("%s/%s", namespace, script)) {
 		aux.Panicf("`%s`(script) is not a file. Exiting.", script)
 	}
 	arguments := os.Args[3:]
@@ -68,16 +68,16 @@ func main() {
 		err = filepath.Walk(".lib", fnwalk)
 		aux.Assert(err, "filepath.Walk(\".lib\")")
 	}
-	if isDir(module + "/.lib") {
-		err = filepath.Walk(module+"/.lib", fnwalk)
-		aux.Assert(err, "filepath.Walk(module+\".lib\")")
+	if isDir(namespace + "/.lib") {
+		err = filepath.Walk(namespace+"/.lib", fnwalk)
+		aux.Assert(err, "filepath.Walk(namespace+\".lib\")")
 	}
 	arguments = aux.InsertStr(arguments, "set --", 0)
 	sh.WriteString(strings.Join(arguments, " "))
-	sh.WriteString("\n" + aux.FileRead(module+"/"+script))
+	sh.WriteString("\n" + aux.FileRead(namespace+"/"+script))
 	modscript := sh.String()
 	//print debugging -- fmt.Println(modscript)
-	log.Printf("Running %s:%s over %s", module, script, hostname)
+	log.Printf("Running %s:%s over %s", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
                 LC_ALL=C
@@ -86,7 +86,7 @@ func main() {
                 PATH=/bin:/usr/bin
                 tar -C %s -cpf - . | tar -C / -xpf -
                 `
-		for _, d := range []string{".files", ".files-local", ".files-localhost", module + "/.files", module + "/.files-local", module + "/.files-localhost"} {
+		for _, d := range []string{".files", ".files-local", ".files-localhost", namespace + "/.files", namespace + "/.files-local", namespace + "/.files-localhost"} {
 			if isDir(d) {
 				rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := rargs.Run()
@@ -116,7 +116,7 @@ func main() {
 		} else {
 			aux.Panicf("%s does not exist or unreachable. Exiting.", hostname)
 		}
-		for _, d := range []string{".files", ".files-" + hostname, module + "/.files", module + "/.files-" + hostname} {
+		for _, d := range []string{".files", ".files-" + hostname, namespace + "/.files", namespace + "/.files-" + hostname} {
 			if isDir(d) {
 				log.Printf("Copying %s to %s...", d, hostname)
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -rP .\n bye\n", d))
