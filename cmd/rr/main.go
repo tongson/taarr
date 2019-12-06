@@ -67,10 +67,10 @@ func main() {
 	if isDir(".lib") {
 		err = filepath.Walk(".lib", fnwalk)
 		aux.Assert(err, "filepath.Walk(\".lib\")")
-		if isDir(module + "/.lib") {
-			err = filepath.Walk(module+"/.lib", fnwalk)
-			aux.Assert(err, "filepath.Walk(module+\".lib\")")
-		}
+	}
+	if isDir(module + "/.lib") {
+		err = filepath.Walk(module+"/.lib", fnwalk)
+		aux.Assert(err, "filepath.Walk(module+\".lib\")")
 	}
 	arguments = aux.InsertStr(arguments, "set --", 0)
 	sh.WriteString(strings.Join(arguments, " "))
