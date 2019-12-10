@@ -49,8 +49,8 @@ sysctl --system
 ### Invocation
     
     rr avocado sysctl:apply --quiet --names
-        ^       ^     ^       ^
-        host    group script  arguments
+       ^       ^      ^       ^
+       host namespace script  arguments
 
 ### Hierarchy
 
@@ -58,10 +58,10 @@ sysctl --system
     ├── .files                          <--- synced to any host
     ├── .files-avocado                  <--- synced to the avocado host
     ├── .lib                            <--- sourced by all scripts
-    └── group 
-        ├── .files                      <--- synced to any host when group:* is called
-        ├── .files-avocado              <--- synced to the avocado host then group:* is called
-        ├── .lib                        <--- sourced along with group:* scripts
+    └── namespace
+        ├── .files                      <--- synced to any host when namespace:* is called
+        ├── .files-avocado              <--- synced to the avocado host then namespace:* is called
+        ├── .lib                        <--- sourced along with namespace:* scripts
         └── script
 
 ### Notes
