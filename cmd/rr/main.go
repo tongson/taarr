@@ -99,7 +99,6 @@ func main() {
 
 	isDir := aux.StatPath("directory")
 	isFile := aux.StatPath("file")
-	var err error
 	var sh strings.Builder
 
 	if len(os.Args) < 2 {
@@ -127,18 +126,14 @@ func main() {
 
 	fnwalk := aux.PathWalker(&sh)
 	if !isDir(".lib") {
-		 _ = os.MkdirAll(".lib", os.ModePerm)
-		wr000 := aux.StringToFile(".lib/000-header.sh", libHeader)
-		aux.Assert(wr000, "aux.StringToFile(\".lib/000-header.sh\")")
-		wr010 := aux.StringToFile(".lib/010-dispatch.sh", libDispatch)
-		aux.Assert(wr010, "aux.StringToFile(\".lib/010-dispatch.sh\")")
+		_ = os.MkdirAll(".lib", os.ModePerm)
+		aux.Assert(aux.StringToFile(".lib/000-header.sh", libHeader), "Writing .lib/000-header.sh")
+		aux.Assert(aux.StringToFile(".lib/010-dispatch.sh", libDispatch), "Writing .lib/010-dispatch.sh")
 	}
-	err = filepath.Walk(".lib", fnwalk)
-	aux.Assert(err, "filepath.Walk(\".lib\")")
+	aux.Assert(filepath.Walk(".lib", fnwalk), "filepath.Walk(\".lib\")")
 
 	if isDir(namespace + "/.lib") {
-		err = filepath.Walk(namespace+"/.lib", fnwalk)
-		aux.Assert(err, "filepath.Walk(namespace+\".lib\")")
+		aux.Assert(filepath.Walk(namespace+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
 	}
 	arguments = aux.InsertStr(arguments, "set --", 0)
 	sh.WriteString(strings.Join(arguments, " "))
