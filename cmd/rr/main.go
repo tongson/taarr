@@ -21,60 +21,6 @@ set -o errexit -o nounset -o pipefail -o errtrace
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LC_ALL=C
 `
-	libDispatch = `
-dispatch ()
-{
-  namespace="$1"     # Namespace to be dispatched
-  arg="${2:-}"       # First argument
-  short="${arg#*-}"  # First argument without trailing -
-  long="${short#*-}" # First argument without trailing --
-
-  # Exit and warn if no first argument is found
-  if [ -z "$arg" ]; then
-    # Call empty call placeholder
-    "${namespace}_"; return $?
-  fi
-
-  shift 2 # Remove namespace and first argument from $@
-
-  # Detects if a command, --long or -short option was called
-  if [ "$arg" = "--$long" ];then
-    longname="${long%%=*}" # Long argument before the first = sign
-
-    # Detects if the --long=option has = sign
-    if [ "$long" != "$longname" ]; then
-      longval="${long#*=}"
-      long="$longname"
-      set -- "$longval" "${@:-}"
-    fi
-
-    main_call=${namespace}_option_${long}
-
-
-  elif [ "$arg" = "-$short" ];then
-    main_call=${namespace}_option_${short}
-  else
-    main_call=${namespace}_command_${long}
-  fi
-
-  type $main_call > /dev/null 2>&1 || {
-    >&2 echo -e "Invalid arguments.\n"
-    type ${namespace}_command_help > /dev/null 2>&1 && \
-      ${namespace}_command_help
-    return 1
-        }
-
-  $main_call "${@:-}" && dispatch_returned=$? || dispatch_returned=$?
-
-  if [ $dispatch_returned = 127 ]; then
-    >&2 echo -e "Invalid command.\n"
-    "${namespace}_call_" "$namespace" "$arg" # Empty placeholder
-    return 1
-  fi
-
-  return $dispatch_returned
-}
-`
 )
 
 type logWriter struct {
@@ -128,7 +74,6 @@ func main() {
 	if !isDir(".lib") {
 		_ = os.MkdirAll(".lib", os.ModePerm)
 		aux.Assert(aux.StringToFile(".lib/000-header.sh", libHeader), "Writing .lib/000-header.sh")
-		aux.Assert(aux.StringToFile(".lib/010-dispatch.sh", libDispatch), "Writing .lib/010-dispatch.sh")
 	}
 	aux.Assert(filepath.Walk(".lib", fnwalk), "filepath.Walk(\".lib\")")
 
