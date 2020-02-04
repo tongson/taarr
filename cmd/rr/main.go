@@ -96,7 +96,7 @@ func main() {
                 `
 		for _, d := range []string{".files", ".files-local", ".files-localhost", namespace + "/.files", namespace + "/.files-local", namespace + "/.files-localhost"} {
 			if isDir(d) {
-				rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
+				rargs := aux.RunArgs{Exe: "bash", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := rargs.Run()
 				if !ret {
 					aux.Panicf("Failure copying files!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
