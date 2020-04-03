@@ -105,12 +105,12 @@ func main() {
 			".files",
 			".files-local",
 			".files-localhost",
-			namespace+"/.files",
-			namespace+"/.files-local",
-			namespace+"/.files-localhost",
-		    namespace+"/"+script+"/.files",
-			namespace+"/"+script+"/.files-local",
-			namespace+"/"+script+"/.files-localhost",
+			namespace + "/.files",
+			namespace + "/.files-local",
+			namespace + "/.files-localhost",
+			namespace + "/" + script + "/.files",
+			namespace + "/" + script + "/.files-local",
+			namespace + "/" + script + "/.files-localhost",
 		} {
 			if isDir(d) {
 				rargs := aux.RunArgs{Exe: "bash", Args: []string{"-c", fmt.Sprintf(untar, d)}}
@@ -143,11 +143,11 @@ func main() {
 		}
 		for _, d := range []string{
 			".files",
-			".files-"+hostname,
-			namespace+"/.files",
-			namespace+"/.files-"+hostname,
-			namespace+"/"+script+"/.files",
-			namespace+"/"+script+"/.files"+hostname,
+			".files-" + hostname,
+			namespace + "/.files",
+			namespace + "/.files-" + hostname,
+			namespace + "/" + script + "/.files",
+			namespace + "/" + script + "/.files" + hostname,
 		} {
 			if isDir(d) {
 				log.Printf("Copying %s to %s...", d, hostname)
