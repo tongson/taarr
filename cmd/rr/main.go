@@ -12,8 +12,8 @@ import (
 	"aux"
 )
 
-const versionNumber = "v0.0.1"
-const codeName = "\"Tubeless Pope\""
+const versionNumber = "v0.0.2"
+const codeName = "\"Covalent Bishop\""
 const (
 	libHeader = `#!/usr/bin/env bash
 unset IFS
@@ -22,6 +22,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LC_ALL=C
 `
 )
+const run = "main"
 
 type logWriter struct {
 }
@@ -65,8 +66,11 @@ func main() {
 	if !isDir(namespace) {
 		aux.Panicf("`%s`(namespace) is not a directory. Exiting.", namespace)
 	}
-	if !isFile(fmt.Sprintf("%s/%s", namespace, script)) {
-		aux.Panicf("`%s`(script) is not a file. Exiting.", script)
+	if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
+		aux.Panicf("`%s/%s` is not a diretory. Exiting.", namespace, script)
+	}
+	if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
+		aux.Panicf("`%s/%s/%s` actual script not found. Exiting.", namespace, script, run)
 	}
 	arguments := os.Args[3:]
 
@@ -80,9 +84,12 @@ func main() {
 	if isDir(namespace + "/.lib") {
 		aux.Assert(filepath.Walk(namespace+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
 	}
+	if isDir(namespace + "/" + script + "/.lib") {
+		aux.Assert(filepath.Walk(namespace+"/"+script+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
+	}
 	arguments = aux.InsertStr(arguments, "set --", 0)
 	sh.WriteString(strings.Join(arguments, " "))
-	sh.WriteString("\n" + aux.FileRead(namespace+"/"+script))
+	sh.WriteString("\n" + aux.FileRead(namespace+"/"+script+"/"+run))
 	modscript := sh.String()
 	//print debugging -- fmt.Println(modscript)
 	log.Printf("Running %s:%s over %s", namespace, script, hostname)
@@ -94,7 +101,17 @@ func main() {
                 PATH=/bin:/usr/bin
                 tar -C %s -cpf - . | tar -C / -xpf -
                 `
-		for _, d := range []string{".files", ".files-local", ".files-localhost", namespace + "/.files", namespace + "/.files-local", namespace + "/.files-localhost"} {
+		for _, d := range []string{
+			".files",
+			".files-local",
+			".files-localhost",
+			namespace+"/.files",
+			namespace+"/.files-local",
+			namespace+"/.files-localhost",
+		    namespace+"/"+script+"/.files",
+			namespace+"/"+script+"/.files-local",
+			namespace+"/"+script+"/.files-localhost",
+		} {
 			if isDir(d) {
 				rargs := aux.RunArgs{Exe: "bash", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := rargs.Run()
@@ -124,7 +141,14 @@ func main() {
 		} else {
 			aux.Panicf("%s does not exist or unreachable. Exiting.", hostname)
 		}
-		for _, d := range []string{".files", ".files-" + hostname, namespace + "/.files", namespace + "/.files-" + hostname} {
+		for _, d := range []string{
+			".files",
+			".files-"+hostname,
+			namespace+"/.files",
+			namespace+"/.files-"+hostname,
+			namespace+"/"+script+"/.files",
+			namespace+"/"+script+"/.files"+hostname,
+		} {
 			if isDir(d) {
 				log.Printf("Copying %s to %s...", d, hostname)
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -rP .\n bye\n", d))
