@@ -60,9 +60,13 @@ sysctl --system
     ├── .lib                            <--- sourced by all scripts
     └── namespace
         ├── .files                      <--- synced to any host when namespace:* is called
-        ├── .files-avocado              <--- synced to the avocado host then namespace:* is called
+        ├── .files-avocado              <--- synced to the avocado host when namespace:* is called
         ├── .lib                        <--- sourced along with namespace:* scripts
-        └── script
+        └── script directory
+            ├── .files                  <--- synced to any host when namespace:script is called
+            ├── .files-avocado          <--- synced to the avocado host when namespace:script is called
+            ├── .lib                    <--- sourced along with namespace:script scripts
+            └── script                  <--- the actual shell script
 
 ### Notes
 
