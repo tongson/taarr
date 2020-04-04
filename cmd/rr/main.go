@@ -22,7 +22,7 @@ export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LC_ALL=C
 `
 )
-const run = "main"
+const run = "script"
 
 type logWriter struct {
 }
