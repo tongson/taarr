@@ -12,12 +12,12 @@ import (
 	"aux"
 )
 
-const versionNumber = "v0.0.2"
-const codeName = "\"Covalent Bishop\""
+const versionNumber = "v0.0.3"
+const codeName = "\"Amorphous Priest\""
 const (
-	libHeader = `#!/usr/bin/env bash
+	libHeader = `#!/bin/sh
 unset IFS
-set -o errexit -o nounset -o pipefail -o errtrace
+set -o errexit -o nounset -o noglob
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
 export LC_ALL=C
 `
@@ -96,7 +96,7 @@ func main() {
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
                 LC_ALL=C
-                set -o pipefail -o nounset -o errexit -o noglob
+                set -o errexit -o nounset -o noglob
                 unset IFS
                 PATH=/bin:/usr/bin
                 tar -C %s -cpf - . | tar -C / -xpf -
@@ -113,14 +113,14 @@ func main() {
 			namespace + "/" + script + "/.files-localhost",
 		} {
 			if isDir(d) {
-				rargs := aux.RunArgs{Exe: "bash", Args: []string{"-c", fmt.Sprintf(untar, d)}}
+				rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := rargs.Run()
 				if !ret {
 					aux.Panicf("Failure copying files!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 				}
 			}
 		}
-		rargs := aux.RunArgs{Exe: "bash", Args: []string{"-c", modscript}}
+		rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		ret, stdout, stderr := rargs.Run()
 		if !ret {
 			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s", aux.Pipestr(stdout), aux.Pipestr(stderr))
