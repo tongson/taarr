@@ -129,7 +129,7 @@ func main() {
 		}
 	} else {
 		sshenv := []string{"LC_ALL=C"}
-		ssha := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-P", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
+		ssha := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
 		ret, stdout, _ := ssha.Run()
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
@@ -160,7 +160,7 @@ func main() {
 			}
 		}
 		log.Println("Running script...")
-		sshb := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-P", "-x", "-C", hostname}, Env: sshenv, Input: []byte(modscript)}
+		sshb := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv, Input: []byte(modscript)}
 		ret, stdout, stderr := sshb.Run()
 		if !ret {
 			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
