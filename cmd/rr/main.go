@@ -116,14 +116,16 @@ func main() {
 				rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := rargs.Run()
 				if !ret {
-					aux.Panicf("Failure copying files!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
+					aux.Panicf("Failure copying files!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n",
+						aux.Pipestr(stdout), aux.Pipestr(stderr))
 				}
 			}
 		}
 		rargs := aux.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		ret, stdout, stderr := rargs.Run()
 		if !ret {
-			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s", aux.Pipestr(stdout), aux.Pipestr(stderr))
+			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s", aux.Pipestr(stdout),
+				aux.Pipestr(stderr))
 		} else {
 			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 		}
@@ -160,10 +162,12 @@ func main() {
 			}
 		}
 		log.Println("Running script...")
-		sshb := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv, Input: []byte(modscript)}
+		sshb := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv,
+			Input: []byte(modscript)}
 		ret, stdout, stderr := sshb.Run()
 		if !ret {
-			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
+			aux.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout),
+				aux.Pipestr(stderr))
 		} else {
 			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 
