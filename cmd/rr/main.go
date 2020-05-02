@@ -153,7 +153,7 @@ func main() {
 		} {
 			if isDir(d) {
 				log.Printf("Copying %s to %s...", d, hostname)
-				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -rP .\n bye\n", d))
+				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
 				sftpa := aux.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", "/dev/fd/0", hostname}, Env: sshenv, Input: sftpc}
 				ret, _, _ := sftpa.Run()
 				if !ret {
