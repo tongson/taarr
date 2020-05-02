@@ -87,6 +87,14 @@ func main() {
 	if isDir(namespace + "/" + script + "/.lib") {
 		aux.Assert(filepath.Walk(namespace+"/"+script+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
 	}
+
+	//Pass environment variables with `rr` prefix
+	for _, e := range os.Environ() {
+		if strings.HasPrefix(e, "rr") {
+			sh.WriteString("export " + strings.TrimPrefix(e, "rr") + "\n")
+		}
+	}
+
 	arguments = aux.InsertStr(arguments, "set --", 0)
 	sh.WriteString(strings.Join(arguments, " "))
 	sh.WriteString("\n" + aux.FileRead(namespace+"/"+script+"/"+run))
