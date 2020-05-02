@@ -92,7 +92,7 @@ func main() {
 	sh.WriteString("\n" + aux.FileRead(namespace+"/"+script+"/"+run))
 	modscript := sh.String()
 	//print debugging -- fmt.Println(modscript)
-	log.Printf("Running %s:%s over %s", namespace, script, hostname)
+	log.Printf("Running %s:%s via %s", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
                 LC_ALL=C
@@ -130,35 +130,52 @@ func main() {
 			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", aux.Pipestr(stdout), aux.Pipestr(stderr))
 		}
 	} else {
+		rh := strings.Split(hostname, "@")
+		var realhost string
+		if len(rh) == 1 {
+			realhost = hostname
+		} else {
+			realhost = rh[1]
+		}
 		sshenv := []string{"LC_ALL=C"}
 		ssha := aux.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
 		ret, stdout, _ := ssha.Run()
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
-			if hostname != sshhost[0] {
-				aux.Panicf("hostname %s does not match remote host. Exiting.", hostname)
+			if realhost != sshhost[0] {
+				aux.Panicf("hostname %s does not match remote host. Exiting.", realhost)
 			} else {
 				log.Printf("Remote host is %s\n", sshhost[0])
 			}
 		} else {
-			aux.Panicf("%s does not exist or unreachable. Exiting.", hostname)
+			aux.Panicf("%s does not exist or unreachable. Exiting.", realhost)
 		}
 		for _, d := range []string{
 			".files",
-			".files-" + hostname,
+			".files-" + realhost,
 			namespace + "/.files",
-			namespace + "/.files-" + hostname,
+			namespace + "/.files-" + realhost,
 			namespace + "/" + script + "/.files",
-			namespace + "/" + script + "/.files" + hostname,
+			namespace + "/" + script + "/.files" + realhost,
 		} {
 			if isDir(d) {
-				log.Printf("Copying %s to %s...", d, hostname)
+				log.Printf("Copying %s to %s...", d, realhost)
+				tmpfile, err := ioutil.TempFile(os.TempDir(), "_rr")
+				if err != nil {
+					aux.Panic("Cannot create temporary file.")
+				}
+				defer os.Remove(tmpfile.Name())
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
-				sftpa := aux.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", "/dev/fd/0", hostname}, Env: sshenv, Input: sftpc}
+				if _, err = tmpfile.Write(sftpc); err != nil {
+					aux.Panic("Failed to write to temporary file.")
+				}
+				tmpfile.Close()
+				sftpa := aux.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
 				ret, _, _ := sftpa.Run()
 				if !ret {
 					aux.Panic("Running sftp failed. Exiting.")
 				}
+				os.Remove(tmpfile.Name())
 			}
 		}
 		log.Println("Running script...")
