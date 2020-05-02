@@ -16,11 +16,6 @@ According to the Lindy effect, shell scripts, openssh and tar will outlive these
 
 I tried building by own Lua-based configuration management software but found the oneshot nature of shell scripts more convenient.
 
-# BUILDING
-
-Requires [OmniaJIT](https://github.com/tongson/OmniaJIT/) to build.  
-Rename rr.mk to Makefile then `make`.
-
 # TUTORIAL
 
 In the source tree, the *TUTORIAL* directory contains a hierarchy that persistently enables IP forwarding through sysctl upon the remote SSH host named *avocado*
@@ -70,9 +65,9 @@ sysctl --system
 
 ### Notes
 
-Tested on Linux only.  
+Tested on Linux and macOS.
 
-Remote host only requires OpenSSH installed. It's recommended that the host running `rr` should configure remote hosts through `~/.ssh/config`.  
+Remote host only requires OpenSSH server.
 
 Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, a workaround is to use heredocs.  
 
