@@ -12,8 +12,8 @@ import (
 	"aux"
 )
 
-const versionNumber = "v0.0.3"
-const codeName = "\"Amorphous Priest\""
+const versionNumber = "v0.0.4"
+const codeName = "\"Caustic Deacon\""
 const (
 	libHeader = `#!/bin/sh
 unset IFS
