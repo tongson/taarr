@@ -1,5 +1,7 @@
 module rr
 
-replace aux v0.0.0 => ./pkg/aux
+go 1.14
 
-require aux v0.0.0
+replace lib v1.0.0 => ./pkg/lib
+
+require lib v1.0.0
