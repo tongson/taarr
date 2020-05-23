@@ -164,7 +164,7 @@ func main() {
 			namespace + "/.files",
 			namespace + "/.files-" + realhost,
 			namespace + "/" + script + "/.files",
-			namespace + "/" + script + "/.files" + realhost,
+			namespace + "/" + script + "/.files-" + realhost,
 		} {
 			if isDir(d) {
 				log.Printf("Copying %s to %s...", d, realhost)
