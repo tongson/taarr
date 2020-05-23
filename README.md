@@ -10,15 +10,21 @@ shell script manager and runner inspired by rerun[1], bashing[2] and drist[3]
 
 # WHY
 
-CFEngine, Puppet, Chef and others did not offer tangible advantages over a combination of rerun/bashing + drist. Cons mostly outweight the pros. Slow and complicated are the common complaints.
+I tried building by own Lua-based configuration management software. A few hundred commits in, I realized the oneshot nature of shell scripts more convenient.
 
-According to the Lindy effect, shell scripts, openssh and tar will outlive these mentioned CM software.
+CFEngine, Puppet, Chef and others did not offer advantages over a combination of rerun/bashing + drist. Cons mostly outweight the pros. Slow and complicated are the common complaints.
 
-I tried building by own Lua-based configuration management software but found the oneshot nature of shell scripts more convenient.
+According to the Lindy effect; shell scripts, openssh and tar will outlive these mentioned CM software.
+
+I mostly manage a handful of servers so `rr` serves my needs just fine.
 
 # TUTORIAL
 
 In the source tree, the *TUTORIAL* directory contains a hierarchy that persistently enables IP forwarding through sysctl upon the remote SSH host named *avocado*
+
+First you have to setup SSH public-key authentication for a remote host with hostname `avocado`. It's important that the hostnames match.
+
+Once that is done, you can proceed with the example:
 
     cd TUTORIAL
     rr avocado sysctl:apply
