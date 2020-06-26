@@ -53,6 +53,9 @@ sysctl --system
        ^       ^      ^       ^
        host namespace script  arguments
 
+Set the host to `local` or `localhost` for localhost invocations. Mainly used
+for "pull" operations.
+
 ### Hierarchy
 
     TOPLEVEL
