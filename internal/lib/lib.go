@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -97,7 +96,7 @@ func PathWalker(sh *strings.Builder) func(string, os.FileInfo, error) error {
 					log.Panic(err)
 				}
 			}()
-			str, err := ioutil.ReadAll(file)
+			str, err := io.ReadAll(file)
 			if err != nil {
 				log.Panic(err)
 			}
@@ -123,7 +122,7 @@ func FileRead(path string) string {
 				log.Panic(err)
 			}
 		}()
-		str, err := ioutil.ReadAll(file)
+		str, err := io.ReadAll(file)
 		if err != nil {
 			log.Panic(err)
 		}
