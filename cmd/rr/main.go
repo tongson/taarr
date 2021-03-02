@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -36,7 +36,7 @@ func main() {
 	log.SetFlags(0)
 	call := os.Args[0]
 	if len(call) < 3 || call[len(call)-2:] == "rr" {
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrv" {
 		log.SetOutput(new(logWriter))
 	} else {
@@ -168,7 +168,7 @@ func main() {
 		} {
 			if isDir(d) {
 				log.Printf("Copying %s to %s...", d, realhost)
-				tmpfile, err := ioutil.TempFile(os.TempDir(), "_rr")
+				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
 				if err != nil {
 					lib.Panic("Cannot create temporary file.")
 				}
