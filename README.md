@@ -80,6 +80,6 @@ Remote host only requires OpenSSH server.
 
 Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, a workaround is to use heredocs.  
 
-Scripts should specify `$@` if it wants to use arguments passed.
+Scripts should reference `$@` if it wants to use arguments passed.
 
 
