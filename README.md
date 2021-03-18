@@ -10,7 +10,7 @@ shell script manager and runner inspired by rerun[1], bashing[2] and drist[3]
 
 # WHY
 
-I tried building by own Lua-based configuration management software. A few hundred commits in, I realized the oneshot nature of shell scripts more convenient.
+I tried building by own Lua-based configuration management software. A little more than thousand commits in, I realized the oneshot nature of shell scripts more convenient.
 
 CFEngine, Puppet, Chef and others did not offer advantages over a combination of rerun/bashing + drist. Cons mostly outweight the pros. Slow and complicated are the common complaints.
 
