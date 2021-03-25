@@ -2,7 +2,7 @@
 .SILENT:
 .SHELL := /usr/bin/env bash
 .PHONY: staticcheck errcheck fmt build test clean
-SRC= "cmd/rr/... pkg/aux/..."
+SRC= "cmd/rr/... internal/lib/..."
 BOLD=$(shell tput bold)
 RED=$(shell tput setaf 1)
 GREEN=$(shell tput setaf 2)
@@ -25,7 +25,7 @@ setup:
 fmt:
 	@echo "$(BLUE)$(TIME)$(GREEN) + go fmt $(RESET)"
 	@go fmt cmd/rr/main.go
-	@go fmt pkg/aux/aux.go
+	@go fmt internal/lib/lib.go
 
 errcheck:
 	@echo "$(BLUE)$(TIME)$(GREEN) + errcheck $(RESET)"
