@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 type RunArgs struct {
@@ -145,14 +144,9 @@ func InsertStr(a []string, b string, i int) []string {
 // Used to "prettify" command line output.
 // Returns new string.
 func PipeStr(str string) string {
-	t := time.Now()
-	h := t.Hour()
-	m := t.Minute()
-	s := t.Second()
 	str = strings.Replace(str, "\n", "\n | ", -1)
 	str = " | \n | " + str
-	str = str + "\n | "
-	return strings.Replace(str, " |", fmt.Sprintf("%02d:%02d:%02d |", h, m, s), -1)
+	return str + "\n | "
 }
 
 // Writes the string `s` to the file `path`.
