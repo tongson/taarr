@@ -12,8 +12,8 @@ import (
 	"lib"
 )
 
-const versionNumber = "v0.0.4"
-const codeName = "\"Caustic Deacon\""
+const versionNumber = "0.0.6"
+const codeName = "\"Spooky Eagle\""
 const (
 	libHeader = `#!/bin/sh
 unset IFS
