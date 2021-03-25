@@ -15,8 +15,6 @@ TIME=$(shell date "+%Y-%m-%d %H:%M:%S")
 all: build test
 
 setup:
-	mkdir -p bin
-	test -x /usr/bin/upx || zypper --non-interactive install --no-recommends install upx
 	cd tools
 	GO111MODULE=on go build -o ../bin/golint golang.org/x/lint/golint
 	GO111MODULE=on go build -o ../bin/staticcheck honnef.co/go/tools/cmd/staticcheck
@@ -49,11 +47,6 @@ build: fmt
 	#@/usr/bin/env GOOS=linux go build -o bin/rr -ldflags="-s -w" ./...
 	@/usr/bin/env GOOS=linux CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w -extldflags "-static"' ./cmd/rr
 	@echo "$(BLUE)$(TIME)$(CYAN) ! BUILD DONE $(RESET)"
-
-release: build
-	@echo "$(BLUE)$(TIME)$(GREEN) + COMPRESS START$(RESET)"
-	@upx --brute bin/rr
-	@echo "$(BLUE)$(TIME)$(CYAN) ! COMPRESS DONE $(RESET)"
 
 test:
 	@echo "$(BLUE)$(TIME)$(YELLOW) + TEST START $(RESET)"
