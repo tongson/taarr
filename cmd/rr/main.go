@@ -188,7 +188,7 @@ func main() {
 		}
 		log.Println("Running script...")
 		sshb := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv,
-			Input: []byte(modscript)}
+			Stdin: []byte(modscript)}
 		ret, stdout, stderr := sshb.Run()
 		if !ret {
 			lib.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", lib.PipeStr(stdout),
