@@ -15,7 +15,7 @@ type RunArgs struct {
 	Args  []string
 	Dir   string
 	Env   []string
-	Input []byte
+	Stdin []byte
 }
 
 type panicT struct {
@@ -36,8 +36,8 @@ func (a RunArgs) Run() (bool, string, string) {
 	if a.Env != nil || len(a.Env) > 0 {
 		cmd.Env = append(os.Environ(), a.Env...)
 	}
-	if a.Input != nil || len(a.Input) > 0 {
-		cmd.Stdin = bytes.NewBuffer(a.Input)
+	if a.Stdin != nil || len(a.Stdin) > 0 {
+		cmd.Stdin = bytes.NewBuffer(a.Stdin)
 	}
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -143,10 +143,11 @@ func InsertStr(a []string, b string, i int) []string {
 // Prefix string `s` with pipes "|".
 // Used to "prettify" command line output.
 // Returns new string.
-func PipeStr(str string) string {
+func PipeStr(prefix string, str string) string {
 	str = strings.Replace(str, "\n", "\n | ", -1)
 	str = " | \n | " + str
-	return str + "\n | "
+  return strings.Replace(str, " |", fmt.Sprintf("%s |", prefix), -1)
+
 }
 
 // Writes the string `s` to the file `path`.
@@ -182,13 +183,13 @@ func Assert(e error, s string) {
 }
 
 func Bug(s string) {
-	panic(panicT{msg: fmt.Sprintf("bug: %s", s), code: 255})
+	panic(panicT{msg: fmt.Sprintf("BUG: %s", s), code: 255})
 }
 
 func Panic(s string) {
-	panic(panicT{msg: fmt.Sprintf("fatal error: %s", s), code: 1})
+	panic(panicT{msg: fmt.Sprintf("FATAL: %s", s), code: 1})
 }
 
 func Panicf(f string, a ...interface{}) {
-	panic(panicT{msg: fmt.Sprintf("fatal error: "+f, a...), code: 1})
+	panic(panicT{msg: fmt.Sprintf("FATAL: "+f, a...), code: 1})
 }

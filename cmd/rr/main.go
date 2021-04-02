@@ -124,18 +124,18 @@ func main() {
 				rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := rargs.Run()
 				if !ret {
-					lib.Panicf("Failure copying files!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n",
-						lib.PipeStr(stdout), lib.PipeStr(stderr))
+					lib.Panicf("Failure copying files!\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s\n", hostname,
+						lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
 				}
 			}
 		}
 		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		ret, stdout, stderr := rargs.Run()
 		if !ret {
-			lib.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s", lib.PipeStr(stdout),
-				lib.PipeStr(stderr))
+			lib.Panicf("Failure running script!\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s", hostname, lib.PipeStr(hostname, stdout), hostname,
+				lib.PipeStr(hostname, stderr))
 		} else {
-			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", lib.PipeStr(stdout), lib.PipeStr(stderr))
+			log.Printf("Output:\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
 		}
 	} else {
 		rh := strings.Split(hostname, "@")
@@ -188,13 +188,13 @@ func main() {
 		}
 		log.Println("Running script...")
 		sshb := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv,
-			Input: []byte(modscript)}
+			Stdin: []byte(modscript)}
 		ret, stdout, stderr := sshb.Run()
 		if !ret {
-			lib.Panicf("Failure running script!\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", lib.PipeStr(stdout),
-				lib.PipeStr(stderr))
+			lib.Panicf("Failure running script!\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname,
+				lib.PipeStr(hostname, stderr))
 		} else {
-			log.Printf("Output:\n  -- STDOUT --\n%s\n  -- STDERR --\n%s\n", lib.PipeStr(stdout), lib.PipeStr(stderr))
+			log.Printf("Output:\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
 
 		}
 	}
