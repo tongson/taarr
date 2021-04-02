@@ -132,7 +132,7 @@ func main() {
 		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		ret, stdout, stderr := rargs.Run()
 		if !ret {
-			lib.Panicf("Failure running script!\n%s  -- STDOUT --\n%s\n%s  -- STDERR --\n%s",hostname, lib.PipeStr(hostname, stdout), hostname,
+			lib.Panicf("Failure running script!\n%s  -- STDOUT --\n%s\n%s  -- STDERR --\n%s", hostname, lib.PipeStr(hostname, stdout), hostname,
 				lib.PipeStr(hostname, stderr))
 		} else {
 			log.Printf("Output:\n%s  -- STDOUT --\n%s\n%s  -- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
@@ -194,7 +194,7 @@ func main() {
 			lib.Panicf("Failure running script!\n%s  -- STDOUT --\n%s\n%s  -- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname,
 				lib.PipeStr(hostname, stderr))
 		} else {
-			log.Printf("Output:\n%s  -- STDOUT --\n%s\n%s  -- STDERR --\n%s\n",hostname, lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
+			log.Printf("Output:\n%s  -- STDOUT --\n%s\n%s  -- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
 
 		}
 	}
