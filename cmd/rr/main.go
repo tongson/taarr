@@ -15,7 +15,7 @@ import (
 const versionNumber = "0.0.7"
 const codeName = "\"Helpless Geometry\""
 const (
-	libHeader = `#!/bin/sh
+	libHeader = `
 unset IFS
 set -o errexit -o nounset -o noglob
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin
