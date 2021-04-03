@@ -12,8 +12,8 @@ import (
 	"lib"
 )
 
-const versionNumber = "0.0.7"
-const codeName = "\"Helpless Geometry\""
+const versionNumber = "0.1.0"
+const codeName = "\"Stagnant Lake\""
 const (
 	libHeader = `
 unset IFS
