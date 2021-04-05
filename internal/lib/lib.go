@@ -148,9 +148,7 @@ func InsertStr(a []string, b string, i int) []string {
 // Returns new string.
 func PipeStr(prefix string, str string) string {
 	str = strings.Replace(str, "\n", "\n > ", -1)
-	str = " > \n > " + str
-	return strings.Replace(str, " >", fmt.Sprintf("%s >", prefix), -1)
-
+	return fmt.Sprintf("%s > \n %s > ", prefix) + str
 }
 
 // Writes the string `s` to the file `path`.
