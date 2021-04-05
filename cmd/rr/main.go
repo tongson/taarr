@@ -60,6 +60,9 @@ func main() {
 
 	var offset int
 	var hostname string
+	if len(os.Args) < 2 {
+		lib.Panic("Missing arguments. Exiting.")
+	}
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
 		offset = 1
 		hostname = "localhost"
