@@ -29,6 +29,7 @@ type panicT struct {
 // Third value is the standard error of the command.
 func (a RunArgs) Run() (bool, string, string) {
 	var r bool = true
+	/* #nosec G204 */
 	cmd := exec.Command(a.Exe, a.Args...)
 	if len(a.Dir) > 0 {
 		cmd.Dir = a.Dir
@@ -85,6 +86,7 @@ func PathWalker(sh *strings.Builder) func(string, os.FileInfo, error) error {
 		if info.IsDir() {
 			return nil
 		}
+		/* #nosec G304 */
 		if isFile(path) {
 			file, err := os.Open(path)
 			if err != nil {
@@ -111,6 +113,7 @@ func PathWalker(sh *strings.Builder) func(string, os.FileInfo, error) error {
 // An empty string "" is returned for nonexistent or unreadable files.
 func FileRead(path string) string {
 	isFile := StatPath("file")
+	/* #nosec G304 */
 	if isFile(path) {
 		file, err := os.Open(path)
 		if err != nil {
@@ -146,7 +149,7 @@ func InsertStr(a []string, b string, i int) []string {
 func PipeStr(prefix string, str string) string {
 	str = strings.Replace(str, "\n", "\n | ", -1)
 	str = " | \n | " + str
-  return strings.Replace(str, " |", fmt.Sprintf("%s |", prefix), -1)
+	return strings.Replace(str, " |", fmt.Sprintf("%s |", prefix), -1)
 
 }
 
