@@ -76,8 +76,9 @@ func main() {
 	}
 	var arguments []string
 	if len(s) > 2 {
-		arguments = make([]string, 1, 1)
-		arguments[0] = s[2]
+		arguments = []string{}
+		arguments = append(arguments, s[2])
+		arguments = append(arguments, os.Args[offset+1:]...)
 	} else {
 		arguments = os.Args[offset+1:]
 	}
