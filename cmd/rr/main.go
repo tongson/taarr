@@ -31,6 +31,16 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(time.Now().Format(time.RFC1123Z) + " [debug] " + string(bytes))
 }
 
+func output(o string, h string, c string) (string, string) {
+	rh := ""
+	rb := ""
+	if len(o) > 0 {
+		rh = fmt.Sprintf("%s%s\n", h, c)
+		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o))
+	}
+	return rh, rb
+}
+
 func main() {
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
@@ -111,6 +121,8 @@ func main() {
 	sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+run))
 	modscript := sh.String()
 	//print debugging -- fmt.Println(modscript)
+	const STDOUT = "  ,-- STDOUT --"
+	const STDERR = "  ,-- STDERR --"
 	log.Printf("Running %s:%s via %s", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
@@ -134,19 +146,23 @@ func main() {
 			if isDir(d) {
 				rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				ret, stdout, stderr := rargs.Run()
+				ho, bo := output(stdout, hostname, STDOUT)
+				he, be := output(stderr, hostname, STDERR)
 				if !ret {
-					lib.Panicf("Failure copying files!\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s\n", hostname,
-						lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
+					lib.Panicf("Failure copying files!\n%s%s%s%s", ho, bo, he, be)
 				}
 			}
 		}
 		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		ret, stdout, stderr := rargs.Run()
 		if !ret {
-			lib.Panicf("Failure running script!\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s", hostname, lib.PipeStr(hostname, stdout), hostname,
-				lib.PipeStr(hostname, stderr))
+			ho, bo := output(stdout, hostname, STDOUT)
+			he, be := output(stderr, hostname, STDERR)
+			lib.Panicf("Failure running script!\n%s%s%s%s", ho, bo, he, be)
 		} else {
-			log.Printf("Output:\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
+			ho, bo := output(stdout, hostname, STDOUT)
+			he, be := output(stderr, hostname, STDERR)
+			log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
 		}
 	} else {
 		rh := strings.Split(hostname, "@")
@@ -202,11 +218,13 @@ func main() {
 			Stdin: []byte(modscript)}
 		ret, stdout, stderr := sshb.Run()
 		if !ret {
-			lib.Panicf("Failure running script!\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname,
-				lib.PipeStr(hostname, stderr))
+			ho, bo := output(stdout, hostname, STDOUT)
+			he, be := output(stderr, hostname, STDERR)
+			lib.Panicf("Failure running script!\n%s%s%s%s", ho, bo, he, be)
 		} else {
-			log.Printf("Output:\n%s  ,-- STDOUT --\n%s\n%s  ,-- STDERR --\n%s\n", hostname, lib.PipeStr(hostname, stdout), hostname, lib.PipeStr(hostname, stderr))
-
+			ho, bo := output(stdout, hostname, STDOUT)
+			he, be := output(stderr, hostname, STDERR)
+			log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
 		}
 	}
 	log.Println("All OK.")
