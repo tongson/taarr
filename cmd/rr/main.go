@@ -34,6 +34,8 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 func main() {
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
+	var offset int
+	var hostname string
 	call := os.Args[0]
 	if len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
@@ -48,16 +50,16 @@ func main() {
 	isFile := lib.StatPath("file")
 	var sh strings.Builder
 
-	if len(os.Args) < 2 {
-		lib.Panic("Missing arguments. Exiting.")
+	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
+		offset = 1
+	  hostname = "localhost"
+	} else {
+		offset = 2
+		hostname = os.Args[1]
 	}
-	if len(os.Args) < 3 {
-		lib.Panic("`namespace:script` not specified. Exiting.")
-	}
-	hostname := os.Args[1]
-	s := strings.Split(os.Args[2], "/")
+	s := strings.Split(os.Args[offset], "/")
 	if len(s) < 2 {
-		s = strings.Split(os.Args[2], ":")
+		s = strings.Split(os.Args[offset], ":")
 	}
 	if len(s) < 2 {
 		lib.Panic("`namespace:script` not specified. Exiting.")
@@ -72,7 +74,7 @@ func main() {
 	if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
 		lib.Panicf("`%s/%s/%s` actual script not found. Exiting.", namespace, script, run)
 	}
-	arguments := os.Args[3:]
+	arguments := os.Args[offset+1:]
 
 	fnwalk := lib.PathWalker(&sh)
 	if !isDir(".lib") {
