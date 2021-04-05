@@ -42,6 +42,7 @@ func output(o string, h string, c string) (string, string) {
 }
 
 func main() {
+	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
 	call := os.Args[0]
