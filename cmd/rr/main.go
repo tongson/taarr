@@ -52,7 +52,7 @@ func main() {
 
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
 		offset = 1
-	  hostname = "localhost"
+		hostname = "localhost"
 	} else {
 		offset = 2
 		hostname = os.Args[1]
@@ -74,8 +74,13 @@ func main() {
 	if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
 		lib.Panicf("`%s/%s/%s` actual script not found. Exiting.", namespace, script, run)
 	}
-	arguments := os.Args[offset+1:]
-
+	var arguments []string
+	if len(s) > 2 {
+		arguments = make([]string, 1, 1)
+		arguments[0] = s[2]
+	} else {
+		arguments = os.Args[offset+1:]
+	}
 	fnwalk := lib.PathWalker(&sh)
 	if !isDir(".lib") {
 		_ = os.MkdirAll(".lib", os.ModePerm)
