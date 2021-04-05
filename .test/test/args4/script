@@ -1,0 +1,7 @@
+one()
+{
+    echo "$1" > /.__rr_ONE
+}
+one $1
+[ $(</.__rr_ONE) = 1 ] || { echo >&2 "Arg did not match!"; exit 1; }
+rm -f /.__rr_ONE
