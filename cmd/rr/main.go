@@ -125,8 +125,8 @@ func main() {
 	sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+run))
 	modscript := sh.String()
 	//print debugging -- fmt.Println(modscript)
-	const STDOUT = "  ,-- STDOUT --"
-	const STDERR = "  ,-- STDERR --"
+	const STDOUT = " >>>>   STDOUT   <<<<"
+	const STDERR = " >>>>   STDERR   <<<<"
 	log.Printf("Running %s:%s via %s", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
