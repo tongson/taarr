@@ -28,14 +28,12 @@ type logWriter struct {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(time.Now().UTC().Format("2006-01-02T15:04:05Z07:00") + " [debug] " + string(bytes))
+	return fmt.Print(time.Now().Format(time.RFC1123Z) + " [debug] " + string(bytes))
 }
 
 func main() {
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
-	var offset int
-	var hostname string
 	call := os.Args[0]
 	if len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
@@ -50,12 +48,17 @@ func main() {
 	isFile := lib.StatPath("file")
 	var sh strings.Builder
 
+	var offset int
+	var hostname string
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
 		offset = 1
 		hostname = "localhost"
 	} else {
 		offset = 2
 		hostname = os.Args[1]
+	}
+	if len(os.Args) < offset+1 {
+		lib.Panic("`namespace:script` not specified. Exiting.")
 	}
 	s := strings.Split(os.Args[offset], "/")
 	if len(s) < 2 {
