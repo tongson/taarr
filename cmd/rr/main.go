@@ -35,7 +35,7 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 func output(o string, h string, c string) (string, string) {
 	rh := ""
 	rb := ""
-	if len(o) > 0 {
+	if o != "" {
 		rh = fmt.Sprintf(" %s%s\n", h, c)
 		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o))
 	}
