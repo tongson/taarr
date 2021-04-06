@@ -163,7 +163,7 @@ func main() {
 		if !ret {
 			ho, bo := output(stdout, hostname, STDOUT)
 			he, be := output(stderr, hostname, STDERR)
-  		lib.Panicf("\n%s%s%s%sFailure running script!", ho, bo, he, be)
+			lib.Panicf("\n%s%s%s%sFailure running script!", ho, bo, he, be)
 		} else {
 			ho, bo := output(stdout, hostname, STDOUT)
 			he, be := output(stderr, hostname, STDERR)
