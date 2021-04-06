@@ -77,7 +77,8 @@ test:
 	../bin/rr local test/files
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . failure conditioin $(RESET)"
 	../bin/rr local test:fail || true
-
+	rmdir /YYY
+	rm -f /XXX
 	@echo "$(BLUE)$(TIME)$(CYAN) ! TEST DONE $(RESET)"
 
 clean:
