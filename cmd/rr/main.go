@@ -154,7 +154,8 @@ func main() {
 				ho, bo := output(stdout, hostname, STDOUT)
 				he, be := output(stderr, hostname, STDERR)
 				if !ret {
-					lib.Panicf("Failure copying files!\n%s%s%s%s", ho, bo, he, be)
+					log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+					lib.Panic("Failure running script!")
 				}
 			}
 		}
@@ -163,7 +164,8 @@ func main() {
 		if !ret {
 			ho, bo := output(stdout, hostname, STDOUT)
 			he, be := output(stderr, hostname, STDERR)
-			lib.Panicf("Failure running script!\n%s%s%s%s", ho, bo, he, be)
+			log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+			lib.Panic("Failure running script!")
 		} else {
 			ho, bo := output(stdout, hostname, STDOUT)
 			he, be := output(stderr, hostname, STDERR)
@@ -225,7 +227,8 @@ func main() {
 		if !ret {
 			ho, bo := output(stdout, hostname, STDOUT)
 			he, be := output(stderr, hostname, STDERR)
-			lib.Panicf("Failure running script!\n%s%s%s%s", ho, bo, he, be)
+			log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+			lib.Panic("Failure running script!")
 		} else {
 			ho, bo := output(stdout, hostname, STDOUT)
 			he, be := output(stderr, hostname, STDERR)
