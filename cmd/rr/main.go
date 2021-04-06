@@ -36,7 +36,7 @@ func output(o string, h string, c string) (string, string) {
 	rh := ""
 	rb := ""
 	if len(o) > 0 {
-		rh = fmt.Sprintf("%s%s\n", h, c)
+		rh = fmt.Sprintf(" %s%s\n", h, c)
 		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o))
 	}
 	return rh, rb
@@ -67,7 +67,7 @@ func main() {
 	}
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
 		offset = 1
-		hostname = "localhost"
+		hostname = "local"
 	} else {
 		offset = 2
 		hostname = os.Args[1]
