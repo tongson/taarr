@@ -45,7 +45,7 @@ build: fmt
 	@echo "$(BLUE)$(TIME)$(GREEN) + BUILD START$(RESET)"
 	@mkdir -p bin
 	#@/usr/bin/env GOOS=linux go build -o bin/rr -ldflags="-s -w" ./...
-	@/usr/bin/env GOOS=linux CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w -extldflags "-static"' ./cmd/rr
+	@/usr/bin/env GOARCH=386 GOOS=linux CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w' ./cmd/rr
 	@echo "$(BLUE)$(TIME)$(CYAN) ! BUILD DONE $(RESET)"
 
 test:
