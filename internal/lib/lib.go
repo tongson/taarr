@@ -147,8 +147,8 @@ func InsertStr(a []string, b string, i int) []string {
 // Used to "prettify" command line output.
 // Returns new string.
 func PipeStr(prefix string, str string) string {
-	str = strings.Replace(str, "\n", "\n > ", -1)
-	return fmt.Sprintf("%s > \n %s > ", prefix) + str
+	str = strings.Replace(str, "\n", fmt.Sprintf("\n %s > ", prefix), -1)
+	return fmt.Sprintf("%s > \n %s > %s", prefix, str)
 }
 
 // Writes the string `s` to the file `path`.
