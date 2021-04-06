@@ -52,7 +52,7 @@ func main() {
 	} else if call[len(call)-3:] == "rrv" {
 		log.SetOutput(new(logWriter))
 	} else {
-		lib.Bug("unhandled os.Args[0] length or value.")
+		lib.Bug("Unsupported executable name.")
 	}
 	log.Printf("rr %s %s", versionNumber, codeName)
 
