@@ -31,7 +31,7 @@ func (a RunArgs) Run() (bool, string, string) {
 	var r bool = true
 	/* #nosec G204 */
 	cmd := exec.Command(a.Exe, a.Args...)
-	if len(a.Dir) > 0 {
+	if a.Dir != "" {
 		cmd.Dir = a.Dir
 	}
 	if a.Env != nil || len(a.Env) > 0 {
