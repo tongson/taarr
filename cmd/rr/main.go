@@ -154,7 +154,7 @@ func main() {
 				ho, bo := output(stdout, hostname, STDOUT)
 				he, be := output(stderr, hostname, STDERR)
 				if !ret {
-					lib.Panicf("\n%s%s%s%sFailure running script!", ho, bo, he, be)
+					lib.Panicf("\n%s%s%s%sFailure copying files!", ho, bo, he, be)
 				}
 			}
 		}
