@@ -165,7 +165,7 @@ func main() {
 					} else {
 						ho, bo := output(stdout, hostname, STDOUT)
 						he, be := output(stderr, hostname, STDERR)
-						log.Printf("\n%s%s%s%sFailure copying files!", ho, bo, he, be)
+						log.Printf("Failure copying files!\n%s%s%s%s", ho, bo, he, be)
 					}
 				}
 			}
@@ -179,7 +179,7 @@ func main() {
 			} else {
 				ho, bo := output(stdout, hostname, STDOUT)
 				he, be := output(stderr, hostname, STDERR)
-				log.Printf("\n%s%s%s%sFailure running script!", ho, bo, he, be)
+				log.Printf("Failure running script!\n%s%s%s%s", ho, bo, he, be)
 			}
 		} else {
 			ho, bo := output(stdout, hostname, STDOUT)
