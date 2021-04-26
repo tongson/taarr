@@ -257,9 +257,9 @@ func main() {
 				}
 			}
 		} else {
-				if stdout != "" && stderr != "" {
-					log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
-				}
+			if stdout != "" && stderr != "" {
+				log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+			}
 		}
 	}
 	if !failed {
