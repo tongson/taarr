@@ -13,8 +13,8 @@ import (
 	"lib"
 )
 
-const versionNumber = "0.4.0"
-const codeName = "\"Upscale Chariot\""
+const versionNumber = "0.5.0"
+const codeName = "\"Punctured Doorway\""
 const (
 	libHeader = `
 unset IFS
@@ -43,6 +43,8 @@ func output(o string, h string, c string) (string, string) {
 }
 
 func main() {
+	var verbose bool = false
+	var failed bool = false
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
@@ -50,6 +52,7 @@ func main() {
 	if len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrv" {
+		verbose = true
 		log.SetOutput(new(logWriter))
 	} else {
 		lib.Bug("Unsupported executable name.")
@@ -63,7 +66,7 @@ func main() {
 	var offset int
 	var hostname string
 	if len(os.Args) < 2 {
-		lib.Panic("Missing arguments. Exiting.")
+		lib.Panic("Missing arguments.")
 	}
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
 		offset = 1
@@ -73,24 +76,24 @@ func main() {
 		hostname = os.Args[1]
 	}
 	if len(os.Args) < offset+1 {
-		lib.Panic("`namespace:script` not specified. Exiting.")
+		lib.Panic("`namespace:script` not specified.")
 	}
 	s := strings.Split(os.Args[offset], "/")
 	if len(s) < 2 {
 		s = strings.Split(os.Args[offset], ":")
 	}
 	if len(s) < 2 {
-		lib.Panic("`namespace:script` not specified. Exiting.")
+		lib.Panic("`namespace:script` not specified.")
 	}
 	namespace, script := s[0], s[1]
 	if !isDir(namespace) {
-		lib.Panicf("`%s`(namespace) is not a directory. Exiting.", namespace)
+		lib.Panicf("`%s`(namespace) is not a directory.", namespace)
 	}
 	if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
-		lib.Panicf("`%s/%s` is not a diretory. Exiting.", namespace, script)
+		lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
 	}
 	if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
-		lib.Panicf("`%s/%s/%s` actual script not found. Exiting.", namespace, script, run)
+		lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, run)
 	}
 	var arguments []string
 	if len(s) > 2 {
@@ -150,24 +153,36 @@ func main() {
 		} {
 			if isDir(d) {
 				rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
-				ret, stdout, stderr := rargs.Run()
-				ho, bo := output(stdout, hostname, STDOUT)
-				he, be := output(stderr, hostname, STDERR)
+				ret, stdout, stderr, _ := rargs.Run()
 				if !ret {
-					lib.Panicf("\n%s%s%s%sFailure copying files!", ho, bo, he, be)
+					failed = true
+					if !verbose {
+						lib.Panicf("Error copying files::\nstdout::\n%s\nstderr::\n%s\n", stdout, stderr)
+					} else {
+						ho, bo := output(stdout, hostname, STDOUT)
+						he, be := output(stderr, hostname, STDERR)
+						log.Printf("\n%s%s%s%sFailure copying files!", ho, bo, he, be)
+					}
 				}
 			}
 		}
 		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
-		ret, stdout, stderr := rargs.Run()
+		ret, stdout, stderr, _ := rargs.Run()
 		if !ret {
-			ho, bo := output(stdout, hostname, STDOUT)
-			he, be := output(stderr, hostname, STDERR)
-			lib.Panicf("\n%s%s%s%sFailure running script!", ho, bo, he, be)
+			failed = true
+			if !verbose {
+				lib.Panicf("\nstdout::\n%s\nstderr::\n%s\n", stdout, stderr)
+			} else {
+				ho, bo := output(stdout, hostname, STDOUT)
+				he, be := output(stderr, hostname, STDERR)
+				log.Printf("\n%s%s%s%sFailure running script!", ho, bo, he, be)
+			}
 		} else {
 			ho, bo := output(stdout, hostname, STDOUT)
 			he, be := output(stderr, hostname, STDERR)
-			log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+			if stdout != "" && stderr != "" {
+				log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+			}
 		}
 	} else {
 		rh := strings.Split(hostname, "@")
@@ -179,16 +194,24 @@ func main() {
 		}
 		sshenv := []string{"LC_ALL=C"}
 		ssha := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
-		ret, stdout, _ := ssha.Run()
+		ret, stdout, _, _ := ssha.Run()
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
 			if realhost != sshhost[0] {
-				lib.Panicf("hostname %s does not match remote host. Exiting.", realhost)
+				if !verbose {
+					lib.Panicf("Hostname %s does not match remote host.", realhost)
+				} else {
+					log.Printf("Hostname %s does not match remote host.", realhost)
+				}
 			} else {
 				log.Printf("Remote host is %s\n", sshhost[0])
 			}
 		} else {
-			lib.Panicf("%s does not exist or unreachable. Exiting.", realhost)
+			if !verbose {
+				lib.Panicf("%s does not exist or unreachable.", realhost)
+			} else {
+				log.Printf("%s does not exist or unreachable.", realhost)
+			}
 		}
 		for _, d := range []string{
 			".files",
@@ -199,21 +222,36 @@ func main() {
 			namespace + "/" + script + "/.files-" + realhost,
 		} {
 			if isDir(d) {
-				log.Printf("Copying %s to %s...", d, realhost)
+				if verbose {
+					log.Printf("Copying %s to %s...", d, realhost)
+				}
 				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
 				if err != nil {
-					lib.Panic("Cannot create temporary file.")
+					if !verbose {
+						lib.Panic("Cannot create temporary file.")
+					} else {
+						log.Printf("Cannot create temporary file.")
+					}
 				}
 				defer os.Remove(tmpfile.Name())
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
 				if _, err = tmpfile.Write(sftpc); err != nil {
-					lib.Panic("Failed to write to temporary file.")
+					if !verbose {
+						lib.Panic("Failed to write to temporary file.")
+					} else {
+						log.Printf("Failed to write to temporary file.")
+					}
 				}
 				tmpfile.Close()
 				sftpa := lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
-				ret, _, _ := sftpa.Run()
+				ret, _, _, _ := sftpa.Run()
 				if !ret {
-					lib.Panic("Running sftp failed. Exiting.")
+					failed = true
+					if !verbose {
+						lib.Panic("Running sftp failed.")
+					} else {
+						log.Printf("Running sftp failed.")
+					}
 				}
 				os.Remove(tmpfile.Name())
 			}
@@ -221,16 +259,27 @@ func main() {
 		log.Println("Running script...")
 		sshb := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv,
 			Stdin: []byte(modscript)}
-		ret, stdout, stderr := sshb.Run()
+		ret, stdout, stderr, _ := sshb.Run()
+		ho, bo := output(stdout, hostname, STDOUT)
+		he, be := output(stderr, hostname, STDERR)
 		if !ret {
-			ho, bo := output(stdout, hostname, STDOUT)
-			he, be := output(stderr, hostname, STDERR)
-			lib.Panicf("\n%s%s%s%sFailure running script!", ho, bo, he, be)
+			failed = true
+			if !verbose {
+				lib.Panicf("\nstdout::\n%s\nstderr::\n%s\n", stdout, stderr)
+			} else {
+				if stdout != "" && stderr != "" {
+					log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+				}
+			}
 		} else {
-			ho, bo := output(stdout, hostname, STDOUT)
-			he, be := output(stderr, hostname, STDERR)
-			log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+				if stdout != "" && stderr != "" {
+					log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+				}
 		}
 	}
-	log.Println("All OK.")
+	if !failed {
+		log.Println("All OK.")
+	} else {
+		log.Println("Something went wrong.")
+	}
 }
