@@ -57,6 +57,10 @@ func main() {
 	} else {
 		lib.Bug("Unsupported executable name.")
 	}
+	if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
+		verbose = true
+		log.SetOutput(new(logWriter))
+	}
 	log.Printf("rr %s %s", versionNumber, codeName)
 
 	isDir := lib.StatPath("directory")
