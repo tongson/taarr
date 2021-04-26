@@ -13,8 +13,8 @@ import (
 	"lib"
 )
 
-const versionNumber = "0.5.1"
-const codeName = "\"Frozen Mongrel\""
+const versionNumber = "0.6.0"
+const codeName = "\"Jawless Keg\""
 const (
 	libHeader = `
 unset IFS
