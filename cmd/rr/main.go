@@ -198,11 +198,7 @@ func main() {
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
 			if realhost != sshhost[0] {
-				if !verbose {
-					lib.Panicf("Hostname %s does not match remote host.", realhost)
-				} else {
-					log.Printf("Hostname %s does not match remote host.", realhost)
-				}
+				lib.Panicf("Hostname %s does not match remote host.", realhost)
 			} else {
 				log.Printf("Remote host is %s\n", sshhost[0])
 			}
@@ -222,36 +218,21 @@ func main() {
 			namespace + "/" + script + "/.files-" + realhost,
 		} {
 			if isDir(d) {
-				if verbose {
-					log.Printf("Copying %s to %s...", d, realhost)
-				}
+				log.Printf("Copying %s to %s...", d, realhost)
 				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
 				if err != nil {
-					if !verbose {
-						lib.Panic("Cannot create temporary file.")
-					} else {
-						log.Printf("Cannot create temporary file.")
-					}
+					lib.Panic("Cannot create temporary file.")
 				}
 				defer os.Remove(tmpfile.Name())
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
 				if _, err = tmpfile.Write(sftpc); err != nil {
-					if !verbose {
-						lib.Panic("Failed to write to temporary file.")
-					} else {
-						log.Printf("Failed to write to temporary file.")
-					}
+					lib.Panic("Failed to write to temporary file.")
 				}
 				tmpfile.Close()
 				sftpa := lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
 				ret, _, _, _ := sftpa.Run()
 				if !ret {
-					failed = true
-					if !verbose {
-						lib.Panic("Running sftp failed.")
-					} else {
-						log.Printf("Running sftp failed.")
-					}
+					lib.Panic("Running sftp failed.")
 				}
 				os.Remove(tmpfile.Name())
 			}
