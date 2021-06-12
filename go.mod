@@ -1,7 +1,5 @@
 module rr
 
-go 1.14
+go 1.16
 
-replace lib v1.0.0 => ./internal/lib
-
-require lib v1.0.0
+require github.com/tongson/gl v0.0.0-20210612034557-f2ffe6fda85c

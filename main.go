@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"lib"
+	lib "github.com/tongson/gl"
 )
 
 const versionNumber = "0.6.0"
