@@ -2,7 +2,7 @@
 .SILENT:
 .SHELL := /usr/bin/env bash
 .PHONY: staticcheck errcheck fmt build test clean
-SRC= "cmd/rr/... internal/lib/..."
+SRC= "main.go"
 BOLD=$(shell tput bold)
 RED=$(shell tput setaf 1)
 GREEN=$(shell tput setaf 2)
@@ -22,8 +22,7 @@ setup:
 
 fmt:
 	@echo "$(BLUE)$(TIME)$(GREEN) + go fmt $(RESET)"
-	@go fmt cmd/rr/main.go
-	@go fmt internal/lib/lib.go
+	@go fmt main.go
 
 errcheck:
 	@echo "$(BLUE)$(TIME)$(GREEN) + errcheck $(RESET)"
@@ -35,7 +34,7 @@ staticcheck:
 
 lint:
 	@echo "$(BLUE)$(TIME)$(GREEN) + golint $(RESET)"
-	bin/golint "cmd/rr/main.go"
+	bin/golint "main.go"
 
 check: errcheck staticcheck lint
 	@echo "$(BLUE)$(TIME)$(GREEN) + CHECK DONE$(RESET)"
@@ -45,7 +44,7 @@ build: fmt
 	@echo "$(BLUE)$(TIME)$(GREEN) + BUILD START$(RESET)"
 	@mkdir -p bin
 	#@/usr/bin/env GOOS=linux go build -o bin/rr -ldflags="-s -w" ./...
-	@/usr/bin/env GOARCH=386 GOOS=linux CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w' ./cmd/rr
+	@/usr/bin/env GOARCH=386 GOOS=linux CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w'
 	@echo "$(BLUE)$(TIME)$(CYAN) ! BUILD DONE $(RESET)"
 
 test:
