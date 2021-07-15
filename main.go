@@ -108,11 +108,9 @@ func main() {
 		arguments = os.Args[offset+1:]
 	}
 	fnwalk := lib.PathWalker(&sh)
-	if !isDir(".lib") {
-		_ = os.MkdirAll(".lib", os.ModePerm)
-		lib.Assert(lib.StringToFile(".lib/000-header.sh", libHeader), "Writing .lib/000-header.sh")
+	if isDir(".lib") {
+		lib.Assert(filepath.Walk(".lib", fnwalk), "filepath.Walk(\".lib\")")
 	}
-	lib.Assert(filepath.Walk(".lib", fnwalk), "filepath.Walk(\".lib\")")
 
 	if isDir(namespace + "/.lib") {
 		lib.Assert(filepath.Walk(namespace+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
