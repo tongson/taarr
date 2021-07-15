@@ -45,6 +45,7 @@ func output(o string, h string, c string) (string, string) {
 func main() {
 	var verbose bool = false
 	var failed bool = false
+	var debug bool = false
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
@@ -54,6 +55,9 @@ func main() {
 	} else if call[len(call)-3:] == "rrv" {
 		verbose = true
 		log.SetOutput(new(logWriter))
+	} else if call[len(call)-3:] == "rrd" {
+		debug = true
+		log.SetOutput(io.Discard)
 	} else {
 		lib.Bug("Unsupported executable name.")
 	}
@@ -130,7 +134,10 @@ func main() {
 	sh.WriteString(strings.Join(arguments, " "))
 	sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+run))
 	modscript := sh.String()
-	//print debugging -- fmt.Println(modscript)
+	if debug == true {
+		fmt.Println(modscript)
+		os.Exit(0)
+	}
 	const STDOUT = " >>>  STDOUT  >>>"
 	const STDERR = " >>>  STDERR  >>>"
 	log.Printf("Running %s:%s via %s", namespace, script, hostname)
