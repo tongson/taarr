@@ -1,4 +1,4 @@
-module rr
+module github.com/tongson/rr
 
 go 1.16
 
