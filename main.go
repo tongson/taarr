@@ -13,8 +13,8 @@ import (
 	lib "github.com/tongson/gl"
 )
 
-const versionNumber = "0.7.1"
-const codeName = "\"Chlorine Twirl\""
+const versionNumber = "0.7.2"
+const codeName = "\"Unmolded Posh\""
 const run = "script"
 
 type logWriter struct {
