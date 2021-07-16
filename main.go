@@ -13,7 +13,7 @@ import (
 	lib "github.com/tongson/gl"
 )
 
-const versionNumber = "0.7.2"
+const versionNumber = "0.8.0"
 const codeName = "\"Unmolded Posh\""
 const run = "script"
 
