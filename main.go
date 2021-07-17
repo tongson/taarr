@@ -32,7 +32,7 @@ func showSpinnerWhile() func() {
 			default:
 				// reprint new spinner state
 				fmt.Fprintf(os.Stdout, "%s\r", spinner.Next())
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(200 * time.Millisecond)
 			}
 		}
 	}()
