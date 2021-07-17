@@ -23,7 +23,7 @@ type logWriter struct {
 
 func showSpinnerWhile() func() {
 	spinner := spin.New()
-	spinner.Set(spin.Spin18)
+	spinner.Set(spin.Spin24)
 	done := make(chan bool)
 	go func() {
 		for {
