@@ -30,7 +30,6 @@ func showSpinnerWhile() func() {
 			select {
 			case <-done:
 			default:
-				// reprint new spinner state
 				fmt.Fprintf(os.Stdout, "%s\r", spinner.Next())
 				time.Sleep(200 * time.Millisecond)
 			}
@@ -38,7 +37,6 @@ func showSpinnerWhile() func() {
 	}()
 	return func() {
 		done <- true
-		// remove spinner
 		fmt.Fprintf(os.Stdout, "\033[%dD", 1)
 	}
 }
