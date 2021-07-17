@@ -23,7 +23,7 @@ type logWriter struct {
 
 func showSpinnerWhile() func() {
 	spinner := spin.New()
-	spinner.Set(spin.Spin17)
+	spinner.Set(spin.Spin18)
 	done := make(chan bool)
 	go func() {
 		for {
@@ -31,7 +31,7 @@ func showSpinnerWhile() func() {
 			case <-done:
 			default:
 				// reprint new spinner state
-				fmt.Fprintf(os.Stderr, "\r%s", spinner.Next())
+				fmt.Fprintf(os.Stdout, "%s\r", spinner.Next())
 				time.Sleep(100 * time.Millisecond)
 			}
 		}
@@ -39,7 +39,7 @@ func showSpinnerWhile() func() {
 	return func() {
 		done <- true
 		// remove spinner
-		fmt.Fprintf(os.Stderr, "\033[%dD", 1)
+		fmt.Fprintf(os.Stdout, "\033[%dD", 1)
 	}
 }
 
