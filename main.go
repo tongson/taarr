@@ -30,14 +30,14 @@ func showSpinnerWhile() func() {
 			select {
 			case <-done:
 			default:
-				fmt.Fprintf(os.Stdout, "%s\r", spinner.Next())
+				fmt.Fprintf(os.Stderr, "%s\r", spinner.Next())
 				time.Sleep(200 * time.Millisecond)
 			}
 		}
 	}()
 	return func() {
 		done <- true
-		fmt.Fprintf(os.Stdout, "\033[%dD", 1)
+		fmt.Fprintf(os.Stderr, "\033[%dD", 1)
 	}
 }
 
