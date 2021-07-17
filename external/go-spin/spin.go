@@ -32,6 +32,9 @@ var (
 	Spin19  = `dqpb`
 	Spin20  = `▎▍▌▋▊▉▊▋▌▍▎`
 	Spin21  = `▖▘▝▗`
+	Spin22  = `.oO°Oo.`
+	Spin23  = `┤┘┴└├┌┬┐`
+	Spin24  = ` ..ooOO@* `
 	Default = Box1
 )
 
