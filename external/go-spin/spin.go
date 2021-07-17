@@ -34,7 +34,7 @@ var (
 	Spin21  = `▖▘▝▗`
 	Spin22  = `.oO°Oo.`
 	Spin23  = `┤┘┴└├┌┬┐`
-	Spin24  = ` ..ooOO@* `
+	Spin24  = ` ,.ooOO@* `
 	Default = Box1
 )
 
