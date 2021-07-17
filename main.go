@@ -11,6 +11,7 @@ import (
 	"time"
 
 	lib "github.com/tongson/gl"
+	spin "github.com/tongson/rr/external/go-spin"
 )
 
 const versionNumber = "0.8.0"
@@ -18,6 +19,28 @@ const codeName = "\"Unmolded Posh\""
 const run = "script"
 
 type logWriter struct {
+}
+
+func showSpinnerWhile() func() {
+	spinner := spin.New()
+	spinner.Set(spin.Spin17)
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-done:
+			default:
+				// reprint new spinner state
+				fmt.Fprintf(os.Stderr, "\r%s", spinner.Next())
+				time.Sleep(100 * time.Millisecond)
+			}
+		}
+	}()
+	return func() {
+		done <- true
+		// remove spinner
+		fmt.Fprintf(os.Stderr, "\033[%dD", 1)
+	}
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
@@ -168,7 +191,14 @@ func main() {
 			}
 		}
 		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
+		var done func()
+		if verbose {
+			done = showSpinnerWhile()
+		}
 		ret, stdout, stderr, _ := rargs.Run()
+		if verbose {
+			done()
+		}
 		if !ret {
 			failed = true
 			if !verbose {
@@ -241,7 +271,14 @@ func main() {
 		log.Println("Running script...")
 		sshb := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv,
 			Stdin: []byte(modscript)}
+		var done func()
+		if verbose {
+			done = showSpinnerWhile()
+		}
 		ret, stdout, stderr, _ := sshb.Run()
+		if verbose {
+			done()
+		}
 		ho, bo := output(stdout, hostname, STDOUT)
 		he, be := output(stderr, hostname, STDERR)
 		if !ret {
