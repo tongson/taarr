@@ -17,8 +17,8 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "0.8.0"
-const codeName = "\"Unmolded Posh\""
+const versionNumber = "0.9.0"
+const codeName = "\"Tingly Till\""
 const run = "script"
 
 type logWriter struct {
