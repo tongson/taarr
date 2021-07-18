@@ -14,6 +14,7 @@ import (
 	spin "github.com/tongson/rr/external/go-spin"
 )
 
+var start = time.Now()
 const versionNumber = "0.8.0"
 const codeName = "\"Unmolded Posh\""
 const run = "script"
@@ -295,8 +296,8 @@ func main() {
 		}
 	}
 	if !failed {
-		log.Println("All OK.")
+		log.Printf("Total run time: %s. All OK.", time.Since(start))
 	} else {
-		log.Println("Something went wrong.")
+		log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
 	}
 }
