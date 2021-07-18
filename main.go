@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/zerolog"
+	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	spin "github.com/tongson/rr/external/go-spin"
 )
