@@ -92,7 +92,11 @@ func main() {
 	var offset int
 	var hostname string
 	if len(os.Args) < 2 {
-		lib.Panic("Missing arguments.")
+		if verbose {
+			lib.Panic("Missing arguments.")
+		} else {
+			errLog.Error().Msg("Missing arguments")
+		}
 	}
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
 		offset = 1
@@ -102,14 +106,22 @@ func main() {
 		hostname = os.Args[1]
 	}
 	if len(os.Args) < offset+1 {
-		lib.Panic("`namespace:script` not specified.")
+		if verbose {
+			lib.Panic("`namespace:script` not specified.")
+		} else {
+			errLog.Error().Msg("namespace:script not specified")
+		}
 	}
 	s := strings.Split(os.Args[offset], "/")
 	if len(s) < 2 {
 		s = strings.Split(os.Args[offset], ":")
 	}
 	if len(s) < 2 {
-		lib.Panic("`namespace:script` not specified.")
+		if verbose {
+			lib.Panic("`namespace:script` not specified.")
+		} else {
+			errLog.Error().Msg("namespace:script not specified")
+		}
 	}
 	namespace, script := s[0], s[1]
 	if !isDir(namespace) {
@@ -271,18 +283,30 @@ func main() {
 				log.Printf("Copying %s to %s...", d, realhost)
 				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
 				if err != nil {
-					lib.Panic("Cannot create temporary file.")
+					if verbose {
+						lib.Panic("Cannot create temporary file.")
+					} else {
+						errLog.Error().Msg("Cannot create temporary file")
+					}
 				}
 				defer os.Remove(tmpfile.Name())
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
 				if _, err = tmpfile.Write(sftpc); err != nil {
-					lib.Panic("Failed to write to temporary file.")
+					if verbose {
+						lib.Panic("Failed to write to temporary file.")
+					} else {
+						errLog.Error().Msg("Failed to write to temporary file")
+					}
 				}
 				tmpfile.Close()
 				sftpa := lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
 				ret, _, _, _ := sftpa.Run()
 				if !ret {
-					lib.Panic("Running sftp failed.")
+					if verbose {
+						lib.Panic("Running sftp failed.")
+					} else {
+						errLog.Error().Msg("Running sftp failed.")
+					}
 				}
 				os.Remove(tmpfile.Name())
 			}
