@@ -113,13 +113,25 @@ func main() {
 	}
 	namespace, script := s[0], s[1]
 	if !isDir(namespace) {
-		lib.Panicf("`%s`(namespace) is not a directory.", namespace)
+		if verbose {
+			lib.Panicf("`%s`(namespace) is not a directory.", namespace)
+		} else {
+			errLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Msg("Namespace is not a directory")
+		}
 	}
 	if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
-		lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
+		if verbose {
+			lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
+		} else {
+			errLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("namespace/script is not a directory")
+		}
 	}
 	if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
-		lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, run)
+		if verbose {
+			lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, run)
+		} else {
+			errLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
+		}
 	}
 	var arguments []string
 	if len(s) > 2 {
@@ -232,7 +244,11 @@ func main() {
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
 			if realhost != sshhost[0] {
-				lib.Panicf("Hostname %s does not match remote host.", realhost)
+				if verbose {
+					lib.Panicf("Hostname %s does not match remote host.", realhost)
+				} else {
+					errLog.Error().Str("hostname", fmt.Sprintf("%s", realhost)).Msg("Hostname does not match remote host")
+				}
 			} else {
 				log.Printf("Remote host is %s\n", sshhost[0])
 			}
@@ -302,6 +318,10 @@ func main() {
 	if !failed {
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
 	} else {
-		errLog.Error().Str("elapsed", fmt.Sprintf("%s", time.Since(start))).Msg("Something went wrong.")
+		if verbose {
+			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
+		} else {
+			errLog.Error().Str("elapsed", fmt.Sprintf("%s", time.Since(start))).Msg("Something went wrong.")
+		}
 	}
 }
