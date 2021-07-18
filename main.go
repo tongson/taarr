@@ -59,8 +59,7 @@ func output(o string, h string, c string) (string, string) {
 }
 
 func main() {
-	zerolog.TimeFieldFormat = time.RFC3339
-	errLog := zerolog.New(os.Stderr).With().Timestamp().Logger()
+	var errLog zerolog.Logger
 	var verbose bool = false
 	var failed bool = false
 	var dump bool = false
@@ -70,6 +69,8 @@ func main() {
 	call := os.Args[0]
 	if len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
+		zerolog.TimeFieldFormat = time.RFC3339
+		errLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	} else if call[len(call)-3:] == "rrv" {
 		verbose = true
 		log.SetOutput(new(logWriter))
