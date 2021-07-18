@@ -211,7 +211,7 @@ func main() {
 			ho, bo := output(stdout, hostname, STDOUT)
 			he, be := output(stderr, hostname, STDERR)
 			if stdout != "" || stderr != "" {
-				log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+				log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
 			}
 		}
 	} else {
@@ -286,12 +286,12 @@ func main() {
 				lib.Panicf("\nstdout::\n%s\nstderr::\n%s\n", stdout, stderr)
 			} else {
 				if stdout != "" || stderr != "" {
-					log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+					log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
 				}
 			}
 		} else {
 			if stdout != "" || stderr != "" {
-				log.Printf("Output:\n%s%s%s%s", ho, bo, he, be)
+				log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
 			}
 		}
 	}
