@@ -10,11 +10,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	spin "github.com/tongson/rr/external/go-spin"
 )
 
 var start = time.Now()
+
 const versionNumber = "0.8.0"
 const codeName = "\"Unmolded Posh\""
 const run = "script"
@@ -57,6 +59,8 @@ func output(o string, h string, c string) (string, string) {
 }
 
 func main() {
+	zerolog.TimeFieldFormat = time.RFC3339
+	errLog := zerolog.New(os.Stderr).With().Timestamp().Logger()
 	var verbose bool = false
 	var failed bool = false
 	var debug bool = false
@@ -180,7 +184,7 @@ func main() {
 				if !ret {
 					failed = true
 					if !verbose {
-						lib.Panicf("Error copying files::\nstdout::\n%s\nstderr::\n%s\n", stdout, stderr)
+						errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 					} else {
 						ho, bo := output(stdout, hostname, STDOUT)
 						he, be := output(stderr, hostname, STDERR)
@@ -201,7 +205,7 @@ func main() {
 		if !ret {
 			failed = true
 			if !verbose {
-				lib.Panicf("\nstdout::\n%s\nstderr::\n%s\n", stdout, stderr)
+				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Output")
 			} else {
 				ho, bo := output(stdout, hostname, STDOUT)
 				he, be := output(stderr, hostname, STDERR)
@@ -234,7 +238,7 @@ func main() {
 			}
 		} else {
 			if !verbose {
-				lib.Panicf("%s does not exist or unreachable.", realhost)
+				errLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
 			} else {
 				log.Printf("%s does not exist or unreachable.", realhost)
 			}
@@ -283,7 +287,7 @@ func main() {
 		if !ret {
 			failed = true
 			if !verbose {
-				lib.Panicf("\nstdout::\n%s\nstderr::\n%s\n", stdout, stderr)
+				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 			} else {
 				if stdout != "" || stderr != "" {
 					log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
@@ -298,6 +302,6 @@ func main() {
 	if !failed {
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
 	} else {
-		log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
+		errLog.Error().Str("elapsed", fmt.Sprintf("%s", time.Since(start))).Msg("Something went wrong.")
 	}
 }
