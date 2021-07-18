@@ -63,7 +63,7 @@ func main() {
 	errLog := zerolog.New(os.Stderr).With().Timestamp().Logger()
 	var verbose bool = false
 	var failed bool = false
-	var debug bool = false
+	var dump bool = false
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
@@ -74,7 +74,7 @@ func main() {
 		verbose = true
 		log.SetOutput(new(logWriter))
 	} else if call[len(call)-3:] == "rrd" {
-		debug = true
+		dump = true
 		log.SetOutput(io.Discard)
 	} else {
 		lib.Bug("Unsupported executable name.")
@@ -176,7 +176,7 @@ func main() {
 	sh.WriteString(strings.Join(arguments, " "))
 	sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+run))
 	modscript := sh.String()
-	if debug == true {
+	if dump == true {
 		fmt.Println(modscript)
 		os.Exit(0)
 	}
