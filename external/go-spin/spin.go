@@ -35,6 +35,8 @@ var (
 	Spin22  = `.oO°Oo.`
 	Spin23  = `┤┘┴└├┌┬┐`
 	Spin24  = ` ,.ooOOO@+* `
+	Spin25  = `·–—+*`
+	Spin26  = `│/─\`
 	Default = Box1
 )
 
