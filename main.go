@@ -24,9 +24,14 @@ const run = "script"
 type logWriter struct {
 }
 
-func showSpinnerWhile() func() {
+func showSpinnerWhile(s int) func() {
 	spinner := spin.New()
-	spinner.Set(spin.Spin26)
+	switch s {
+	case 0:
+		spinner.Set(spin.Spin24)
+	default:
+		spinner.Set(spin.Spin26)
+	}
 	done := make(chan bool)
 	go func() {
 		for {
@@ -205,7 +210,14 @@ func main() {
 		} {
 			if isDir(d) {
 				rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
+				var done func()
+				if verbose {
+					done = showSpinnerWhile(0)
+				}
 				ret, stdout, stderr, _ := rargs.Run()
+				if verbose {
+					done()
+				}
 				if !ret {
 					failed = true
 					if !verbose {
@@ -221,7 +233,7 @@ func main() {
 		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		var done func()
 		if verbose {
-			done = showSpinnerWhile()
+			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, _ := rargs.Run()
 		if verbose {
@@ -301,7 +313,14 @@ func main() {
 				}
 				tmpfile.Close()
 				sftpa := lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
+				var done func()
+				if verbose {
+					done = showSpinnerWhile(0)
+				}
 				ret, _, _, _ := sftpa.Run()
+				if verbose {
+					done()
+				}
 				if !ret {
 					if verbose {
 						lib.Panic("Running sftp failed.")
@@ -317,7 +336,7 @@ func main() {
 			Stdin: []byte(modscript)}
 		var done func()
 		if verbose {
-			done = showSpinnerWhile()
+			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, _ := sshb.Run()
 		if verbose {
