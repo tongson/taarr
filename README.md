@@ -20,9 +20,19 @@ I mostly manage a handful of servers so `rr` serves my needs just fine.
 
 # MODES
 
-1. Run locally
-2. Run on a local container via nsenter(1)
+1. Run locally, the default
+```
+rr namespace:script
+rr local namespace:script
+```
+2. Run on a local container's PID via nsenter(1)
+```
+rr 1333 namespace:script
+```
 3. Run remote via OpenSSH
+```
+rr remotehost namespace:script
+```
 
 # TUTORIAL
 
