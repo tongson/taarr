@@ -220,7 +220,6 @@ func main() {
 					done()
 				}
 				if !ret {
-					failed = true
 					if !verbose {
 						errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 					} else {
@@ -228,6 +227,7 @@ func main() {
 						he, be := output(stderr, hostname, STDERR)
 						log.Printf("Failure copying files!\n%s%s%s%s", ho, bo, he, be)
 					}
+					os.Exit(1)
 				}
 			}
 		}
@@ -274,7 +274,6 @@ func main() {
 					done()
 				}
 				if !ret {
-					failed = true
 					if !verbose {
 						errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 					} else {
@@ -282,6 +281,7 @@ func main() {
 						he, be := output(stderr, hostname, STDERR)
 						log.Printf("Failure copying files!\n%s%s%s%s", ho, bo, he, be)
 					}
+					os.Exit(1)
 				}
 			}
 		}
@@ -329,6 +329,7 @@ func main() {
 				} else {
 					errLog.Error().Str("hostname", fmt.Sprintf("%s", realhost)).Msg("Hostname does not match remote host")
 				}
+				os.Exit(1)
 			} else {
 				log.Printf("Remote host is %s\n", sshhost[0])
 			}
@@ -338,6 +339,7 @@ func main() {
 			} else {
 				log.Printf("%s does not exist or unreachable.", realhost)
 			}
+			os.Exit(1)
 		}
 		for _, d := range []string{
 			".files",
@@ -382,6 +384,7 @@ func main() {
 					} else {
 						errLog.Error().Msg("Running sftp failed.")
 					}
+					os.Exit(1)
 				}
 				os.Remove(tmpfile.Name())
 			}
