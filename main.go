@@ -59,7 +59,7 @@ func output(o string, h string, c string) (string, string) {
 	rb := ""
 	if o != "" {
 		rh = fmt.Sprintf(" %s%s\n", h, c)
-		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o))
+		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o, "│"))
 	}
 	return rh, rb
 }
@@ -187,8 +187,8 @@ func main() {
 		fmt.Println(modscript)
 		os.Exit(0)
 	}
-	const STDOUT = " >>>  STDOUT  >>>"
-	const STDERR = " >>>  STDERR  >>>"
+	const STDOUT = " ┌── stdout"
+	const STDERR = " ┌── stderr"
 	log.Printf("Running %s:%s via %s", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
