@@ -92,7 +92,7 @@ for "pull" operations.
 
 Tested on Linux and macOS.
 
-Container mode requires nsenter(1) available or installed.
+Container mode requires nsenter(1) available or installed. Also requires rsync(1) for `.files`.
 
 Remote host only requires OpenSSH server.
 
