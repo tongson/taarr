@@ -44,7 +44,7 @@ rr remotehost namespace:script
 
 # MULTICALL MODES
 
-You can use a symlink for choose the modes.
+You can use a symlink to activate the modes.
 
 ## Verbose
 
