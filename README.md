@@ -20,18 +20,23 @@ I mostly manage a handful of servers so `rr` serves my needs just fine.
 
 # MODES
 
-1. *LOCAL*
+## LOCAL
+
 Run locally, the default. Requires tar(1) for `.files`.
 ```
 rr namespace:script
 rr localhost namespace:script
 ```
-2. *CONTAINER*
+
+## CONTAINER
+
 Run on a local container's PID via nsenter(1). Requires rsync(1) for `.files`.
 ```
 rr 1333 namespace:script
 ```
-3. *REMOTE*
+
+## REMOTE
+
 Run remote via OpenSSH. Requires OpenSSH 4.7+ on the remote host for `.files`.
 ```
 rr remotehost namespace:script
