@@ -37,7 +37,7 @@ rr 1333 namespace:script
 
 ## REMOTE
 
-Run remote via OpenSSH. Requires OpenSSH 4.7+ on the remote host for `.files`.
+Run remote via OpenSSH. Requires OpenSSH 4.7+ for `.files`.
 ```
 rr remotehost namespace:script
 ```
