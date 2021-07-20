@@ -18,7 +18,7 @@ According to the Lindy effect; shell scripts, openssh and tar will outlive these
 
 I mostly manage a handful of servers so `rr` serves my needs just fine.
 
-# MODES
+# INVOCATION
 
 ## LOCAL
 
@@ -41,6 +41,22 @@ Run remote via OpenSSH. Requires OpenSSH 4.7+ for `.files`.
 ```
 rr remotehost namespace:script
 ```
+
+# MULTICALL MODES
+
+You can use a symlink for choose the modes.
+
+## Verbose
+
+When called as `rrv` or a console is detected it runs in verbose mode.
+
+## Dump
+
+When called as `rrd`, dumps the generated script.
+
+## Silent
+
+When called as `rr` and a console is not detected it only shows errors as structured JSON.
 
 # TUTORIAL
 
