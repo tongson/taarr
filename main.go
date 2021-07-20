@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -236,6 +237,32 @@ func main() {
 			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, _ := rargs.Run()
+		if verbose {
+			done()
+		}
+		if !ret {
+			failed = true
+			if !verbose {
+				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Output")
+			} else {
+				ho, bo := output(stdout, hostname, STDOUT)
+				he, be := output(stderr, hostname, STDERR)
+				log.Printf("Failure running script!\n%s%s%s%s", ho, bo, he, be)
+			}
+		} else {
+			ho, bo := output(stdout, hostname, STDOUT)
+			he, be := output(stderr, hostname, STDERR)
+			if stdout != "" || stderr != "" {
+				log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
+			}
+		}
+	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
+		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, "sh", "-c", modscript}}
+		var done func()
+		if verbose {
+			done = showSpinnerWhile(1)
+		}
+		ret, stdout, stderr, _ := nsargs.Run()
 		if verbose {
 			done()
 		}
