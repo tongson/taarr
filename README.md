@@ -18,6 +18,12 @@ According to the Lindy effect; shell scripts, openssh and tar will outlive these
 
 I mostly manage a handful of servers so `rr` serves my needs just fine.
 
+# MODES
+
+1. Run locally
+2. Run on a local container via nsenter(1)
+3. Run remote via OpenSSH
+
 # TUTORIAL
 
 In the source tree, the *TUTORIAL* directory contains a hierarchy that persistently enables IP forwarding through sysctl upon the remote SSH host named *avocado*
@@ -75,6 +81,8 @@ for "pull" operations.
 ### Notes
 
 Tested on Linux and macOS.
+
+Container mode requires nsenter(1) available or installed.
 
 Remote host only requires OpenSSH server.
 
