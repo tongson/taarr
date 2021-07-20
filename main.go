@@ -325,7 +325,7 @@ func main() {
 			sshhost := strings.Split(stdout, "\n")
 			if realhost != sshhost[0] {
 				if verbose {
-					lib.Panicf("Hostname %s does not match remote host.", realhost)
+					log.Printf("Hostname %s does not match remote host.", realhost)
 				} else {
 					errLog.Error().Str("hostname", fmt.Sprintf("%s", realhost)).Msg("Hostname does not match remote host")
 				}
@@ -354,7 +354,7 @@ func main() {
 				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
 				if err != nil {
 					if verbose {
-						lib.Panic("Cannot create temporary file.")
+						log.Print("Cannot create temporary file.")
 					} else {
 						errLog.Error().Msg("Cannot create temporary file")
 					}
@@ -363,7 +363,7 @@ func main() {
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
 				if _, err = tmpfile.Write(sftpc); err != nil {
 					if verbose {
-						lib.Panic("Failed to write to temporary file.")
+						log.Print("Failed to write to temporary file.")
 					} else {
 						errLog.Error().Msg("Failed to write to temporary file")
 					}
@@ -380,7 +380,7 @@ func main() {
 				}
 				if !ret {
 					if verbose {
-						lib.Panic("Running sftp failed.")
+						log.Print("Running sftp failed.")
 					} else {
 						errLog.Error().Msg("Running sftp failed.")
 					}
