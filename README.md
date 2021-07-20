@@ -60,10 +60,6 @@ Tue, 20 Jul 2021 20:07:26 +0800 Done. Output:
 Tue, 20 Jul 2021 20:07:26 +0800 Total run time: 10.057316469s. All OK.
 ```
 
-## Dump
-
-When called as `rrd`, dumps the generated script.
-
 ## Silent
 
 When called as `rr` _and_ a console is not detected it only shows errors as structured JSON.
@@ -71,6 +67,10 @@ When called as `rr` _and_ a console is not detected it only shows errors as stru
 {"level":"error","stdout":"ss\n","stderr":"ee\n","time":"2021-07-20T20:16:04+08:00","message":"Output"}
 {"level":"error","elapsed":"1.798478ms","time":"2021-07-20T20:16:04+08:00","message":"Something went wrong."}
 ```
+
+## Dump
+
+When called as `rrd`, dumps the generated script.
 
 # TUTORIAL
 
