@@ -86,12 +86,13 @@ func main() {
 	} else {
 		lib.Bug("Unsupported executable name.")
 	}
-	if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
-		verbose = true
-		log.SetOutput(new(logWriter))
+	if !dump {
+		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
+			verbose = true
+			log.SetOutput(new(logWriter))
+		}
+		log.Printf("rr %s %s", versionNumber, codeName)
 	}
-	log.Printf("rr %s %s", versionNumber, codeName)
-
 	isDir := lib.StatPath("directory")
 	isFile := lib.StatPath("file")
 	var sh strings.Builder
@@ -184,7 +185,7 @@ func main() {
 	sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+run))
 	modscript := sh.String()
 	if dump == true {
-		fmt.Println(modscript)
+		fmt.Print(modscript)
 		os.Exit(0)
 	}
 	const STDOUT = " ┌── stdout"
