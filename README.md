@@ -20,16 +20,16 @@ I mostly manage a handful of servers so `rr` serves my needs just fine.
 
 # MODES
 
-1. Run locally, the default
+1. Run locally, the default. Requires tar(1) for `.files`.
 ```
 rr namespace:script
 rr local namespace:script
 ```
-2. Run on a local container's PID via nsenter(1)
+2. Run on a local container's PID via nsenter(1). Requires rsync(1) for `.files`.
 ```
 rr 1333 namespace:script
 ```
-3. Run remote via OpenSSH
+3. Run remote via OpenSSH. Requires OpenSSH 4.7+ for `.files`.
 ```
 rr remotehost namespace:script
 ```
@@ -91,8 +91,6 @@ for "pull" operations.
 ### Notes
 
 Tested on Linux and macOS.
-
-Container mode requires nsenter(1) available or installed. Also requires rsync(1) for `.files`.
 
 Remote host only requires OpenSSH server.
 
