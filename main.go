@@ -257,6 +257,34 @@ func main() {
 			}
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
+		destination := fmt.Sprintf("/proc/%s/root", hostname)
+		for _, d := range []string{
+			".files/",
+			namespace + "/.files/",
+			namespace + "/" + script + "/.files/",
+		} {
+			if isDir(d) {
+				rsargs := lib.RunArgs{Exe: "rsync", Args: []string{"-q", "-a", d, destination}}
+				var done func()
+				if verbose {
+					done = showSpinnerWhile(0)
+				}
+				ret, stdout, stderr, _ := rsargs.Run()
+				if verbose {
+					done()
+				}
+				if !ret {
+					failed = true
+					if !verbose {
+						errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
+					} else {
+						ho, bo := output(stdout, hostname, STDOUT)
+						he, be := output(stderr, hostname, STDERR)
+						log.Printf("Failure copying files!\n%s%s%s%s", ho, bo, he, be)
+					}
+				}
+			}
+		}
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, "sh", "-c", modscript}}
 		var done func()
 		if verbose {
