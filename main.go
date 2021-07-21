@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log"
@@ -10,10 +11,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"hash/maphash"
 
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	spin "github.com/tongson/rr/external/go-spin"
+	ulid "github.com/tongson/rr/external/ulid"
 )
 
 var start = time.Now()
@@ -104,7 +107,15 @@ func main() {
 	isDir := lib.StatPath("directory")
 	isFile := lib.StatPath("file")
 	var sh strings.Builder
-
+	var id string
+	{
+		b := []byte(strconv.FormatUint(new(maphash.Hash).Sum64(), 10))
+		e := bytes.NewReader(b)
+		var uid ulid.ULID
+		uid.SetTime(ulid.Timestamp(time.Now()))
+		io.ReadFull(e, uid[6:])
+		id = uid.String()
+	}	
 	var offset int
 	var hostname string
 	if len(os.Args) < 2 {
@@ -204,7 +215,7 @@ func main() {
 	}
 	log.Printf("Running %s:%s via %s...", namespace, script, hostname)
 	if console {
-		jsonLog.Debug().Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg("running")
+		jsonLog.Debug().Str("id", id).Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg("running")
 	}
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
@@ -228,7 +239,7 @@ func main() {
 			if isDir(d) {
 				log.Printf("Copying %s...", d)
 				if console {
-					jsonLog.Debug().Str("directory", d).Msg("copying")
+					jsonLog.Debug().Str("id", id).Str("directory", d).Msg("copying")
 				}
 				rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				var done func()
@@ -243,7 +254,7 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 					} else {
-						jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -253,7 +264,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Info().Str("result", "success").Msg(op)
+						jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 					}
 					log.Printf("Successfully copied files")
 				}
@@ -261,7 +272,7 @@ func main() {
 		}
 		log.Printf("Running %s...", script)
 		if console {
-			jsonLog.Debug().Str("script", script).Msg("running")
+			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
 		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		var done func()
@@ -280,12 +291,12 @@ func main() {
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+				jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
-				jsonLog.Info().Str("result", "success").Msg(op)
+				jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
@@ -301,7 +312,7 @@ func main() {
 			if isDir(d) {
 				log.Printf("Copying %s...", d)
 				if console {
-					jsonLog.Debug().Str("directory", d).Msg("copying")
+					jsonLog.Debug().Str("id", id).Str("directory", d).Msg("copying")
 				}
 				rsargs := lib.RunArgs{Exe: "rsync", Args: []string{"-q", "-a", d, destination}}
 				var done func()
@@ -316,7 +327,7 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 					} else {
-						jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -326,7 +337,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Info().Str("result", "success").Msg(op)
+						jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 					}
 					log.Printf("Successfully copied files")
 				}
@@ -334,7 +345,7 @@ func main() {
 		}
 		log.Printf("Running %s...", script)
 		if console {
-			jsonLog.Debug().Str("script", script).Msg("running")
+			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, "sh", "-c", modscript}}
 		var done func()
@@ -353,12 +364,12 @@ func main() {
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+				jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
-				jsonLog.Info().Str("result", "success").Msg(op)
+				jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
@@ -378,7 +389,7 @@ func main() {
 			sshhost := strings.Split(stdout, "\n")
 			if realhost != sshhost[0] {
 				if console {
-					jsonLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
+					jsonLog.Error().Str("id", id).Str("hostname", realhost).Msg("Hostname does not match remote host")
 					log.Printf("Hostname %s does not match remote host.", realhost)
 				} else {
 					serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
@@ -391,7 +402,7 @@ func main() {
 			if !console {
 				serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
 			} else {
-				jsonLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
+				jsonLog.Error().Str("id", id).Str("host", realhost).Msg("Host does not exist or unreachable")
 				log.Printf("%s does not exist or unreachable.", realhost)
 			}
 			os.Exit(1)
@@ -406,13 +417,13 @@ func main() {
 		} {
 			if isDir(d) {
 				if console {
-					jsonLog.Debug().Str("directory", d).Msg("copying")
+					jsonLog.Debug().Str("id", id).Str("directory", d).Msg("copying")
 				}
 				log.Printf("Copying %s to %s...", d, realhost)
 				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
 				if err != nil {
 					if console {
-						jsonLog.Error().Msg("Cannot create temporary file.")
+						jsonLog.Error().Str("id", id).Msg("Cannot create temporary file.")
 						log.Print("Cannot create temporary file.")
 					} else {
 						serrLog.Error().Msg("Cannot create temporary file")
@@ -423,7 +434,7 @@ func main() {
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
 				if _, err = tmpfile.Write(sftpc); err != nil {
 					if console {
-						jsonLog.Error().Msg("Failed to write to temporary file.")
+						jsonLog.Error().Str("id", id).Msg("Failed to write to temporary file.")
 						log.Print("Failed to write to temporary file.")
 					} else {
 						serrLog.Error().Msg("Failed to write to temporary file")
@@ -445,7 +456,7 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 					} else {
-						jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -455,7 +466,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Info().Str("result", "success").Msg(op)
+						jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 					}
 					log.Printf("Successfully copied files")
 				}
@@ -463,7 +474,7 @@ func main() {
 		}
 		log.Printf("Running %s...", script)
 		if console {
-			jsonLog.Debug().Str("script", script).Msg("running")
+			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
 		sshb := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv,
 			Stdin: []byte(modscript)}
@@ -483,12 +494,12 @@ func main() {
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+				jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
-				jsonLog.Info().Str("result", "success").Msg(op)
+				jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
@@ -497,13 +508,13 @@ func main() {
 	}
 	if tm := fmt.Sprintf("%s", time.Since(start)); !failed {
 		if console {
-			jsonLog.Debug().Str("elapsed", tm).Msg("success")
+			jsonLog.Debug().Str("id", id).Str("elapsed", tm).Msg("success")
 		}
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
 		os.Exit(0)
 	} else {
 		if console {
-			jsonLog.Debug().Str("elapsed", tm).Msg("failed")
+			jsonLog.Debug().Str("id", id).Str("elapsed", tm).Msg("failed")
 			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
 		} else {
 			serrLog.Debug().Str("elapsed", tm).Msg("failed")
