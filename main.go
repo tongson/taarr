@@ -73,7 +73,7 @@ func output(o string, h string, c string) (string, string, string) {
 func main() {
 	var serrLog zerolog.Logger
 	var jsonLog zerolog.Logger
-	var verbose bool = false
+	var console bool = false
 	var failed bool = false
 	var dump bool = false
 	runtime.MemProfileRate = 0
@@ -86,7 +86,7 @@ func main() {
 		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
 		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	} else if call[len(call)-3:] == "rrv" {
-		verbose = true
+		console = true
 		log.SetOutput(new(logWriter))
 	} else if call[len(call)-3:] == "rrd" {
 		dump = true
@@ -96,7 +96,7 @@ func main() {
 	}
 	if !dump {
 		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
-			verbose = true
+			console = true
 			log.SetOutput(new(logWriter))
 		}
 		log.Printf("rr %s %s", versionNumber, codeName)
@@ -108,7 +108,7 @@ func main() {
 	var offset int
 	var hostname string
 	if len(os.Args) < 2 {
-		if verbose {
+		if console {
 			lib.Panic("Missing arguments.")
 		} else {
 			serrLog.Error().Msg("Missing arguments")
@@ -123,7 +123,7 @@ func main() {
 		hostname = os.Args[1]
 	}
 	if len(os.Args) < offset+1 {
-		if verbose {
+		if console {
 			lib.Panic("`namespace:script` not specified.")
 		} else {
 			serrLog.Error().Msg("namespace:script not specified")
@@ -135,7 +135,7 @@ func main() {
 		s = strings.Split(os.Args[offset], ":")
 	}
 	if len(s) < 2 {
-		if verbose {
+		if console {
 			lib.Panic("`namespace:script` not specified.")
 		} else {
 			serrLog.Error().Msg("namespace:script not specified")
@@ -144,7 +144,7 @@ func main() {
 	}
 	namespace, script := s[0], s[1]
 	if !isDir(namespace) {
-		if verbose {
+		if console {
 			lib.Panicf("`%s`(namespace) is not a directory.", namespace)
 		} else {
 			serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Msg("Namespace is not a directory")
@@ -152,7 +152,7 @@ func main() {
 		}
 	}
 	if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
-		if verbose {
+		if console {
 			lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
 		} else {
 			serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("namespace/script is not a directory")
@@ -160,7 +160,7 @@ func main() {
 		}
 	}
 	if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
-		if verbose {
+		if console {
 			lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, run)
 		} else {
 			serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
@@ -203,7 +203,7 @@ func main() {
 		os.Exit(0)
 	}
 	log.Printf("Running %s:%s via %s...", namespace, script, hostname)
-	if verbose {
+	if console {
 		jsonLog.Debug().Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg("running")
 	}
 	if hostname == "local" || hostname == "localhost" {
@@ -227,20 +227,20 @@ func main() {
 		} {
 			if isDir(d) {
 				log.Printf("Copying %s...", d)
-				if verbose {
+				if console {
 					jsonLog.Debug().Str("directory", d).Msg("copying")
 				}
 				rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				var done func()
-				if verbose {
+				if console {
 					done = showSpinnerWhile(0)
 				}
 				ret, stdout, stderr, goerr := rargs.Run()
-				if verbose {
+				if console {
 					done()
 				}
 				if op := "copy"; !ret {
-					if !verbose {
+					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 					} else {
 						jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
@@ -252,7 +252,7 @@ func main() {
 					}
 					os.Exit(1)
 				} else {
-					if verbose {
+					if console {
 						jsonLog.Info().Str("result", "success").Msg(op)
 					}
 					log.Printf("Successfully copied files")
@@ -260,16 +260,16 @@ func main() {
 			}
 		}
 		log.Printf("Running %s...", script)
-		if verbose {
+		if console {
 			jsonLog.Debug().Str("script", script).Msg("running")
 		}
 		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
 		var done func()
-		if verbose {
+		if console {
 			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, goerr := rargs.Run()
-		if verbose {
+		if console {
 			done()
 		}
 		ho, bo, fo := output(stdout, hostname, STDOUT)
@@ -277,14 +277,14 @@ func main() {
 		hd, bd, fd := output(goerr, hostname, STDDBG)
 		if op := "run"; !ret {
 			failed = true
-			if !verbose {
+			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
 				jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			if verbose {
+			if console {
 				jsonLog.Info().Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
@@ -300,20 +300,20 @@ func main() {
 		} {
 			if isDir(d) {
 				log.Printf("Copying %s...", d)
-				if verbose {
+				if console {
 					jsonLog.Debug().Str("directory", d).Msg("copying")
 				}
 				rsargs := lib.RunArgs{Exe: "rsync", Args: []string{"-q", "-a", d, destination}}
 				var done func()
-				if verbose {
+				if console {
 					done = showSpinnerWhile(0)
 				}
 				ret, stdout, stderr, goerr := rsargs.Run()
-				if verbose {
+				if console {
 					done()
 				}
 				if op := "copy"; !ret {
-					if !verbose {
+					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 					} else {
 						jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
@@ -325,7 +325,7 @@ func main() {
 					}
 					os.Exit(1)
 				} else {
-					if verbose {
+					if console {
 						jsonLog.Info().Str("result", "success").Msg(op)
 					}
 					log.Printf("Successfully copied files")
@@ -333,16 +333,16 @@ func main() {
 			}
 		}
 		log.Printf("Running %s...", script)
-		if verbose {
+		if console {
 			jsonLog.Debug().Str("script", script).Msg("running")
 		}
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, "sh", "-c", modscript}}
 		var done func()
-		if verbose {
+		if console {
 			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, goerr := nsargs.Run()
-		if verbose {
+		if console {
 			done()
 		}
 		ho, bo, fo := output(stdout, hostname, STDOUT)
@@ -350,14 +350,14 @@ func main() {
 		hd, bd, fd := output(goerr, hostname, STDDBG)
 		if op := "run"; !ret {
 			failed = true
-			if !verbose {
+			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
 				jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			if verbose {
+			if console {
 				jsonLog.Info().Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
@@ -377,7 +377,7 @@ func main() {
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
 			if realhost != sshhost[0] {
-				if verbose {
+				if console {
 					jsonLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
 					log.Printf("Hostname %s does not match remote host.", realhost)
 				} else {
@@ -388,7 +388,7 @@ func main() {
 				log.Printf("Remote host is %s\n", sshhost[0])
 			}
 		} else {
-			if !verbose {
+			if !console {
 				serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
 			} else {
 				jsonLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
@@ -405,13 +405,13 @@ func main() {
 			namespace + "/" + script + "/.files-" + realhost,
 		} {
 			if isDir(d) {
-				if verbose {
+				if console {
 					jsonLog.Debug().Str("directory", d).Msg("copying")
 				}
 				log.Printf("Copying %s to %s...", d, realhost)
 				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
 				if err != nil {
-					if verbose {
+					if console {
 						jsonLog.Error().Msg("Cannot create temporary file.")
 						log.Print("Cannot create temporary file.")
 					} else {
@@ -422,7 +422,7 @@ func main() {
 				defer os.Remove(tmpfile.Name())
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
 				if _, err = tmpfile.Write(sftpc); err != nil {
-					if verbose {
+					if console {
 						jsonLog.Error().Msg("Failed to write to temporary file.")
 						log.Print("Failed to write to temporary file.")
 					} else {
@@ -433,16 +433,16 @@ func main() {
 				tmpfile.Close()
 				sftpa := lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
 				var done func()
-				if verbose {
+				if console {
 					done = showSpinnerWhile(0)
 				}
 				ret, stdout, stderr, goerr := sftpa.Run()
 				os.Remove(tmpfile.Name())
-				if verbose {
+				if console {
 					done()
 				}
 				if op := "copy"; !ret {
-					if !verbose {
+					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 					} else {
 						jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
@@ -454,7 +454,7 @@ func main() {
 					}
 					os.Exit(1)
 				} else {
-					if verbose {
+					if console {
 						jsonLog.Info().Str("result", "success").Msg(op)
 					}
 					log.Printf("Successfully copied files")
@@ -462,17 +462,17 @@ func main() {
 			}
 		}
 		log.Printf("Running %s...", script)
-		if verbose {
+		if console {
 			jsonLog.Debug().Str("script", script).Msg("running")
 		}
 		sshb := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv,
 			Stdin: []byte(modscript)}
 		var done func()
-		if verbose {
+		if console {
 			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, goerr := sshb.Run()
-		if verbose {
+		if console {
 			done()
 		}
 		ho, bo, fo := output(stdout, hostname, STDOUT)
@@ -480,14 +480,14 @@ func main() {
 		hd, bd, fd := output(goerr, hostname, STDDBG)
 		if op := "run"; !ret {
 			failed = true
-			if !verbose {
+			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
 				jsonLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			if verbose {
+			if console {
 				jsonLog.Info().Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
@@ -496,13 +496,13 @@ func main() {
 		}
 	}
 	if tm := fmt.Sprintf("%s", time.Since(start)); !failed {
-		if verbose {
+		if console {
 			jsonLog.Debug().Str("elapsed", tm).Msg("success")
 		}
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
 		os.Exit(0)
 	} else {
-		if verbose {
+		if console {
 			jsonLog.Debug().Str("elapsed", tm).Msg("failed")
 			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
 		} else {
