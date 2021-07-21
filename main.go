@@ -389,19 +389,23 @@ func main() {
 				if verbose {
 					done = showSpinnerWhile(0)
 				}
-				ret, _, _, _ := sftpa.Run()
+				ret, stdout, stderr, goerr := sftpa.Run()
+				os.Remove(tmpfile.Name())
 				if verbose {
 					done()
 				}
 				if !ret {
-					if verbose {
-						log.Print("Running sftp failed.")
+					if !verbose {
+						errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 					} else {
-						errLog.Error().Msg("Running sftp failed.")
+						ho, bo, fo := output(stdout, hostname, STDOUT)
+						he, be, fe := output(stderr, hostname, STDERR)
+						hd, bd, fd := output(goerr, hostname, STDDBG)
+						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+						log.Printf("Failure copying files!")
 					}
 					os.Exit(1)
 				}
-				os.Remove(tmpfile.Name())
 			}
 		}
 		log.Println("Running script...")
