@@ -193,6 +193,7 @@ func main() {
 	}
 	const STDOUT = " ┌── stdout"
 	const STDERR = " ┌── stderr"
+	const STDDBG = " ┌── debug"
 	log.Printf("Running %s:%s via %s", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
@@ -219,7 +220,7 @@ func main() {
 				if verbose {
 					done = showSpinnerWhile(0)
 				}
-				ret, stdout, stderr, _ := rargs.Run()
+				ret, stdout, stderr, goerr := rargs.Run()
 				if verbose {
 					done()
 				}
@@ -229,7 +230,8 @@ func main() {
 					} else {
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
-						log.Printf("Failure copying files!\n%%s%ss%s%s%s", ho, bo, fo, he, be, fe)
+						hd, bd, fd := output(goerr, hostname, STDDBG)
+						log.Printf("Failure copying files!\n%%s%ss%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 					}
 					os.Exit(1)
 				}
@@ -240,24 +242,23 @@ func main() {
 		if verbose {
 			done = showSpinnerWhile(1)
 		}
-		ret, stdout, stderr, _ := rargs.Run()
+		ret, stdout, stderr, goerr := rargs.Run()
 		if verbose {
 			done()
 		}
+		ho, bo, fo := output(stdout, hostname, STDOUT)
+		he, be, fe := output(stderr, hostname, STDERR)
+		hd, bd, fd := output(goerr, hostname, STDDBG)
 		if !ret {
 			failed = true
 			if !verbose {
 				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Output")
 			} else {
-				ho, bo, fo := output(stdout, hostname, STDOUT)
-				he, be, fe := output(stderr, hostname, STDERR)
-				log.Printf("Failure running script!\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			ho, bo, fo := output(stdout, hostname, STDOUT)
-			he, be, fe := output(stderr, hostname, STDERR)
-			if stdout != "" || stderr != "" {
-				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+			if stdout != "" || stderr != "" || goerr != "" {
+				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
@@ -273,7 +274,7 @@ func main() {
 				if verbose {
 					done = showSpinnerWhile(0)
 				}
-				ret, stdout, stderr, _ := rsargs.Run()
+				ret, stdout, stderr, goerr := rsargs.Run()
 				if verbose {
 					done()
 				}
@@ -283,7 +284,8 @@ func main() {
 					} else {
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
-						log.Printf("Failure copying files!\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+						hd, bd, fd := output(goerr, hostname, STDDBG)
+						log.Printf("Failure copying files!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 					}
 					os.Exit(1)
 				}
@@ -294,23 +296,22 @@ func main() {
 		if verbose {
 			done = showSpinnerWhile(1)
 		}
-		ret, stdout, stderr, _ := nsargs.Run()
+		ret, stdout, stderr, goerr := nsargs.Run()
 		if verbose {
 			done()
 		}
+		ho, bo, fo := output(stdout, hostname, STDOUT)
+		he, be, fe := output(stderr, hostname, STDERR)
+		hd, bd, fd := output(goerr, hostname, STDDBG)
 		if !ret {
 			failed = true
 			if !verbose {
 				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Output")
 			} else {
-				ho, bo, fo := output(stdout, hostname, STDOUT)
-				he, be, fe := output(stderr, hostname, STDERR)
-				log.Printf("Failure running script!\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			ho, bo, fo := output(stdout, hostname, STDOUT)
-			he, be, fe := output(stderr, hostname, STDERR)
-			if stdout != "" || stderr != "" {
+			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
@@ -324,7 +325,7 @@ func main() {
 		}
 		sshenv := []string{"LC_ALL=C"}
 		ssha := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
-		ret, stdout, _, _ := ssha.Run()
+		ret, stdout, _, _, _ := ssha.Run()
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
 			if realhost != sshhost[0] {
@@ -378,7 +379,7 @@ func main() {
 				if verbose {
 					done = showSpinnerWhile(0)
 				}
-				ret, _, _, _ := sftpa.Run()
+				ret, _, _, _, _ := sftpa.Run()
 				if verbose {
 					done()
 				}
@@ -400,24 +401,23 @@ func main() {
 		if verbose {
 			done = showSpinnerWhile(1)
 		}
-		ret, stdout, stderr, _ := sshb.Run()
+		ret, stdout, stderr, goerr := sshb.Run()
 		if verbose {
 			done()
 		}
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
+		hd, bd, fd := output(goerr, hostname, STDDBG)
 		if !ret {
 			failed = true
 			if !verbose {
 				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 			} else {
-				if stdout != "" || stderr != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
-				}
+				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			if stdout != "" || stderr != "" {
-				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+			if stdout != "" || stderr != "" || goerr != "" {
+				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		}
 	}
