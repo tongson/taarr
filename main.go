@@ -61,7 +61,7 @@ func output(o string, h string, c string) (string, string, string) {
 	rf := ""
 	if o != "" {
 		rh = fmt.Sprintf(" %s%s\n", h, c)
-		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o, "│"))
+		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, "│", o))
 		rf = fmt.Sprintf(" %s%s\n", h, footer)
 	}
 	return rh, rb, rf
