@@ -55,7 +55,7 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 }
 
 func output(o string, h string, c string) (string, string, string) {
-	footer := " └──"
+	footer := " └─"
 	rh := ""
 	rb := ""
 	rf := ""
@@ -197,9 +197,9 @@ func main() {
 		fmt.Print(modscript)
 		os.Exit(0)
 	}
-	const STDOUT = " ┌── stdout"
-	const STDERR = " ┌── stderr"
-	const STDDBG = " ┌── debug"
+	const STDOUT = " ┌─ stdout"
+	const STDERR = " ┌─ stderr"
+	const STDDBG = " ┌─ debug"
 	log.Printf("Running %s:%s via %s", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
