@@ -54,14 +54,17 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(time.Now().Format(time.RFC1123Z) + " " + string(bytes))
 }
 
-func output(o string, h string, c string) (string, string) {
+func output(o string, h string, c string) (string, string, string) {
+	footer := " └──"
 	rh := ""
 	rb := ""
+	rf := ""
 	if o != "" {
 		rh = fmt.Sprintf(" %s%s\n", h, c)
 		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o, "│"))
+		rf = fmt.Sprintf(" %s%s\n", h, footer)
 	}
-	return rh, rb
+	return rh, rb, rf
 }
 
 func main() {
@@ -224,9 +227,9 @@ func main() {
 					if !verbose {
 						errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 					} else {
-						ho, bo := output(stdout, hostname, STDOUT)
-						he, be := output(stderr, hostname, STDERR)
-						log.Printf("Failure copying files!\n%s%s%s%s", ho, bo, he, be)
+						ho, bo, fo := output(stdout, hostname, STDOUT)
+						he, be, fe := output(stderr, hostname, STDERR)
+						log.Printf("Failure copying files!\n%%s%ss%s%s%s", ho, bo, fo, he, be, fe)
 					}
 					os.Exit(1)
 				}
@@ -246,15 +249,15 @@ func main() {
 			if !verbose {
 				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Output")
 			} else {
-				ho, bo := output(stdout, hostname, STDOUT)
-				he, be := output(stderr, hostname, STDERR)
-				log.Printf("Failure running script!\n%s%s%s%s", ho, bo, he, be)
+				ho, bo, fo := output(stdout, hostname, STDOUT)
+				he, be, fe := output(stderr, hostname, STDERR)
+				log.Printf("Failure running script!\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		} else {
-			ho, bo := output(stdout, hostname, STDOUT)
-			he, be := output(stderr, hostname, STDERR)
+			ho, bo, fo := output(stdout, hostname, STDOUT)
+			he, be, fe := output(stderr, hostname, STDERR)
 			if stdout != "" || stderr != "" {
-				log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
+				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
@@ -278,9 +281,9 @@ func main() {
 					if !verbose {
 						errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 					} else {
-						ho, bo := output(stdout, hostname, STDOUT)
-						he, be := output(stderr, hostname, STDERR)
-						log.Printf("Failure copying files!\n%s%s%s%s", ho, bo, he, be)
+						ho, bo, fo := output(stdout, hostname, STDOUT)
+						he, be, fe := output(stderr, hostname, STDERR)
+						log.Printf("Failure copying files!\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 					}
 					os.Exit(1)
 				}
@@ -300,15 +303,15 @@ func main() {
 			if !verbose {
 				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Output")
 			} else {
-				ho, bo := output(stdout, hostname, STDOUT)
-				he, be := output(stderr, hostname, STDERR)
-				log.Printf("Failure running script!\n%s%s%s%s", ho, bo, he, be)
+				ho, bo, fo := output(stdout, hostname, STDOUT)
+				he, be, fe := output(stderr, hostname, STDERR)
+				log.Printf("Failure running script!\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		} else {
-			ho, bo := output(stdout, hostname, STDOUT)
-			he, be := output(stderr, hostname, STDERR)
+			ho, bo, fo := output(stdout, hostname, STDOUT)
+			he, be, fe := output(stderr, hostname, STDERR)
 			if stdout != "" || stderr != "" {
-				log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
+				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
 	} else {
@@ -401,20 +404,20 @@ func main() {
 		if verbose {
 			done()
 		}
-		ho, bo := output(stdout, hostname, STDOUT)
-		he, be := output(stderr, hostname, STDERR)
+		ho, bo, fo := output(stdout, hostname, STDOUT)
+		he, be, fe := output(stderr, hostname, STDERR)
 		if !ret {
 			failed = true
 			if !verbose {
 				errLog.Error().Str("stdout", fmt.Sprintf("%s", stdout)).Str("stderr", fmt.Sprintf("%s", stderr)).Msg("Error copying files")
 			} else {
 				if stdout != "" || stderr != "" {
-					log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
+					log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 				}
 			}
 		} else {
 			if stdout != "" || stderr != "" {
-				log.Printf("Done. Output:\n%s%s%s%s", ho, bo, he, be)
+				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
 	}
