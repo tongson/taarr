@@ -79,8 +79,7 @@ func main() {
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
-	call := os.Args[0]
-	if len(call) < 3 || call[len(call)-2:] == "rr" {
+	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
 		zerolog.TimeFieldFormat = time.RFC3339
 		jsonFile, _ := os.OpenFile("rr.json", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
