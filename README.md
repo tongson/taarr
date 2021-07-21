@@ -46,7 +46,7 @@ rr remotehost namespace:script
 
 You can use a symlink to activate the modes.
 
-## Verbose
+## Console(verbose)
 
 When called as `rrv` _or_ a console is detected it runs in verbose mode.
 ```
