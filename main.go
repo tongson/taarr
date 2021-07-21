@@ -200,7 +200,7 @@ func main() {
 	const STDOUT = " ┌─ stdout"
 	const STDERR = " ┌─ stderr"
 	const STDDBG = " ┌─ debug"
-	log.Printf("Running %s:%s via %s", namespace, script, hostname)
+	log.Printf("Running %s:%s via %s...", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
                 LC_ALL=C
