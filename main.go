@@ -21,6 +21,10 @@ var start = time.Now()
 const versionNumber = "0.10.0"
 const codeName = "\"Kilowatt Triceps\""
 const run = "script"
+const STDOUT = " ┌─ stdout"
+const STDERR = " ┌─ stderr"
+const STDDBG = " ┌─ debug"
+const FOOTER = " └─"
 
 type logWriter struct {
 }
@@ -55,14 +59,13 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 }
 
 func output(o string, h string, c string) (string, string, string) {
-	footer := " └─"
 	rh := ""
 	rb := ""
 	rf := ""
 	if o != "" {
 		rh = fmt.Sprintf(" %s%s\n", h, c)
 		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, "│", o))
-		rf = fmt.Sprintf(" %s%s\n", h, footer)
+		rf = fmt.Sprintf(" %s%s\n", h, FOOTER)
 	}
 	return rh, rb, rf
 }
@@ -200,9 +203,6 @@ func main() {
 		fmt.Print(modscript)
 		os.Exit(0)
 	}
-	const STDOUT = " ┌─ stdout"
-	const STDERR = " ┌─ stderr"
-	const STDDBG = " ┌─ debug"
 	log.Printf("Running %s:%s via %s...", namespace, script, hostname)
 	if verbose {
 		jsonLog.Debug().Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg("running")
