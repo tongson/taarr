@@ -107,6 +107,7 @@ func main() {
 			lib.Panic("Missing arguments.")
 		} else {
 			errLog.Error().Msg("Missing arguments")
+			os.Exit(1)
 		}
 	}
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
@@ -121,6 +122,7 @@ func main() {
 			lib.Panic("`namespace:script` not specified.")
 		} else {
 			errLog.Error().Msg("namespace:script not specified")
+			os.Exit(1)
 		}
 	}
 	s := strings.Split(os.Args[offset], "/")
@@ -132,6 +134,7 @@ func main() {
 			lib.Panic("`namespace:script` not specified.")
 		} else {
 			errLog.Error().Msg("namespace:script not specified")
+			os.Exit(1)
 		}
 	}
 	namespace, script := s[0], s[1]
@@ -140,6 +143,7 @@ func main() {
 			lib.Panicf("`%s`(namespace) is not a directory.", namespace)
 		} else {
 			errLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Msg("Namespace is not a directory")
+			os.Exit(1)
 		}
 	}
 	if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
@@ -147,6 +151,7 @@ func main() {
 			lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
 		} else {
 			errLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("namespace/script is not a directory")
+			os.Exit(1)
 		}
 	}
 	if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
@@ -154,6 +159,7 @@ func main() {
 			lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, run)
 		} else {
 			errLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
+			os.Exit(1)
 		}
 	}
 	var arguments []string
@@ -325,7 +331,7 @@ func main() {
 		}
 		sshenv := []string{"LC_ALL=C"}
 		ssha := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
-		ret, stdout, _, _, _ := ssha.Run()
+		ret, stdout, _, _ := ssha.Run()
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
 			if realhost != sshhost[0] {
@@ -363,6 +369,7 @@ func main() {
 					} else {
 						errLog.Error().Msg("Cannot create temporary file")
 					}
+					os.Exit(1)
 				}
 				defer os.Remove(tmpfile.Name())
 				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
@@ -372,6 +379,7 @@ func main() {
 					} else {
 						errLog.Error().Msg("Failed to write to temporary file")
 					}
+					os.Exit(1)
 				}
 				tmpfile.Close()
 				sftpa := lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
@@ -379,7 +387,7 @@ func main() {
 				if verbose {
 					done = showSpinnerWhile(0)
 				}
-				ret, _, _, _, _ := sftpa.Run()
+				ret, _, _, _ := sftpa.Run()
 				if verbose {
 					done()
 				}
@@ -423,11 +431,13 @@ func main() {
 	}
 	if !failed {
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
+		os.Exit(0)
 	} else {
 		if verbose {
 			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
 		} else {
 			errLog.Error().Str("elapsed", fmt.Sprintf("%s", time.Since(start))).Msg("Something went wrong.")
 		}
+		os.Exit(1)
 	}
 }
