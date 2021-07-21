@@ -60,6 +60,8 @@ Tue, 20 Jul 2021 20:07:26 +0800 Done. Output:
 Tue, 20 Jul 2021 20:07:26 +0800 Total run time: 10.057316469s. All OK.
 ```
 
+In this mode it also logs to the file `rr.json` in the current working directory.
+
 ## Silent
 
 When called as `rr` _and_ a console is not detected it only shows errors as structured JSON.
