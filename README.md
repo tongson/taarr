@@ -72,7 +72,8 @@ When called as `rr` _and_ a console is not detected it only shows errors as stru
 
 ## Dump
 
-When called as `rrd`, dumps the generated script.
+When called as `rrd`, dumps the generated script. This is mainly for debugging and allows running scripts
+generated from a managed namespace without the `rr` executable.
 
 # TUTORIAL
 
