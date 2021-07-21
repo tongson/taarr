@@ -237,7 +237,8 @@ func main() {
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
-						log.Printf("Failure copying files!\n%%s%ss%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+						log.Printf("Failure copying files!")
 					}
 					os.Exit(1)
 				}
@@ -291,7 +292,8 @@ func main() {
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
-						log.Printf("Failure copying files!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+						log.Printf("Failure copying files!")
 					}
 					os.Exit(1)
 				}
