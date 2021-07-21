@@ -241,6 +241,8 @@ func main() {
 						log.Printf("Failure copying files!")
 					}
 					os.Exit(1)
+				} else {
+					log.Printf("Successfully copied files.")
 				}
 			}
 		}
@@ -296,6 +298,8 @@ func main() {
 						log.Printf("Failure copying files!")
 					}
 					os.Exit(1)
+				} else {
+					log.Printf("Successfully copied files.")
 				}
 			}
 		}
@@ -405,6 +409,8 @@ func main() {
 						log.Printf("Failure copying files!")
 					}
 					os.Exit(1)
+				} else {
+					log.Printf("Successfully copied files.")
 				}
 			}
 		}
