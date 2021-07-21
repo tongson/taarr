@@ -365,9 +365,8 @@ func main() {
 			}
 		}
 	} else {
-		rh := strings.Split(hostname, "@")
 		var realhost string
-		if len(rh) == 1 {
+		if rh := strings.Split(hostname, "@"); len(rh) == 1 {
 			realhost = hostname
 		} else {
 			realhost = rh[1]
