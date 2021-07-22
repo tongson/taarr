@@ -21,8 +21,8 @@ import (
 
 var start = time.Now()
 
-const VersionNumber = "0.10.0"
-const CodeName = "\"Kilowatt Triceps\""
+const VersionNumber = "0.11.0"
+const CodeName = "\"Reluctant Walnut\""
 const RUN = "script"
 const LOG = "rr.json"
 const STDOUT = " ┌─ stdout"
