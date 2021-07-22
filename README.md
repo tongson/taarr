@@ -111,6 +111,23 @@ Any environment variable prefixed with `rr` are passed to the script.
 
 For example, the `rrUSERNAME=test` environment variable is passed to the script as `USERNAME=test`
 
+```
+$ cat tmp/env/script
+echo $USERNAME
+
+$ env rrUSERNAME=test rr tmp:env
+Thu, 22 Jul 2021 18:13:32 +0800 rr 0.10.0 "Kilowatt Triceps"
+Thu, 22 Jul 2021 18:13:32 +0800 Running tmp:env via local...
+Thu, 22 Jul 2021 18:13:32 +0800 Running env...
+Thu, 22 Jul 2021 18:13:32 +0800 Done. Output:
+ local ┌─ stdout
+ local │
+ local │ test
+ local │ 
+ local └─
+Thu, 22 Jul 2021 18:13:32 +0800 Total run time: 101.648007ms. All OK.
+```
+
 # TUTORIAL
 
 In the source tree, the *TUTORIAL* directory contains a hierarchy that persistently enables IP forwarding through sysctl upon the remote SSH host named *avocado*
