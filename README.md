@@ -105,6 +105,12 @@ rr namespace/script
 rr namespace/script/
 ```
 
+# Environment Variables
+
+Any environment variable prefixed with `rr` are passed to the script.
+
+For example, the `rrUSERNAME=test` environment variable is passed to the script as `USERNAME=test`
+
 # TUTORIAL
 
 In the source tree, the *TUTORIAL* directory contains a hierarchy that persistently enables IP forwarding through sysctl upon the remote SSH host named *avocado*
