@@ -24,6 +24,7 @@ var start = time.Now()
 const versionNumber = "0.10.0"
 const codeName = "\"Kilowatt Triceps\""
 const run = "script"
+const LOG = "rr.json"
 const STDOUT = " ┌─ stdout"
 const STDERR = " ┌─ stderr"
 const STDDBG = " ┌─ debug"
@@ -87,7 +88,7 @@ func main() {
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
 		zerolog.TimeFieldFormat = time.RFC3339
-		jsonFile, _ := os.OpenFile("rr.json", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
 		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	} else if call[len(call)-3:] == "rrv" {
