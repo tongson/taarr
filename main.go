@@ -150,6 +150,11 @@ func main() {
 			var md string
 			txt = fmt.Sprintf("%s/README", s)
 			md = fmt.Sprintf("%s/README.md", s)
+			sz := len(s)
+			line := strings.Repeat("─", sz)
+			fmt.Print(fmt.Sprintf("%s┐\n", line))
+			fmt.Printf("%s│\n", s)
+			fmt.Print(fmt.Sprintf("%s┘\n", line))
 			if isFile(txt) {
 				fmt.Print(lib.FileRead(txt))
 			} else if isFile(md) {
