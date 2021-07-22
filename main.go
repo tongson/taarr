@@ -154,7 +154,7 @@ func main() {
 			sz := len(s)
 			line := strings.Repeat("─", sz+2)
 			fmt.Print(fmt.Sprintf("%s┐\n", line))
-			fmt.Printf(" %s │\n", s)
+			fmt.Printf(" \033[37;1m%s\033[0m │\n", s)
 			fmt.Print(fmt.Sprintf("%s┘\n", line))
 			if isFile(txt) {
 				for _, each := range lib.FileLines(txt) {
