@@ -115,7 +115,7 @@ for "pull" operations.
 
 ### Hierarchy
 
-    TOPLEVEL
+    TOPLEVEL                            <--- Directory of namespaces or a project
     ├── .files                          <--- synced to any host
     ├── .files-avocado                  <--- synced to the avocado host
     ├── .lib                            <--- sourced by all scripts
