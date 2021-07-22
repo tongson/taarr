@@ -352,7 +352,7 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
-		if op := "run"; !ret {
+		if op := "finish"; !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
@@ -425,7 +425,7 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
-		if op := "run"; !ret {
+		if op := "finish"; !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
@@ -555,7 +555,7 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
-		if op := "run"; !ret {
+		if op := "finish"; !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
