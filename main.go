@@ -180,12 +180,12 @@ func main() {
 			}
 		}
 		if found1, readme1 := isReadme(os.Args[1]); found1 == true && readme1 != "" {
-			log.Print("Showing the readme...")
+			log.Print("Showing README...")
 			printReadme(readme1)
 			os.Exit(0)
 		} else if len(os.Args) > 2 {
 			if found2, readme2 := isReadme(os.Args[2]); found2 == true && readme2 != "" {
-				log.Print("Showing the readme...")
+				log.Print("Showing README...")
 				printReadme(readme2)
 				os.Exit(0)
 			}
