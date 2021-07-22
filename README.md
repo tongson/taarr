@@ -50,14 +50,16 @@ You can use a symlink to activate the modes.
 
 When called as `rrv` _or_ a console is detected it runs in verbose mode.
 ```
-Tue, 20 Jul 2021 20:07:16 +0800 rr 0.10.0 "Kilowatt Triceps"
-Tue, 20 Jul 2021 20:07:16 +0800 Running tmp:test via local
-Tue, 20 Jul 2021 20:07:26 +0800 Done. Output:
- local ┌── stdout
+Thu, 22 Jul 2021 14:01:43 +0800 rr 0.10.0 "Kilowatt Triceps"
+Thu, 22 Jul 2021 14:01:43 +0800 Running tmp:test via local...
+Thu, 22 Jul 2021 14:01:43 +0800 Running test...
+Thu, 22 Jul 2021 14:01:53 +0800 Done. Output:
+ local ┌─ stdout
  local │
  local │ 3
- local │
-Tue, 20 Jul 2021 20:07:26 +0800 Total run time: 10.057316469s. All OK.
+ local │ 
+ local └─
+Thu, 22 Jul 2021 14:01:53 +0800 Total run time: 10.059915355s. All OK.
 ```
 
 In this mode it also logs to the file `rr.json` in the current working directory.
