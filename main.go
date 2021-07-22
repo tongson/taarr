@@ -21,8 +21,8 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "0.10.0"
-const codeName = "\"Kilowatt Triceps\""
+const VersionNumber = "0.10.0"
+const CodeName = "\"Kilowatt Triceps\""
 const RUN = "script"
 const LOG = "rr.json"
 const STDOUT = " ┌─ stdout"
@@ -105,7 +105,7 @@ func main() {
 			console = true
 			log.SetOutput(new(logWriter))
 		}
-		log.Printf("rr %s %s", versionNumber, codeName)
+		log.Printf("rr %s %s", VersionNumber, CodeName)
 	}
 	isDir := lib.StatPath("directory")
 	isFile := lib.StatPath("file")
