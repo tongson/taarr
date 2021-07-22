@@ -23,7 +23,7 @@ var start = time.Now()
 
 const versionNumber = "0.10.0"
 const codeName = "\"Kilowatt Triceps\""
-const run = "script"
+const RUN = "script"
 const LOG = "rr.json"
 const STDOUT = " ┌─ stdout"
 const STDERR = " ┌─ stderr"
@@ -236,9 +236,9 @@ func main() {
 				os.Exit(1)
 			}
 		}
-		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
+		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, RUN)) {
 			if console {
-				lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, run)
+				lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, RUN)
 			} else {
 				serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
 				os.Exit(1)
@@ -272,7 +272,7 @@ func main() {
 		}
 		arguments = lib.InsertStr(arguments, "set --", 0)
 		sh.WriteString(strings.Join(arguments, " "))
-		sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+run))
+		sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+RUN))
 	}
 	modscript := sh.String()
 	if dump == true {
