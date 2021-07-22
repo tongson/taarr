@@ -8,7 +8,7 @@ shell script manager and runner inspired by rerun[1], bashing[2] and drist[3]
 [2] https://github.com/xsc/bashing  
 [3] git://bitreich.org/drist  
 
-Your shell script multi-tool. Can be used for:
+Your shell script multi-tool. Automate all the things. Can be used for:
 
 1. Runbooks
 2. Launchers
