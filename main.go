@@ -28,6 +28,7 @@ const STDOUT = " ┌─ stdout"
 const STDERR = " ┌─ stderr"
 const STDDBG = " ┌─ debug"
 const FOOTER = " └─"
+const PIPEST = "│"
 
 type logWriter struct {
 }
@@ -67,7 +68,7 @@ func output(o string, h string, c string) (string, string, string) {
 	rf := ""
 	if o != "" {
 		rh = fmt.Sprintf(" %s%s\n", h, c)
-		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, "│", o))
+		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, PIPEST, o))
 		rf = fmt.Sprintf(" %s%s\n", h, FOOTER)
 	}
 	return rh, rb, rf
