@@ -17,6 +17,8 @@ Your shell script multi-tool. Automate all the things. Can be used for:
 5. Builds
 6. Compiles
 
+Checkout the companion [ll](https://github.com/tongson/LadyLua) Lua interpreter for anything complicated with shell scripts.
+
 # WHY
 
 I tried building by own Lua-based configuration management software. A little more than thousand commits in, I realized the oneshot nature of shell scripts more convenient.
