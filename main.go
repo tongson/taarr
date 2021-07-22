@@ -59,7 +59,8 @@ func showSpinnerWhile(s int) func() {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	return fmt.Print(time.Now().Format(time.RFC1123Z) + " " + string(bytes))
+	fmt.Printf("\033[0;36m%s\033[0m", time.Now().Format(time.RFC1123Z))
+	return fmt.Print(" " + string(bytes))
 }
 
 func output(o string, h string, c string) (string, string, string) {
