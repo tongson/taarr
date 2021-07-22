@@ -108,7 +108,6 @@ func main() {
 	}
 	isDir := lib.StatPath("directory")
 	isFile := lib.StatPath("file")
-	var sh strings.Builder
 	var id string
 	{
 		b := []byte(strconv.FormatUint(new(maphash.Hash).Sum64(), 10))
@@ -186,76 +185,80 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	var s []string
-	// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
-	// Ditched because of the README feature.
-	// s := strings.Split(os.Args[offset], "/")
-	if len(s) < 2 {
-		s = strings.Split(os.Args[offset], ":")
-	}
-	if len(s) < 2 {
-		if console {
-			lib.Panic("`namespace:script` not specified.")
-		} else {
-			serrLog.Error().Msg("namespace:script not specified")
-			os.Exit(1)
+	var sh strings.Builder
+	var namespace string
+	var script string
+	{
+		var s []string
+		// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
+		// Ditched because of the README feature.
+		// s := strings.Split(os.Args[offset], "/")
+		if len(s) < 2 {
+			s = strings.Split(os.Args[offset], ":")
 		}
-	}
-	namespace, script := s[0], s[1]
-	if !isDir(namespace) {
-		if console {
-			lib.Panicf("`%s`(namespace) is not a directory.", namespace)
-		} else {
-			serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Msg("Namespace is not a directory")
-			os.Exit(1)
+		if len(s) < 2 {
+			if console {
+				lib.Panic("`namespace:script` not specified.")
+			} else {
+				serrLog.Error().Msg("namespace:script not specified")
+				os.Exit(1)
+			}
 		}
-	}
-	if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
-		if console {
-			lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
-		} else {
-			serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("namespace/script is not a directory")
-			os.Exit(1)
+		namespace, script = s[0], s[1]
+		if !isDir(namespace) {
+			if console {
+				lib.Panicf("`%s`(namespace) is not a directory.", namespace)
+			} else {
+				serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Msg("Namespace is not a directory")
+				os.Exit(1)
+			}
 		}
-	}
-	if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
-		if console {
-			lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, run)
-		} else {
-			serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
-			os.Exit(1)
+		if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
+			if console {
+				lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
+			} else {
+				serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("namespace/script is not a directory")
+				os.Exit(1)
+			}
 		}
-	}
-	var arguments []string
-	if len(s) > 2 {
-		arguments = []string{}
-		arguments = append(arguments, s[2])
-		arguments = append(arguments, os.Args[offset+1:]...)
-	} else {
-		arguments = os.Args[offset+1:]
-	}
-	fnwalk := lib.PathWalker(&sh)
-	if isDir(".lib") {
-		lib.Assert(filepath.Walk(".lib", fnwalk), "filepath.Walk(\".lib\")")
-	}
+		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, run)) {
+			if console {
+				lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, run)
+			} else {
+				serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
+				os.Exit(1)
+			}
+		}
+		var arguments []string
+		if len(s) > 2 {
+			arguments = []string{}
+			arguments = append(arguments, s[2])
+			arguments = append(arguments, os.Args[offset+1:]...)
+		} else {
+			arguments = os.Args[offset+1:]
+		}
+		fnwalk := lib.PathWalker(&sh)
+		if isDir(".lib") {
+			lib.Assert(filepath.Walk(".lib", fnwalk), "filepath.Walk(\".lib\")")
+		}
 
-	if isDir(namespace + "/.lib") {
-		lib.Assert(filepath.Walk(namespace+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
-	}
-	if isDir(namespace + "/" + script + "/.lib") {
-		lib.Assert(filepath.Walk(namespace+"/"+script+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
-	}
-
-	//Pass environment variables with `rr` prefix
-	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "rr") {
-			sh.WriteString("export " + strings.TrimPrefix(e, "rr") + "\n")
+		if isDir(namespace + "/.lib") {
+			lib.Assert(filepath.Walk(namespace+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
 		}
-	}
+		if isDir(namespace + "/" + script + "/.lib") {
+			lib.Assert(filepath.Walk(namespace+"/"+script+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
+		}
 
-	arguments = lib.InsertStr(arguments, "set --", 0)
-	sh.WriteString(strings.Join(arguments, " "))
-	sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+run))
+		//Pass environment variables with `rr` prefix
+		for _, e := range os.Environ() {
+			if strings.HasPrefix(e, "rr") {
+				sh.WriteString("export " + strings.TrimPrefix(e, "rr") + "\n")
+			}
+		}
+		arguments = lib.InsertStr(arguments, "set --", 0)
+		sh.WriteString(strings.Join(arguments, " "))
+		sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+run))
+	}
 	modscript := sh.String()
 	if dump == true {
 		fmt.Print(modscript)
