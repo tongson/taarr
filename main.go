@@ -134,6 +134,8 @@ func main() {
 		offset = 2
 		hostname = os.Args[1]
 	}
+	
+	// Handle readmes
 	{
 		isReadme := func(s string) (bool, string) {
 			s = strings.TrimSuffix(s, "/")
