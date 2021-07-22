@@ -73,6 +73,14 @@ Thu, 22 Jul 2021 14:01:53 +0800 Total run time: 10.059915355s. All OK.
 
 In this mode it also logs to the file `rr.json` in the current working directory.
 
+```
+$ cat rr.json
+{"level":"debug","id":"01FB6V9FH664R3ACSG60SK2E1M","namespace":"tmp","script":"env","target":"local","time":"2021-07-22T18:13:32+08:00","message":"running"}
+{"level":"debug","id":"01FB6V9FH664R3ACSG60SK2E1M","script":"env","time":"2021-07-22T18:13:32+08:00","message":"running"}
+{"level":"info","id":"01FB6V9FH664R3ACSG60SK2E1M","result":"success","time":"2021-07-22T18:13:32+08:00","message":"run"}
+{"level":"debug","id":"01FB6V9FH664R3ACSG60SK2E1M","elapsed":"101.57144ms","time":"2021-07-22T18:13:32+08:00","message":"success"}
+```
+
 ## Silent
 
 When called as `rr` _and_ a console is not detected it only shows errors as structured JSON.
