@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"hash/maphash"
 	"io"
 	"log"
 	"os"
@@ -11,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"hash/maphash"
 
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
@@ -116,7 +116,7 @@ func main() {
 		uid.SetTime(ulid.Timestamp(time.Now()))
 		io.ReadFull(e, uid[6:])
 		id = uid.String()
-	}	
+	}
 	var offset int
 	var hostname string
 	if len(os.Args) < 2 {
