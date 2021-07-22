@@ -134,6 +134,38 @@ func main() {
 		offset = 2
 		hostname = os.Args[1]
 	}
+	{
+		isReadme := func(s string) bool {
+			var txt string
+			var md string
+			txt = fmt.Sprintf("%s/README", s)
+			md = fmt.Sprintf("%s/README.md", s)
+			if isFile(txt) || isFile(md) {
+				return true
+			}
+			return false
+		}
+		printReadme := func(s string) {
+			var txt string
+			var md string
+			txt = fmt.Sprintf("%s/README", s)
+			md = fmt.Sprintf("%s/README.md", s)
+			if isFile(txt) {
+				fmt.Print(lib.FileRead(txt))
+			} else if isFile(md) {
+				fmt.Print(lib.FileRead(md))
+			}
+		}
+		if isReadme(os.Args[1]) {
+			log.Print("Showing documentation...")
+			printReadme(os.Args[1])
+			os.Exit(0)
+		} else if len(os.Args) > 2 && isReadme(os.Args[2]) {
+			log.Print("Showing documentation...")
+			printReadme(os.Args[2])
+			os.Exit(0)
+		}
+	}
 	if len(os.Args) < offset+1 {
 		if console {
 			lib.Panic("`namespace:script` not specified.")
