@@ -186,7 +186,10 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	s := strings.Split(os.Args[offset], "/")
+	var s []string
+	// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
+	// Ditched because of the README feature.
+	// s := strings.Split(os.Args[offset], "/")
 	if len(s) < 2 {
 		s = strings.Split(os.Args[offset], ":")
 	}
