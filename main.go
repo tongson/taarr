@@ -160,10 +160,12 @@ func main() {
 				for _, each := range lib.FileLines(txt) {
 					fmt.Printf(" │ %s\n", each)
 				}
+				fmt.Printf("\n")
 			} else if isFile(md) {
 				for _, each := range lib.FileLines(md) {
 					fmt.Printf(" │ %s\n", each)
 				}
+				fmt.Printf("\n")
 			}
 		}
 		if isReadme(os.Args[1]) {
