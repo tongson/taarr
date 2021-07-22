@@ -154,18 +154,30 @@ func main() {
 			sz := len(s)
 			line := strings.Repeat("─", sz+2)
 			fmt.Print(fmt.Sprintf("%s┐\n", line))
-			fmt.Printf(" \033[37;1m%s\033[0m │\n", s)
+			if console {
+				fmt.Printf(" \033[37;1m%s\033[0m │\n", s)
+			} else {
+				fmt.Printf(" %s │\n", s)
+			}
 			fmt.Print(fmt.Sprintf("%s┘\n", line))
 			if isFile(txt) {
-				for _, each := range lib.FileLines(txt) {
-					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
+				if console {
+					for _, each := range lib.FileLines(txt) {
+						fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
+					}
+					fmt.Printf("\n")
+				} else {
+					fmt.Print(lib.FileRead(txt))
 				}
-				fmt.Printf("\n")
 			} else if isFile(md) {
-				for _, each := range lib.FileLines(md) {
-					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
+				if console {
+					for _, each := range lib.FileLines(md) {
+						fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
+					}
+					fmt.Printf("\n")
+				} else {
+					fmt.Print(lib.FileRead(md))
 				}
-				fmt.Printf("\n")
 			}
 		}
 		if isReadme(os.Args[1]) {
