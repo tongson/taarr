@@ -136,21 +136,18 @@ func main() {
 		hostname = os.Args[1]
 	}
 	{
-		isReadme := func(s string) bool {
-			var txt string
-			var md string
-			txt = fmt.Sprintf("%s/README", s)
-			md = fmt.Sprintf("%s/README.md", s)
-			if isFile(txt) || isFile(md) {
-				return true
+		isReadme := func(s string) (bool, string) {
+			s = strings.TrimSuffix(s, "/")
+			s = strings.TrimSuffix(s, ":")
+			match, _ := lib.FileGlob(fmt.Sprintf("%s/README*", s))
+			for _, m := range match {
+				if isFile(m) {
+					return true, m
+				}
 			}
-			return false
+			return false, ""
 		}
 		printReadme := func(s string) {
-			var txt string
-			var md string
-			txt = fmt.Sprintf("%s/README", s)
-			md = fmt.Sprintf("%s/README.md", s)
 			sz := len(s)
 			line := strings.Repeat("─", sz+2)
 			fmt.Print(fmt.Sprintf("%s┐\n", line))
@@ -160,34 +157,25 @@ func main() {
 				fmt.Printf(" %s │\n", s)
 			}
 			fmt.Print(fmt.Sprintf("%s┘\n", line))
-			if isFile(txt) {
-				if console {
-					for _, each := range lib.FileLines(txt) {
-						fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
-					}
-					fmt.Printf("\n")
-				} else {
-					fmt.Print(lib.FileRead(txt))
+			if console {
+				for _, each := range lib.FileLines(s) {
+					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
 				}
-			} else if isFile(md) {
-				if console {
-					for _, each := range lib.FileLines(md) {
-						fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
-					}
-					fmt.Printf("\n")
-				} else {
-					fmt.Print(lib.FileRead(md))
-				}
+				fmt.Printf("\n")
+			} else {
+				fmt.Print(lib.FileRead(s))
 			}
 		}
-		if isReadme(os.Args[1]) {
+		if found1, readme1 := isReadme(os.Args[1]); found1 == true && readme1 != "" {
 			log.Print("Showing documentation...")
-			printReadme(os.Args[1])
+			printReadme(readme1)
 			os.Exit(0)
-		} else if len(os.Args) > 2 && isReadme(os.Args[2]) {
-			log.Print("Showing documentation...")
-			printReadme(os.Args[2])
-			os.Exit(0)
+		} else if len(os.Args) > 2 {
+			if found2, readme2 := isReadme(os.Args[2]); found2 == true && readme2 != "" {
+				log.Print("Showing documentation...")
+				printReadme(readme2)
+				os.Exit(0)
+			}
 		}
 	}
 	if len(os.Args) < offset+1 {
