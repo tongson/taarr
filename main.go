@@ -157,9 +157,13 @@ func main() {
 			fmt.Printf(" %s │\n", s)
 			fmt.Print(fmt.Sprintf("%s┘\n", line))
 			if isFile(txt) {
-				fmt.Print(lib.FileRead(txt))
+				for _, each := range lib.FileLines(txt) {
+					fmt.Printf(" │ %s\n", each)
+				}
 			} else if isFile(md) {
-				fmt.Print(lib.FileRead(md))
+				for _, each := range lib.FileLines(md) {
+					fmt.Printf(" │ %s\n", each)
+				}
 			}
 		}
 		if isReadme(os.Args[1]) {
