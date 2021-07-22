@@ -8,6 +8,15 @@ shell script manager and runner inspired by rerun[1], bashing[2] and drist[3]
 [2] https://github.com/xsc/bashing  
 [3] git://bitreich.org/drist  
 
+Your shell script multi-tool. Can be used for:
+
+1. Runbooks
+2. Launchers
+3. Deployment
+4. Release Engineering
+5. Builds
+6. Compiles
+
 # WHY
 
 I tried building by own Lua-based configuration management software. A little more than thousand commits in, I realized the oneshot nature of shell scripts more convenient.
