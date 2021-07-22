@@ -77,6 +77,25 @@ When called as `rr` _and_ a console is not detected it only shows errors as stru
 When called as `rrd`, dumps the generated script. This is mainly for debugging and allows running scripts
 generated from a managed namespace without the `rr` executable.
 
+# DOCS & READMES
+
+Any case insensitive file named `readme*` in the namespace and script directories can be shown by invoking `rr` by the
+following ways: 
+
+Prints `namespace/readme*`
+
+```
+rr namespace
+rr namespace/
+```
+
+Prints `namespace/script/readme*`
+
+```
+rr namespace/script
+rr namespace/script/
+```
+
 # TUTORIAL
 
 In the source tree, the *TUTORIAL* directory contains a hierarchy that persistently enables IP forwarding through sysctl upon the remote SSH host named *avocado*
