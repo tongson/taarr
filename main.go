@@ -281,7 +281,7 @@ func main() {
 	}
 	log.Printf("Running %s:%s via %s...", namespace, script, hostname)
 	if console {
-		jsonLog.Debug().Str("id", id).Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg("running")
+		jsonLog.Info().Str("id", id).Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg("start")
 	}
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
