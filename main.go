@@ -59,7 +59,7 @@ func showSpinnerWhile(s int) func() {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	fmt.Printf("\033[0;36m%s\033[0m", time.Now().Format(time.RFC1123Z))
+	fmt.Printf("\033[38;2;85;85;85m%s\033[0m", time.Now().Format(time.RFC1123Z))
 	return fmt.Print(" " + string(bytes))
 }
 
@@ -158,12 +158,12 @@ func main() {
 			fmt.Print(fmt.Sprintf("%s┘\n", line))
 			if isFile(txt) {
 				for _, each := range lib.FileLines(txt) {
-					fmt.Printf(" │ %s\n", each)
+					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
 				}
 				fmt.Printf("\n")
 			} else if isFile(md) {
 				for _, each := range lib.FileLines(md) {
-					fmt.Printf(" │ %s\n", each)
+					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
 				}
 				fmt.Printf("\n")
 			}
