@@ -2,3 +2,4 @@
 
 + Script start marked as Info
 + Start and Finish now properly marked in json log
++ Contents of `task` file used for audit trail
