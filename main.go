@@ -23,6 +23,7 @@ var start = time.Now()
 
 const VersionNumber = "0.11.0"
 const CodeName = "\"Reluctant Walnut\""
+const TASK = "task"
 const RUN = "script"
 const LOG = "rr.json"
 const STDOUT = " ┌─ stdout"
@@ -279,9 +280,13 @@ func main() {
 		fmt.Print(modscript)
 		os.Exit(0)
 	}
+	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, TASK))
+	if op == "" {
+		op = "UNDEFINED"
+	}
 	log.Printf("Running %s:%s via %s...", namespace, script, hostname)
 	if console {
-		jsonLog.Info().Str("id", id).Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg("start")
+		jsonLog.Info().Str("id", id).Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg(op)
 	}
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
@@ -316,11 +321,11 @@ func main() {
 				if console {
 					done()
 				}
-				if op := "copy"; !ret {
+				if step := "copy"; !ret {
 					if !console {
-						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -330,7 +335,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
+						jsonLog.Info().Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
 				}
@@ -352,7 +357,7 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
-		if op := "finish"; !ret {
+		if !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
@@ -389,11 +394,11 @@ func main() {
 				if console {
 					done()
 				}
-				if op := "copy"; !ret {
+				if step := "copy"; !ret {
 					if !console {
-						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -403,7 +408,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
+						jsonLog.Info().Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
 				}
@@ -425,7 +430,7 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
-		if op := "finish"; !ret {
+		if !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
@@ -518,11 +523,11 @@ func main() {
 				if console {
 					done()
 				}
-				if op := "copy"; !ret {
+				if step := "copy"; !ret {
 					if !console {
-						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -532,7 +537,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
+						jsonLog.Info().Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
 				}
@@ -555,7 +560,7 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
-		if op := "finish"; !ret {
+		if !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
