@@ -27,6 +27,7 @@ const CodeName = "\"Reluctant Walnut\""
 const OP = "task"
 const RUN = "script"
 const LOG = "rr.json"
+const DOC = "README"
 
 const STDOUT = " ┌─ stdout"
 const STDERR = " ┌─ stderr"
@@ -144,7 +145,7 @@ func main() {
 		isReadme := func(s string) (bool, string) {
 			s = strings.TrimSuffix(s, "/")
 			s = strings.TrimSuffix(s, ":")
-			match, _ := lib.FileGlob(fmt.Sprintf("%s/README*", s))
+			match, _ := lib.FileGlob(fmt.Sprintf("%s/%s*", s, DOC))
 			for _, m := range match {
 				if isFile(m) {
 					return true, m
