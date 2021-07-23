@@ -1,0 +1,16 @@
+printf "ss\n"
+printf "ss\n"
+printf "dddddddddddddddddddddddddddddss\n"
+printf "ss\n"
+printf "ss\n"
+printf "ss\n"
+printf "ss\n"
+printf 1>&2 "ee\n"
+err(){
+  printf 1>&2 "==fail\n"
+ "$@" 967>&2
+  printf 1>&2 "==fail\n"
+}
+./rr "./fd"
+exit 255
+
