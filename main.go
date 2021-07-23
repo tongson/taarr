@@ -127,7 +127,7 @@ func main() {
 		if console {
 			lib.Panic("Missing arguments.")
 		} else {
-			serrLog.Error().Msg("Missing arguments")
+			serrLog.Fatal().Msg("Missing arguments")
 			os.Exit(1)
 		}
 	}
@@ -199,7 +199,7 @@ func main() {
 		if console {
 			lib.Panic("`namespace:script` not specified.")
 		} else {
-			serrLog.Error().Msg("namespace:script not specified")
+			serrLog.Fatal().Msg("namespace:script not specified")
 			os.Exit(1)
 		}
 	}
@@ -218,7 +218,7 @@ func main() {
 			if console {
 				lib.Panic("`namespace:script` not specified.")
 			} else {
-				serrLog.Error().Msg("namespace:script not specified")
+				serrLog.Fatal().Msg("namespace:script not specified")
 				os.Exit(1)
 			}
 		}
@@ -227,7 +227,7 @@ func main() {
 			if console {
 				lib.Panicf("`%s`(namespace) is not a directory.", namespace)
 			} else {
-				serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Msg("Namespace is not a directory")
+				serrLog.Fatal().Str("namespace", fmt.Sprintf("%s", namespace)).Msg("Namespace is not a directory")
 				os.Exit(1)
 			}
 		}
@@ -235,7 +235,7 @@ func main() {
 			if console {
 				lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
 			} else {
-				serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("namespace/script is not a directory")
+				serrLog.Fatal().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("namespace/script is not a directory")
 				os.Exit(1)
 			}
 		}
@@ -243,7 +243,7 @@ func main() {
 			if console {
 				lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, RUN)
 			} else {
-				serrLog.Error().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
+				serrLog.Fatal().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
 				os.Exit(1)
 			}
 		}
