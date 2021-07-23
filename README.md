@@ -207,10 +207,14 @@ for "pull" operations.
         ├── .files                      <--- synced to any host when namespace:* is called
         ├── .files-avocado              <--- synced to the avocado host when namespace:* is called
         ├── .lib                        <--- sourced along with namespace:* scripts
+        ├── readme                      <--- Documentation for namespace
+        ├── task                        <--- Companion to readme, used to log current task
         └── script directory
             ├── .files                  <--- synced to any host when namespace:script is called
             ├── .files-avocado          <--- synced to the avocado host when namespace:script is called
             ├── .lib                    <--- sourced along with namespace:script scripts
+            ├── readme                  <--- Documentation for script
+            ├── task                    <--- Companion to readme, used to log current task
             └── script                  <--- the actual shell script
 
 ### Notes
