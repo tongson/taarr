@@ -23,7 +23,7 @@ var start = time.Now()
 
 const VersionNumber = "0.11.0"
 const CodeName = "\"Reluctant Walnut\""
-const TASK = "task"
+const OP = "task"
 const RUN = "script"
 const LOG = "rr.json"
 const STDOUT = " ┌─ stdout"
@@ -280,7 +280,7 @@ func main() {
 		fmt.Print(modscript)
 		os.Exit(0)
 	}
-	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, TASK))
+	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, OP))
 	if op == "" {
 		op = "UNDEFINED"
 	}
