@@ -22,7 +22,7 @@ Checkout the companion [ll](https://github.com/tongson/LadyLua) (Lua interpreter
 
 # WHY
 
-I tried building by own Lua-based configuration management software. A little more than thousand commits in, I realized the oneshot nature of shell scripts more convenient.
+I built my own Lua-based configuration management software. A little more than thousand commits in, I realized the oneshot nature of shell scripts more convenient.
 
 CFEngine, Puppet, Chef and others did not offer advantages over a combination of rerun/bashing + drist. Cons mostly outweight the pros. Slow and complicated are the common complaints.
 
