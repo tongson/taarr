@@ -1,6 +1,15 @@
 _comp_rr()
 {
+    if [ "${COMP_WORDS[COMP_CWORD-1]%??}" = "rr" ]
+    then
+      COMPREPLY=()
+      return
+    fi
     local cur="${COMP_WORDS[COMP_CWORD]}"
+    if [ "${cur}" = ":" ]
+    then
+      cur=""
+    fi
     local d
     local dir
     if [ "${COMP_WORDS[COMP_CWORD-1]}" = ":" ]
@@ -17,11 +26,7 @@ _comp_rr()
         d=$(find "${dir}" -maxdepth 1 -type d -printf "%P ")
       fi
     fi
-    if [ "${cur}" = ":" ]
-    then
-      cur=""
-    fi
     #COMPREPLY=($(compgen -W "${d}" -- "${cur}"))
     mapfile -t COMPREPLY < <(compgen -W "${d}" -- "${cur}")
 }
-complete -F _comp_rr rr
+complete -o bashdefault -o default -F _comp_rr rr
