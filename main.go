@@ -28,6 +28,7 @@ const OP = "task"
 const RUN = "script"
 const LOG = "rr.json"
 const DOC = "README"
+const INTERP = "sh"
 
 const STDOUT = " ┌─ stdout"
 const STDERR = " ┌─ stderr"
@@ -315,7 +316,7 @@ func main() {
 				if console {
 					jsonLog.Debug().Str("id", id).Str("directory", d).Msg("copying")
 				}
-				rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", fmt.Sprintf(untar, d)}}
+				rargs := lib.RunArgs{Exe: INTERP, Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				var done func()
 				if console {
 					done = showSpinnerWhile(0)
@@ -348,7 +349,7 @@ func main() {
 		if console {
 			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
-		rargs := lib.RunArgs{Exe: "sh", Args: []string{"-c", modscript}}
+		rargs := lib.RunArgs{Exe: INTERP, Args: []string{"-c", modscript}}
 		var done func()
 		if console {
 			done = showSpinnerWhile(1)
@@ -421,7 +422,7 @@ func main() {
 		if console {
 			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
-		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, "sh", "-c", modscript}}
+		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, INTERP, "-c", modscript}}
 		var done func()
 		if console {
 			done = showSpinnerWhile(1)
