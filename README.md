@@ -96,6 +96,24 @@ When called as `rr` _and_ a console is not detected it only shows errors as stru
 When called as `rrd`, dumps the generated script. This is mainly for debugging and allows running scripts
 generated from a managed namespace without the `rr` executable.
 
+# Audit Trail
+
+The contents of the `task` file inside `namespace/script` will be logged as the `message` field. Without the `task` file
+the default is `UNDEFINED`.
+
+```
+{"level":"info","id":"01FB8AKE5H64RK4C9G6WS30CSQ","namespace":"tmp","script":"fail","target":"local","time":"2021-07-23T08:00:21+08:00","message":"testing this\n"}
+{"level":"debug","id":"01FB8AKE5H64RK4C9G6WS30CSQ","script":"fail","time":"2021-07-23T08:00:21+08:00","message":"running"}
+{"level":"error","id":"01FB8AKE5H64RK4C9G6WS30CSQ","error":"exit status 255","time":"2021-07-23T08:00:21+08:00","message":"testing this\n"}
+{"level":"debug","id":"01FB8AKE5H64RK4C9G6WS30CSQ","elapsed":"101.687784ms","time":"2021-07-23T08:00:21+08:00","message":"failed"}
+{"level":"info","id":"01FB8AMA1F74SK4CSP64RK8DSM","namespace":"tmp","script":"ns","target":"local","time":"2021-07-23T08:00:50+08:00","message":"UNDEFINED"}
+{"level":"debug","id":"01FB8AMA1F74SK4CSP64RK8DSM","directory":"tmp/ns/.files","time":"2021-07-23T08:00:50+08:00","message":"copying"}
+{"level":"info","id":"01FB8AMA1F74SK4CSP64RK8DSM","result":"success","time":"2021-07-23T08:00:50+08:00","message":"copy"}
+{"level":"debug","id":"01FB8AMA1F74SK4CSP64RK8DSM","script":"ns","time":"2021-07-23T08:00:50+08:00","message":"running"}
+{"level":"info","id":"01FB8AMA1F74SK4CSP64RK8DSM","result":"success","time":"2021-07-23T08:01:00+08:00","message":"UNDEFINED"}
+{"level":"debug","id":"01FB8AMA1F74SK4CSP64RK8DSM","elapsed":"10.180211517s","time":"2021-07-23T08:01:00+08:00","message":"success"}
+```
+
 # DOCS & READMES
 
 Any case insensitive file named `readme*` in the namespace and script directories can be shown by invoking `rr` by the
