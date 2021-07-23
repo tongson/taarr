@@ -16,6 +16,7 @@ Your shell script multi-tool. Automate all the things. Can be used for:
 4. Release Engineering
 5. Builds
 6. Compiles
+7. Testing
 
 Checkout the companion [ll](https://github.com/tongson/LadyLua) (Lua interpreter) for anything complex with shell scripts.
 
