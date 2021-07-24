@@ -345,9 +345,17 @@ func main() {
 				}
 			}
 		}
-		log.Printf("Running %s...", script)
-		if console {
-			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
+		if op == "UNDEFINED" {
+			log.Printf("Running %s...", script)
+			if console {
+				jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
+			}
+		} else {
+			msgop := strings.TrimSuffix(op, "\n")
+			log.Printf("%s...", msgop)
+			if console {
+				jsonLog.Debug().Str("id", id).Str("script", script).Msg(msgop)
+			}
 		}
 		rargs := lib.RunArgs{Exe: INTERP, Args: []string{"-c", modscript}}
 		var done func()
