@@ -186,12 +186,12 @@ func main() {
 			}
 		}
 		if found1, readme1 := isReadme(os.Args[1]); found1 == true && readme1 != "" {
-			log.Print("Showing README...")
+			log.Print("Showing README…")
 			printReadme(readme1)
 			os.Exit(0)
 		} else if len(os.Args) > 2 {
 			if found2, readme2 := isReadme(os.Args[2]); found2 == true && readme2 != "" {
-				log.Print("Showing README...")
+				log.Print("Showing README…")
 				printReadme(readme2)
 				os.Exit(0)
 			}
@@ -288,7 +288,7 @@ func main() {
 	if op == "" {
 		op = "UNDEFINED"
 	}
-	log.Printf("Running %s:%s via %s...", namespace, script, hostname)
+	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
 	if console {
 		jsonLog.Info().Str("id", id).Str("namespace", namespace).Str("script", script).Str("target", hostname).Msg(op)
 	}
@@ -312,7 +312,7 @@ func main() {
 			namespace + "/" + script + "/.files-localhost",
 		} {
 			if isDir(d) {
-				log.Printf("Copying %s...", d)
+				log.Printf("Copying %s…", d)
 				if console {
 					jsonLog.Debug().Str("id", id).Str("directory", d).Msg("copying")
 				}
@@ -346,13 +346,13 @@ func main() {
 			}
 		}
 		if op == "UNDEFINED" {
-			log.Printf("Running %s...", script)
+			log.Printf("Running %s…", script)
 			if console {
 				jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 			}
 		} else {
 			msgop := strings.TrimSuffix(op, "\n")
-			log.Printf("%s...", msgop)
+			log.Printf("%s…", msgop)
 			if console {
 				jsonLog.Debug().Str("id", id).Str("script", script).Msg(msgop)
 			}
@@ -393,7 +393,7 @@ func main() {
 			namespace + "/" + script + "/.files/",
 		} {
 			if isDir(d) {
-				log.Printf("Copying %s...", d)
+				log.Printf("Copying %s…", d)
 				if console {
 					jsonLog.Debug().Str("id", id).Str("directory", d).Msg("copying")
 				}
@@ -426,7 +426,7 @@ func main() {
 				}
 			}
 		}
-		log.Printf("Running %s...", script)
+		log.Printf("Running %s…", script)
 		if console {
 			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
@@ -502,7 +502,7 @@ func main() {
 				if console {
 					jsonLog.Debug().Str("id", id).Str("directory", d).Msg("copying")
 				}
-				log.Printf("Copying %s to %s...", d, realhost)
+				log.Printf("Copying %s to %s…", d, realhost)
 				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
 				if err != nil {
 					if console {
@@ -555,7 +555,7 @@ func main() {
 				}
 			}
 		}
-		log.Printf("Running %s...", script)
+		log.Printf("Running %s…", script)
 		if console {
 			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
