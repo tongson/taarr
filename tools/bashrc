@@ -17,13 +17,13 @@ _comp_rr()
     dir="${COMP_WORDS[COMP_CWORD-2]}"
     if [ -d "${dir}" ]
     then
-      d=$(find "${dir}" -maxdepth 1 -type d -printf "%P ")
+      d=$(find "${dir}" -maxdepth 1 -type d -not -name '.lib' -printf "%P ")
     fi
   else
     dir="${COMP_WORDS[COMP_CWORD-1]}"
     if [ -d "${dir}" ]
     then
-      d=$(find "${dir}" -maxdepth 1 -type d -printf "%P ")
+      d=$(find "${dir}" -maxdepth 1 -type d -not -name '.lib' -printf "%P ")
     fi
   fi
   #COMPREPLY=($(compgen -W "${d}" -- "${cur}"))
