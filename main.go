@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"hash/maphash"
 	"io"
@@ -16,7 +15,6 @@ import (
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	spin "github.com/tongson/rr/external/go-spin"
-	ulid "github.com/tongson/rr/external/ulid"
 )
 
 var start = time.Now()
@@ -116,12 +114,8 @@ func main() {
 	isFile := lib.StatPath("file")
 	var id string
 	{
-		b := []byte(strconv.FormatUint(new(maphash.Hash).Sum64(), 10))
-		e := bytes.NewReader(b)
-		var uid ulid.ULID
-		uid.SetTime(ulid.Timestamp(time.Now()))
-		io.ReadFull(e, uid[6:])
-		id = uid.String()
+		h := new(maphash.Hash)
+                id = fmt.Sprintf("%016X", h.Sum64())
 	}
 	var offset int
 	var hostname string
