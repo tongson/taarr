@@ -4,3 +4,4 @@
 + Start and Finish now properly marked in json log
 + Contents of `task` file used for audit trail
 + Added Bash completion script
++ Replaced ULID with random hexadecimal string
