@@ -26,7 +26,7 @@ const OP = "task"
 const RUN = "script"
 const LOG = "rr.json"
 const DOC = "README"
-const INTERP = "sh"
+const INTERP = "shell"
 
 const STDOUT = " ┌─ stdout"
 const STDERR = " ┌─ stderr"
@@ -115,7 +115,7 @@ func main() {
 	var id string
 	{
 		h := new(maphash.Hash)
-                id = fmt.Sprintf("%016X", h.Sum64())
+		id = fmt.Sprintf("%016X", h.Sum64())
 	}
 	var offset int
 	var hostname string
@@ -278,6 +278,15 @@ func main() {
 		fmt.Print(modscript)
 		os.Exit(0)
 	}
+	interp := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, INTERP))
+	if interp == "" {
+		ichk, ok := os.LookupEnv("SHELL")
+		if ok {
+			interp = ichk
+		} else {
+			interp = "sh"
+		}
+	}
 	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, OP))
 	op = strings.TrimSuffix(op, "\n")
 	if op == "" {
@@ -311,7 +320,7 @@ func main() {
 				if console {
 					jsonLog.Debug().Str("id", id).Str("directory", d).Msg("copying")
 				}
-				rargs := lib.RunArgs{Exe: INTERP, Args: []string{"-c", fmt.Sprintf(untar, d)}}
+				rargs := lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d)}}
 				var done func()
 				if console {
 					done = showSpinnerWhile(0)
@@ -352,7 +361,7 @@ func main() {
 				jsonLog.Debug().Str("id", id).Str("script", script).Msg(msgop)
 			}
 		}
-		rargs := lib.RunArgs{Exe: INTERP, Args: []string{"-c", modscript}}
+		rargs := lib.RunArgs{Exe: interp, Args: []string{"-c", modscript}}
 		var done func()
 		if console {
 			done = showSpinnerWhile(1)
@@ -425,7 +434,7 @@ func main() {
 		if console {
 			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
-		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, INTERP, "-c", modscript}}
+		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
 		var done func()
 		if console {
 			done = showSpinnerWhile(1)
