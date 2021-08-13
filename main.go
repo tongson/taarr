@@ -279,6 +279,7 @@ func main() {
 		os.Exit(0)
 	}
 	interp := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, INTERP))
+	interp = strings.TrimSuffix(interp, "\n")
 	if interp == "" {
 		ichk, ok := os.LookupEnv("SHELL")
 		if ok {
