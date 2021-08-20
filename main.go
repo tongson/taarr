@@ -2,14 +2,17 @@ package main
 
 import (
 	"fmt"
+	"golang.org/x/crypto/ssh/terminal"
 	"hash/maphash"
 	"io"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	zerolog "github.com/rs/zerolog"
@@ -35,6 +38,39 @@ const FOOTER = " └─"
 const PIPEST = "│"
 
 type logWriter struct {
+}
+
+// https://gist.github.com/jlinoff/e8e26b4ffa38d379c7f1891fd174a6d0
+func getPassword(prompt string) string {
+	// Get the initial state of the terminal.
+	initialTermState, e1 := terminal.GetState(syscall.Stdin)
+	if e1 != nil {
+		panic(e1)
+	}
+
+	// Restore it in the event of an interrupt.
+	// CITATION: Konstantin Shaposhnikov - https://groups.google.com/forum/#!topic/golang-nuts/kTVAbtee9UA
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	go func() {
+		<-c
+		_ = terminal.Restore(syscall.Stdin, initialTermState)
+		os.Exit(1)
+	}()
+
+	// Now get the password.
+	fmt.Print(prompt)
+	p, err := terminal.ReadPassword(syscall.Stdin)
+	fmt.Println("")
+	if err != nil {
+		panic(err)
+	}
+
+	// Stop looking for ^C on the channel.
+	signal.Stop(c)
+
+	// Return the password as a string.
+	return string(p)
 }
 
 func showSpinnerWhile(s int) func() {
@@ -85,6 +121,7 @@ func main() {
 	var console bool = false
 	var failed bool = false
 	var dump bool = false
+	var sudo bool = false
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
@@ -100,6 +137,10 @@ func main() {
 	} else if call[len(call)-3:] == "rrd" {
 		dump = true
 		log.SetOutput(io.Discard)
+	} else if call[len(call)-3:] == "rrs" {
+		sudo = true
+		console = true
+		log.SetOutput(new(logWriter))
 	} else {
 		lib.Bug("Unsupported executable name.")
 	}
@@ -262,7 +303,11 @@ func main() {
 		if isDir(namespace + "/" + script + "/.lib") {
 			lib.Assert(filepath.Walk(namespace+"/"+script+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
 		}
-
+		if sudo {
+			sudoPassword := getPassword("sudo password: ")
+			sh.WriteString(sudoPassword)
+			sh.WriteString("\n")
+		}
 		//Pass environment variables with `rr` prefix
 		for _, e := range os.Environ() {
 			if strings.HasPrefix(e, "rr") {
@@ -564,8 +609,13 @@ func main() {
 		if console {
 			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
-		sshb := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv,
-			Stdin: []byte(modscript)}
+		var sshb lib.RunArgs
+		if sudo {
+			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "sudo", "--prompt=\"\"", "-S", "-s", "--"},
+				Env: sshenv, Stdin: []byte(modscript)}
+		} else {
+			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv, Stdin: []byte(modscript)}
+		}
 		var done func()
 		if console {
 			done = showSpinnerWhile(1)
