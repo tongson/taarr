@@ -99,6 +99,10 @@ When called as `rr` _and_ a console is not detected it only shows errors as stru
 When called as `rrd`, dumps the generated script. This is mainly for debugging and allows running scripts
 generated from a managed namespace without the `rr` executable.
 
+## Sudo
+
+When called as `rrs`, asks for a `sudo` password for the remote user.
+
 # Audit Trail
 
 The contents of the `task` file inside `namespace/script` will be logged as the `message` field. Without the `task` file
