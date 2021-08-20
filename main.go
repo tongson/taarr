@@ -22,8 +22,8 @@ import (
 
 var start = time.Now()
 
-const VersionNumber = "0.11.0"
-const CodeName = "\"Reluctant Walnut\""
+const VersionNumber = "0.12.0"
+const CodeName = "\"Jukebox Paycheck\""
 
 const OP = "task"
 const RUN = "script"
