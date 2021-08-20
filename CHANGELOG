@@ -1,3 +1,9 @@
+0.12.0
+
++ Support `sudo` invocations
++ Interpreter can be set in `shell` file
+
+
 0.11.0
 
 + Script start marked as Info
