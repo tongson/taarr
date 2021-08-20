@@ -139,7 +139,6 @@ func main() {
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrs" {
 		sudo = true
-		log.SetOutput(io.Discard)
 		zerolog.TimeFieldFormat = time.RFC3339
 		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
