@@ -101,7 +101,7 @@ generated from a managed namespace without the `rr` executable.
 
 ## Sudo
 
-When called as `rrs`, asks for a `sudo` password for the remote user.
+When called as `rrs`, asks for a `sudo` password for the remote user. Similar to the ansible options `--become -K`.
 
 # Audit Trail
 
