@@ -246,6 +246,7 @@ func main() {
 	var sh strings.Builder
 	var namespace string
 	var script string
+	var code string
 	{
 		var s []string
 		// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
@@ -319,7 +320,8 @@ func main() {
 		}
 		arguments = lib.InsertStr(arguments, "set --", 0)
 		sh.WriteString(strings.Join(arguments, " "))
-		sh.WriteString("\n" + lib.FileRead(namespace+"/"+script+"/"+RUN))
+		code = lib.FileRead(namespace+"/"+script+"/"+RUN)
+		sh.WriteString("\n" + code)
 	}
 	modscript := sh.String()
 	if dump == true {
@@ -427,7 +429,7 @@ func main() {
 		hd, bd, fd := output(goerr, hostname, STDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-		b64sc := base64.StdEncoding.EncodeToString([]byte(modscript))
+		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
 			if !console {
@@ -507,7 +509,7 @@ func main() {
 		hd, bd, fd := output(goerr, hostname, STDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-		b64sc := base64.StdEncoding.EncodeToString([]byte(modscript))
+		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
 			if !console {
@@ -649,7 +651,7 @@ func main() {
 		hd, bd, fd := output(goerr, hostname, STDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-		b64sc := base64.StdEncoding.EncodeToString([]byte(modscript))
+		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
 			if !console {
