@@ -4,6 +4,7 @@
 + Interpreter can be set in `shell` file
 + STDOUT and STDERR encoded to base64 in JSON log
 + STDOUT and STDDER also logged as DEBUG entries even without errors
++ Only take the first line from the `task` file
 
 
 0.11.0
