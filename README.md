@@ -76,7 +76,12 @@ Thu, 22 Jul 2021 14:01:53 +0800 Total run time: 10.059915355s. All OK.
 
 In this mode it also logs to the file `rr.json` in the current working directory.
 
-NOTE: only logs STDOUT and STDERR when an error is encountered.
+NOTE: logs STDOUT and STDERR as a debug entry when no errors are detected
+
+TIP: Example command line to extract STDOUT from the log file
+```
+grep 5DB2F900F1F1AF2B rr.json | grep stdout | cut -f12 -d\" | base64 -d
+```
 
 ```
 $ cat rr.json
