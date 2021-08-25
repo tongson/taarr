@@ -313,8 +313,8 @@ func main() {
 		}
 		//Pass environment variables with `rr` prefix
 		for _, e := range os.Environ() {
-			if strings.HasPrefix(e, "rr") {
-				sh.WriteString("export " + strings.TrimPrefix(e, "rr") + "\n")
+			if strings.HasPrefix(e, "rr__") {
+				sh.WriteString("export " + strings.TrimPrefix(e, "rr__") + "\n")
 			}
 		}
 		arguments = lib.InsertStr(arguments, "set --", 0)
