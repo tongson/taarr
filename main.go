@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"golang.org/x/crypto/ssh/terminal"
 	"hash/maphash"
@@ -381,7 +382,9 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
+						b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+						b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+						jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -426,7 +429,9 @@ func main() {
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+				jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
@@ -462,7 +467,9 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
+						b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+						b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+						jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -499,7 +506,9 @@ func main() {
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+				jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
@@ -591,7 +600,9 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
+						b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+						b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+						jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
 						hd, bd, fd := output(goerr, hostname, STDDBG)
@@ -634,7 +645,9 @@ func main() {
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().Str("id", id).Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+				jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
