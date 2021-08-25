@@ -6,6 +6,7 @@
 + STDOUT and STDDER also logged as DEBUG entries even without errors
 + Only take the first line from the `task` file
 + Exported environment variables should prefix `rr__`
++ Code of script logged along with DEBUG entries
 
 
 0.11.0
