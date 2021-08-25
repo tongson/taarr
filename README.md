@@ -140,9 +140,9 @@ rr namespace/script/
 
 # Environment Variables
 
-Any environment variable prefixed with `rr` are passed to the script.
+Any environment variable prefixed with `rr__` are passed to the script.
 
-For example, the `rrUSERNAME=test` environment variable is passed to the script as `USERNAME=test`
+For example, the `rr__USERNAME=test` environment variable is passed to the script as `USERNAME=test`
 
 ```
 $ cat tmp/env/script
