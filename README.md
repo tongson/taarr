@@ -83,14 +83,6 @@ TIP: Example command line to extract STDOUT from the log file
 grep 5DB2F900F1F1AF2B rr.json | grep stdout | cut -f12 -d\" | base64 -d
 ```
 
-```
-$ cat rr.json
-{"level":"debug","id":"01FB6V9FH664R3ACSG60SK2E1M","namespace":"tmp","script":"env","target":"local","time":"2021-07-22T18:13:32+08:00","message":"running"}
-{"level":"debug","id":"01FB6V9FH664R3ACSG60SK2E1M","script":"env","time":"2021-07-22T18:13:32+08:00","message":"running"}
-{"level":"info","id":"01FB6V9FH664R3ACSG60SK2E1M","result":"success","time":"2021-07-22T18:13:32+08:00","message":"run"}
-{"level":"debug","id":"01FB6V9FH664R3ACSG60SK2E1M","elapsed":"101.57144ms","time":"2021-07-22T18:13:32+08:00","message":"success"}
-```
-
 ## Silent
 
 When called as `rr` _and_ a console is not detected it only shows errors as structured JSON.
