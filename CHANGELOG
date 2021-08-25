@@ -5,6 +5,7 @@
 + STDOUT and STDERR encoded to base64 in JSON log
 + STDOUT and STDDER also logged as DEBUG entries even without errors
 + Only take the first line from the `task` file
++ Exported environment variables should prefix `rr__`
 
 
 0.11.0
