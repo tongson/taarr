@@ -375,6 +375,8 @@ func main() {
 					done = showSpinnerWhile(0)
 				}
 				ret, stdout, stderr, goerr := rargs.Run()
+				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 				if console {
 					done()
 				}
@@ -382,8 +384,6 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-						b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 						jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
@@ -394,6 +394,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
+						jsonLog.Debug().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						jsonLog.Info().Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
@@ -424,18 +425,19 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
+		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		if !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 				jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
+				jsonLog.Debug().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
@@ -460,6 +462,8 @@ func main() {
 					done = showSpinnerWhile(0)
 				}
 				ret, stdout, stderr, goerr := rsargs.Run()
+				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 				if console {
 					done()
 				}
@@ -467,8 +471,6 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-						b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 						jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
@@ -479,6 +481,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
+						jsonLog.Debug().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						jsonLog.Info().Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
@@ -501,18 +504,19 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
+		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		if !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 				jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
+				jsonLog.Debug().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
@@ -592,6 +596,8 @@ func main() {
 					done = showSpinnerWhile(0)
 				}
 				ret, stdout, stderr, goerr := sftpa.Run()
+				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 				os.Remove(tmpfile.Name())
 				if console {
 					done()
@@ -600,8 +606,6 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-						b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 						jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						ho, bo, fo := output(stdout, hostname, STDOUT)
 						he, be, fe := output(stderr, hostname, STDERR)
@@ -612,6 +616,7 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
+						jsonLog.Debug().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
 						jsonLog.Info().Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
@@ -640,18 +645,19 @@ func main() {
 		ho, bo, fo := output(stdout, hostname, STDOUT)
 		he, be, fe := output(stderr, hostname, STDERR)
 		hd, bd, fd := output(goerr, hostname, STDDBG)
+		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
+		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		if !ret {
 			failed = true
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 				jsonLog.Error().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
+				jsonLog.Debug().Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
 				jsonLog.Info().Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
