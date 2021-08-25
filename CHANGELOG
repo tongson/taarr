@@ -2,6 +2,7 @@
 
 + Support `sudo` invocations
 + Interpreter can be set in `shell` file
++ STDOUT and STDERR encoded to base64 in JSON log
 
 
 0.11.0
