@@ -320,7 +320,7 @@ func main() {
 		}
 		arguments = lib.InsertStr(arguments, "set --", 0)
 		sh.WriteString(strings.Join(arguments, " "))
-		code = lib.FileRead(namespace+"/"+script+"/"+RUN)
+		code = lib.FileRead(namespace + "/" + script + "/" + RUN)
 		sh.WriteString("\n" + code)
 	}
 	modscript := sh.String()
