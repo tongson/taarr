@@ -228,4 +228,7 @@ Requires OpenSSH 4.7+ for sftp recursive file transfers. If you can't use 4.7+, 
 
 Scripts should reference `$@` if it wants to use arguments passed.
 
+### Decision Record
+
++ Environment variables are not logged. They may contain secrets.
 
