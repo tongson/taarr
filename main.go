@@ -337,7 +337,7 @@ func main() {
 		}
 	}
 	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, OP))
-	op = strings.TrimSuffix(op, "\n")
+	op = strings.Split(op, "\n")[0]
 	if op == "" {
 		op = "UNDEFINED"
 	}
