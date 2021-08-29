@@ -54,6 +54,9 @@ Run remote via OpenSSH. Requires OpenSSH 4.7+ for `.files`.
 rr remotehost namespace:script
 ```
 
+If a file named `rr.hosts` is in the current directory then that is used as the SSH config instead of the default
+`~/.ssh/config`
+
 # MULTICALL MODES
 
 You can use a symlink to activate the modes.
