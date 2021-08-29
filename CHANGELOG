@@ -1,3 +1,7 @@
+0.14.0
+
++ Custom ssh_config (rr.hosts)
+
 0.13.0
 
 + security issue; omit environment variables from logged code
