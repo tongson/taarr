@@ -31,6 +31,7 @@ const RUN = "script"
 const LOG = "rr.json"
 const DOC = "README"
 const INTERP = "shell"
+const HOSTS = "rr.hosts"
 
 const STDOUT = " ┌─ stdout"
 const STDERR = " ┌─ stderr"
@@ -123,6 +124,7 @@ func main() {
 	var failed bool = false
 	var dump bool = false
 	var sudo bool = false
+	var sshconfig string = ""
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
@@ -528,6 +530,9 @@ func main() {
 			}
 		}
 	} else {
+		if lib.IsFile(HOSTS) {
+			sshconfig = HOSTS
+		}
 		var realhost string
 		if rh := strings.Split(hostname, "@"); len(rh) == 1 {
 			realhost = hostname
@@ -535,7 +540,12 @@ func main() {
 			realhost = rh[1]
 		}
 		sshenv := []string{"LC_ALL=C"}
-		ssha := lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
+		var ssha lib.RunArgs
+		if sshconfig == "" {
+			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
+		} else {
+			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
+		}
 		ret, stdout, _, _ := ssha.Run()
 		if ret {
 			sshhost := strings.Split(stdout, "\n")
@@ -594,7 +604,13 @@ func main() {
 					os.Exit(1)
 				}
 				tmpfile.Close()
-				sftpa := lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
+				var sftpa lib.RunArgs
+				if sshconfig == "" {
+					sftpa = lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
+				} else {
+					sftpa = lib.RunArgs{Exe: "sftp", Args: []string{"-F", sshconfig, "-C", "-b", tmpfile.Name(), hostname},
+						Env: sshenv}
+				}
 				var done func()
 				if console {
 					done = showSpinnerWhile(0)
@@ -632,11 +648,22 @@ func main() {
 			jsonLog.Debug().Str("id", id).Str("script", script).Msg("running")
 		}
 		var sshb lib.RunArgs
-		if sudo {
-			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "sudo", "--prompt=\"\"", "-S", "-s", "--"},
-				Env: sshenv, Stdin: []byte(modscript)}
+		if sshconfig == "" {
+			if sudo {
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname,
+					"sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(modscript)}
+			} else {
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname},
+					Env: sshenv, Stdin: []byte(modscript)}
+			}
 		} else {
-			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname}, Env: sshenv, Stdin: []byte(modscript)}
+			if sudo {
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-a", "-x", "-C", hostname,
+					"sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(modscript)}
+			} else {
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-a", "-x", "-C", hostname},
+					Env: sshenv, Stdin: []byte(modscript)}
+			}
 		}
 		var done func()
 		if console {
