@@ -1,6 +1,7 @@
 0.14.0
 
 + Custom ssh_config (rr.hosts)
++ `app=rr` added to JSON log
 
 0.13.0
 
