@@ -120,12 +120,10 @@ func output(o string, h string, c string) (string, string, string) {
 func sudocopy(dir string, hostname string, id string, interp string, sshconfig string, password string) (bool, string, string, string) {
 	tmpd := fmt.Sprintf(".__rr.%s", id)
 	untarDefault := `
-	set -o errexit -o nounset -o noglob
 	ssh -T -x -C %s mkdir %s
 	tar -C %s -czf - . | ssh -T -x -C %s tar -C %s --no-same-owner -omxzpf -
 	`
 	untarConfig := `
-	set -o errexit -o nounset -o noglob
 	ssh -F %s -T -x -C %s mkdir %s
 	tar -C %s -czf - . | ssh -F %s -T -x -C %s tar -C %s --no-same-owner -omxzpf -
 	`
@@ -143,7 +141,6 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	sshenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArgs
 	tarcmd := `%s
-	set -o errxit -o nounset -o noglob
 	tar -C %s -cf - . | tar -C / --overwrite --no-same-owner -ompxf -
 	rm -rf %s
 	`
