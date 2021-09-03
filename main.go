@@ -143,10 +143,7 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	sshenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArgs
 	tarcmd := `%s
-	LC_ALL=C
 	set -o errxit -o nounset -o noglob
-	unset IFS
-	PATH=/bin:/usr/bin
 	tar -C %s -cf - . | tar -C / --overwrite --no-same-owner -ompxf -
 	rm -rf %s
 	`
