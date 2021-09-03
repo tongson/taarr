@@ -117,6 +117,72 @@ func output(o string, h string, c string) (string, string, string) {
 	return rh, rb, rf
 }
 
+func sudocopy(dir string, hostname string, id string, interp string, sshconfig string, password string) (bool, string, string, string) {
+	tmpd := fmt.Sprintf(".__rr.%s", id)
+	untarDefault := `
+	set -o errexit -o nounset -o noglob
+	ssh -T -x -C %s mkdir %s
+	tar --no-same-owner -C %s -oczf - . | ssh -T -x -C %s tar -C %s --no-same-owner -omxzpf -
+	`
+	untarConfig := `
+	set -o errexit -o nounset -o noglob
+	ssh -F %s -T -x -C %s mkdir %s
+	tar --no-same-owner -C %s -oczf - . | ssh -F %s -T -x -C %s tar -C %s --no-same-owner -omxzpf -
+	`
+	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
+	var untar1 lib.RunArgs
+	if sshconfig == "" {
+		untar1 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarDefault, hostname, tmpd, dir, hostname, tmpd)}, Env: tarenv}
+	} else {
+		untar1 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarConfig, sshconfig, hostname, tmpd, dir, sshconfig, hostname, tmpd)}, Env: tarenv}
+	}
+	ret, stdout, stderr, goerr := untar1.Run()
+	if !ret {
+		return ret, stdout, stderr, goerr
+	}
+	sshenv := []string{"LC_ALL=C"}
+	var untar2 lib.RunArgs
+	tarcmd := `%s
+	LC_ALL=C
+	set -o errxit -o nounset -o noglob
+	unset IFS
+	PATH=/bin:/usr/bin
+	tar --no-same-owner -C %s -ocf - . | tar -C / --overwrite --no-same-owner -ompxf -
+	rm -rf %s
+	`
+	tarexec := fmt.Sprintf(tarcmd, password, tmpd, tmpd)
+	if sshconfig == "" {
+		untar2 = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(tarexec)}
+	} else {
+		untar2 = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(tarexec)}
+	}
+	return untar2.Run()
+}
+
+func quickcopy(dir string, hostname string, interp string, sshconfig string) (bool, string, string, string) {
+	untarDefault := `
+	LC_ALL=C
+	set -o errexit -o nounset -o noglob
+	unset IFS
+	PATH=/bin:/usr/bin
+	tar -C %s -czf - . | ssh -T -x -C %s tar -C / --no-same-owner -xozpf -
+	`
+	untarConfig := `
+	LC_ALL=C
+	set -o errexit -o nounset -o noglob
+	unset IFS
+	PATH=/bin:/usr/bin
+	tar -C %s -czf - . | ssh -F %s -T -x -C %s tar -C / --no-same-owner -xozpf -
+	`
+	var untar1 lib.RunArgs
+	if sshconfig == "" {
+		untar1 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarDefault, dir, hostname)}}
+	} else {
+		untar1 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarConfig, dir, sshconfig, hostname)}}
+	}
+	return untar1.Run()
+}
+
 func main() {
 	var serrLog zerolog.Logger
 	var jsonLog zerolog.Logger
@@ -124,7 +190,7 @@ func main() {
 	var failed bool = false
 	var dump bool = false
 	var sudo bool = false
-	var sudoPassword string
+	var sudoPassword string = ""
 	var nopasswd bool = false
 	var sshconfig string = ""
 	runtime.MemProfileRate = 0
@@ -553,9 +619,9 @@ func main() {
 		sshenv := []string{"LC_ALL=C"}
 		var ssha lib.RunArgs
 		if sshconfig == "" {
-			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
+			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
 		} else {
-			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-a", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
+			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
 		}
 		ret, stdout, _, _ := ssha.Run()
 		if ret {
@@ -593,43 +659,21 @@ func main() {
 					jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				}
 				log.Printf("Copying %s to %s…", d, realhost)
-				tmpfile, err := os.CreateTemp(os.TempDir(), "_rr")
-				if err != nil {
-					if console {
-						jsonLog.Error().Str("app", "rr").Str("id", id).Msg("Cannot create temporary file.")
-						log.Print("Cannot create temporary file.")
-					} else {
-						serrLog.Error().Msg("Cannot create temporary file")
-					}
-					os.Exit(1)
-				}
-				defer os.Remove(tmpfile.Name())
-				sftpc := []byte(fmt.Sprintf("lcd %s\ncd /\nput -fRp .\n bye\n", d))
-				if _, err = tmpfile.Write(sftpc); err != nil {
-					if console {
-						jsonLog.Error().Str("app", "rr").Str("id", id).Msg("Failed to write to temporary file.")
-						log.Print("Failed to write to temporary file.")
-					} else {
-						serrLog.Error().Msg("Failed to write to temporary file")
-					}
-					os.Exit(1)
-				}
-				tmpfile.Close()
-				var sftpa lib.RunArgs
-				if sshconfig == "" {
-					sftpa = lib.RunArgs{Exe: "sftp", Args: []string{"-C", "-b", tmpfile.Name(), hostname}, Env: sshenv}
+				var ret bool
+				var stdout string
+				var stderr string
+				var goerr string
+				if !sudo {
+					ret, stdout, stderr, goerr = quickcopy(d, hostname, interp, sshconfig)
 				} else {
-					sftpa = lib.RunArgs{Exe: "sftp", Args: []string{"-F", sshconfig, "-C", "-b", tmpfile.Name(), hostname},
-						Env: sshenv}
+					ret, stdout, stderr, goerr = sudocopy(d, hostname, id, interp, sshconfig, sudoPassword)
 				}
 				var done func()
 				if console {
 					done = showSpinnerWhile(0)
 				}
-				ret, stdout, stderr, goerr := sftpa.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-				os.Remove(tmpfile.Name())
 				if console {
 					done()
 				}
@@ -661,18 +705,18 @@ func main() {
 		var sshb lib.RunArgs
 		if sshconfig == "" {
 			if sudo {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname,
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname,
 					"sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(modscript)}
 			} else {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-a", "-x", "-C", hostname},
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname},
 					Env: sshenv, Stdin: []byte(modscript)}
 			}
 		} else {
 			if sudo {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-a", "-x", "-C", hostname,
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname,
 					"sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(modscript)}
 			} else {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-a", "-x", "-C", hostname},
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname},
 					Env: sshenv, Stdin: []byte(modscript)}
 			}
 		}
