@@ -124,6 +124,8 @@ func main() {
 	var failed bool = false
 	var dump bool = false
 	var sudo bool = false
+	var sudoPassword string
+	var nopasswd bool = false
 	var sshconfig string = ""
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
@@ -142,6 +144,13 @@ func main() {
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrs" {
 		sudo = true
+		zerolog.TimeFieldFormat = time.RFC3339
+		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
+		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
+	} else if call[len(call)-3:] == "rru" {
+		sudo = true
+		nopasswd = true
 		zerolog.TimeFieldFormat = time.RFC3339
 		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
@@ -310,9 +319,11 @@ func main() {
 			lib.Assert(filepath.Walk(namespace+"/"+script+"/.lib", fnwalk), "filepath.Walk(namespace+\".lib\")")
 		}
 		if sudo {
-			sudoPassword := getPassword("sudo password: ")
-			sh.WriteString(sudoPassword)
-			sh.WriteString("\n")
+			if !nopasswd {
+				sudoPassword = getPassword("sudo password: ")
+				sh.WriteString(sudoPassword)
+				sh.WriteString("\n")
+			}
 		}
 		//Pass environment variables with `rr` prefix
 		for _, e := range os.Environ() {
