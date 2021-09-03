@@ -526,7 +526,11 @@ func main() {
 				if console {
 					jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				}
-				rsargs := lib.RunArgs{Exe: "rsync", Args: []string{"-q", "-a", d, destination}}
+				tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
+				untar := `
+				tar -C %s -cf - . | tar -C %s --no-same-owner --overwrite -omxpf -
+				`
+				rsargs := lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, destination)}, Env: tarenv}
 				var done func()
 				if console {
 					done = showSpinnerWhile(0)
