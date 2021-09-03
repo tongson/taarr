@@ -122,12 +122,12 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	untarDefault := `
 	set -o errexit -o nounset -o noglob
 	ssh -T -x -C %s mkdir %s
-	tar --no-same-owner -C %s -oczf - . | ssh -T -x -C %s tar -C %s --no-same-owner -omxzpf -
+	tar -C %s -czf - . | ssh -T -x -C %s tar -C %s --no-same-owner -omxzpf -
 	`
 	untarConfig := `
 	set -o errexit -o nounset -o noglob
 	ssh -F %s -T -x -C %s mkdir %s
-	tar --no-same-owner -C %s -oczf - . | ssh -F %s -T -x -C %s tar -C %s --no-same-owner -omxzpf -
+	tar -C %s -czf - . | ssh -F %s -T -x -C %s tar -C %s --no-same-owner -omxzpf -
 	`
 	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
 	var untar1 lib.RunArgs
@@ -147,7 +147,7 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	set -o errxit -o nounset -o noglob
 	unset IFS
 	PATH=/bin:/usr/bin
-	tar --no-same-owner -C %s -ocf - . | tar -C / --overwrite --no-same-owner -ompxf -
+	tar -C %s -cf - . | tar -C / --overwrite --no-same-owner -ompxf -
 	rm -rf %s
 	`
 	tarexec := fmt.Sprintf(tarcmd, password, tmpd, tmpd)
@@ -162,10 +162,10 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 func quickcopy(dir string, hostname string, interp string, sshconfig string) (bool, string, string, string) {
 	untarDefault := `
 	set -o errexit -o nounset -o noglob
-	tar -C %s -czf - . | ssh -T -x -C %s tar -C / --no-same-owner -omxzpf -
+	tar -C %s -czf - . | ssh -T -x -C %s tar -C / --overwrite --no-same-owner -omxzpf -
 	`
 	untarConfig := `
-	tar -C %s -czf - . | ssh -F %s -T -x -C %s tar -C / --no-same-owner -omxzpf -
+	tar -C %s -czf - . | ssh -F %s -T -x -C %s tar -C / --overwrite --no-same-owner -omxzpf -
 	`
 	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
 	var untar lib.RunArgs
