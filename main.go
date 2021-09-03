@@ -161,26 +161,20 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 
 func quickcopy(dir string, hostname string, interp string, sshconfig string) (bool, string, string, string) {
 	untarDefault := `
-	LC_ALL=C
 	set -o errexit -o nounset -o noglob
-	unset IFS
-	PATH=/bin:/usr/bin
-	tar -C %s -czf - . | ssh -T -x -C %s tar -C / --no-same-owner -xozpf -
+	tar -C %s -czf - . | ssh -T -x -C %s tar -C / --no-same-owner -omxzpf -
 	`
 	untarConfig := `
-	LC_ALL=C
-	set -o errexit -o nounset -o noglob
-	unset IFS
-	PATH=/bin:/usr/bin
-	tar -C %s -czf - . | ssh -F %s -T -x -C %s tar -C / --no-same-owner -xozpf -
+	tar -C %s -czf - . | ssh -F %s -T -x -C %s tar -C / --no-same-owner -omxzpf -
 	`
-	var untar1 lib.RunArgs
+	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
+	var untar lib.RunArgs
 	if sshconfig == "" {
-		untar1 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarDefault, dir, hostname)}}
+		untar = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarDefault, dir, hostname)}, Env: tarenv}
 	} else {
-		untar1 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarConfig, dir, sshconfig, hostname)}}
+		untar = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarConfig, dir, sshconfig, hostname)}, Env: tarenv}
 	}
-	return untar1.Run()
+	return untar.Run()
 }
 
 func main() {
