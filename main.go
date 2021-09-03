@@ -23,8 +23,8 @@ import (
 
 var start = time.Now()
 
-const VersionNumber = "0.14.0"
-const CodeName = "\"Kinetic Daughter\""
+const VersionNumber = "0.15.0"
+const CodeName = "\"Penniless Swampland\""
 
 const OP = "task"
 const RUN = "script"
