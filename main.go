@@ -118,39 +118,60 @@ func output(o string, h string, c string) (string, string, string) {
 }
 
 func sudocopy(dir string, hostname string, id string, interp string, sshconfig string, password string) (bool, string, string, string) {
-	tmpd := fmt.Sprintf(".__rr.%s", id)
-	untarDefault := `
-	ssh -T -x -C %s mkdir %s
-	tar -C %s -czf - . | ssh -T -x -C %s tar -C %s --no-same-owner -omxzpf -
-	`
-	untarConfig := `
-	ssh -F %s -T -x -C %s mkdir %s
-	tar -C %s -czf - . | ssh -F %s -T -x -C %s tar -C %s --no-same-owner -omxzpf -
-	`
-	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
-	var untar1 lib.RunArgs
-	if sshconfig == "" {
-		untar1 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarDefault, hostname, tmpd, dir, hostname, tmpd)}, Env: tarenv}
-	} else {
-		untar1 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarConfig, sshconfig, hostname, tmpd, dir, sshconfig, hostname, tmpd)}, Env: tarenv}
-	}
-	ret, stdout, stderr, goerr := untar1.Run()
-	if !ret {
-		return ret, stdout, stderr, goerr
-	}
-	sshenv := []string{"LC_ALL=C"}
-	var untar2 lib.RunArgs
+	tmpd := fmt.Sprintf(".__rr.dir.%s", id)
+	tmpf := fmt.Sprintf("./.__rr.scr.%s", id)
 	tarcmd := `
 	tar -C %s -cf - . | tar -C / --overwrite --no-same-owner -ompxf -
 	rm -rf %s
+	rm -f %s
 	`
-	tarexec := fmt.Sprintf(tarcmd, tmpd, tmpd)
+	tarexec := fmt.Sprintf(tarcmd, tmpd, tmpd, tmpf)
+	sshenv := []string{"LC_ALL=C"}
+	var untar1 lib.RunArgs
 	if sshconfig == "" {
-		untar2 = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", tarexec}, Env: sshenv, Stdin: []byte(password)}
+		untar1 = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, fmt.Sprintf("cat - > %s", tmpf)}, Env: sshenv, Stdin: []byte(tarexec)}
 	} else {
-		untar2 = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", tarexec}, Env: sshenv, Stdin: []byte(password)}
+		untar1 = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, fmt.Sprintf("cat - > %s", tmpf)}, Env: sshenv, Stdin: []byte(tarexec)}
 	}
-	return untar2.Run()
+	if ret, stdout, stderr, goerr := untar1.Run(); !ret {
+		return ret, stdout, stderr, goerr
+	}
+	untarDefault := `
+	RRHOST="%s"
+	RRSRC="%s"
+	RRDEST="%s"
+	RRSCRIPT="%s"
+	ssh -T -x -C "$RRHOST" mkdir "$RRDEST"
+	tar -C "$RRSRC" -czf - . | ssh -T -x -C "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxzpf -
+	ssh -T -x -C "$RRHOST" chmod +x "$RRSCRIPT"
+	`
+	untarConfig := `
+	RRHOST="%s"
+	RRSRC="%s"
+	RRDEST="%s"
+	RRCONFIG="%s"
+	RRSCRIPT="%s"
+	ssh -F "$RRCONFIG" -T -x -C "$RRHOST" mkdir "$RRDEST"
+	tar -C "$RRSRC" -czf - . | ssh -F "$RRCONFIG" -T -x -C "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxzpf -
+	ssh -F "$RRCONFIG" -T -x -C "$RRHOST" chmod +x "$RRSCRIPT"
+	`
+	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
+	var untar2 lib.RunArgs
+	if sshconfig == "" {
+		untar2 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarDefault, hostname, dir, tmpd, tmpf)}, Env: tarenv}
+	} else {
+		untar2 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarConfig, hostname, dir, tmpd, sshconfig, tmpf)}, Env: tarenv}
+	}
+	if ret, stdout, stderr, goerr := untar2.Run(); !ret {
+		return ret, stdout, stderr, goerr
+	}
+	var untar3 lib.RunArgs
+	if sshconfig == "" {
+		untar3 = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", tmpf}, Env: sshenv, Stdin: []byte(password)}
+	} else {
+		untar3 = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", tmpf}, Env: sshenv, Stdin: []byte(password)}
+	}
+	return untar3.Run()
 }
 
 func quickcopy(dir string, hostname string, interp string, sshconfig string) (bool, string, string, string) {
