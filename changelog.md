@@ -1,5 +1,6 @@
 #### 0.16.0
 
+* Fix bug with spinner during a copy
 * Better sudo with password handling
 
 #### 0.15.0
