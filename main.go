@@ -653,14 +653,14 @@ func main() {
 				var stdout string
 				var stderr string
 				var goerr string
+				var done func()
+				if console {
+					done = showSpinnerWhile(0)
+				}
 				if !sudo {
 					ret, stdout, stderr, goerr = quickcopy(d, hostname, interp, sshconfig)
 				} else {
 					ret, stdout, stderr, goerr = sudocopy(d, hostname, id, interp, sshconfig, sudoPassword)
-				}
-				var done func()
-				if console {
-					done = showSpinnerWhile(0)
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
