@@ -1,3 +1,7 @@
+#### 0.16.0
+
+* Better sudo with password handling
+
 #### 0.15.0
 
 * Change from sftp to tar for ssh copies
