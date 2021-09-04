@@ -140,15 +140,15 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	}
 	sshenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArgs
-	tarcmd := `%s
+	tarcmd := `
 	tar -C %s -cf - . | tar -C / --overwrite --no-same-owner -ompxf -
 	rm -rf %s
 	`
-	tarexec := fmt.Sprintf(tarcmd, password, tmpd, tmpd)
+	tarexec := fmt.Sprintf(tarcmd, tmpd, tmpd)
 	if sshconfig == "" {
-		untar2 = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(tarexec)}
+		untar2 = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", tarexec}, Env: sshenv, Stdin: []byte(password)}
 	} else {
-		untar2 = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(tarexec)}
+		untar2 = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", tarexec}, Env: sshenv, Stdin: []byte(password)}
 	}
 	return untar2.Run()
 }
@@ -374,9 +374,7 @@ func main() {
 		}
 		if sudo {
 			if !nopasswd {
-				sudoPassword = getPassword("sudo password: ")
-				sh.WriteString(sudoPassword)
-				sh.WriteString("\n")
+				sudoPassword = fmt.Sprintf("%s\n", getPassword("sudo password: "))
 			}
 		}
 		//Pass environment variables with `rr` prefix
@@ -698,7 +696,7 @@ func main() {
 		if sshconfig == "" {
 			if sudo {
 				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname,
-					"sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(modscript)}
+					"sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", modscript}, Env: sshenv, Stdin: []byte(sudoPassword)}
 			} else {
 				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname},
 					Env: sshenv, Stdin: []byte(modscript)}
@@ -706,10 +704,10 @@ func main() {
 		} else {
 			if sudo {
 				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname,
-					"sudo", "--prompt=\"\"", "-S", "-s", "--"}, Env: sshenv, Stdin: []byte(modscript)}
+					"sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", modscript}, Env: sshenv, Stdin: []byte(sudoPassword)}
 			} else {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname},
-					Env: sshenv, Stdin: []byte(modscript)}
+				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, modscript},
+					Env: sshenv}
 			}
 		}
 		var done func()
