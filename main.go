@@ -213,7 +213,7 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	ssh -F "$RRCONFIG" -T -x "$RRHOST" mkdir "$RRDEST"
 	tar -C "$RRSRC" -czf - . | ssh -F "$RRCONFIG" -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
 	`
-	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
+	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArgs
 	if sshconfig == "" {
 		untar2 = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarDefault, hostname, dir, tmpd, tmpf)}, Env: tarenv}
@@ -242,7 +242,7 @@ func quickcopy(dir string, hostname string, interp string, sshconfig string) (bo
 	untarConfig := `
 	tar -C %s -czf - . | ssh -F %s -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
 	`
-	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
+	tarenv := []string{"LC_ALL=C"}
 	var untar lib.RunArgs
 	if sshconfig == "" {
 		untar = lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untarDefault, dir, hostname)}, Env: tarenv}
@@ -491,7 +491,6 @@ func main() {
                 LC_ALL=C
                 set -o errexit -o nounset -o noglob
                 unset IFS
-                PATH=/bin:/usr/bin
                 tar -C %s -cpf - . | tar -C / -xpf -
                 `
 		for _, d := range []string{
@@ -598,7 +597,7 @@ func main() {
 				if console {
 					jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				}
-				tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
+				tarenv := []string{"LC_ALL=C"}
 				untar := `
 				tar -C %s -cf - . | tar -C %s --no-same-owner --overwrite -omxpf -
 				`
