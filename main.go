@@ -475,12 +475,7 @@ func main() {
 	interp := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, INTERP))
 	interp = strings.TrimSuffix(interp, "\n")
 	if interp == "" {
-		ichk, ok := os.LookupEnv("SHELL")
-		if ok {
-			interp = ichk
-		} else {
-			interp = "sh"
-		}
+		interp = "sh"
 	}
 	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, OP))
 	op = strings.Split(op, "\n")[0]
