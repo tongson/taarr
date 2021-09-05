@@ -463,8 +463,10 @@ func main() {
 				sh.WriteString("export " + strings.TrimPrefix(e, "rr__") + "\n")
 			}
 		}
-		arguments = lib.InsertStr(arguments, "set --", 0)
-		sh.WriteString(strings.Join(arguments, " "))
+		if len(arguments) > 0 {
+			arguments = lib.InsertStr(arguments, "set --", 0)
+			sh.WriteString(strings.Join(arguments, " "))
+		}
 		code = lib.FileRead(namespace + "/" + script + "/" + RUN)
 		sh.WriteString("\n" + code)
 	}
@@ -554,7 +556,7 @@ func main() {
 				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg(msgop)
 			}
 		}
-		rargs := lib.RunArgs{Exe: interp, Args: []string{"-c", modscript}}
+		rargs := lib.RunArgs{Exe: interp, Stdin: []byte(modscript)}
 		var done func()
 		if console {
 			done = showSpinnerWhile(1)
