@@ -4,6 +4,7 @@
 * Fix various spinner issues
 * Changed spinner: line for copying and dots for runs
 * Add spinner when checking SSH hostname
+* Disable ssh compression
 
 #### 0.15.0
 
