@@ -4,6 +4,7 @@
 * Better sudo with password handling
 * Fix issue when changing spinner
 * Changed spinner: line for copying and dots for runs
+* Add spinner when checking SSH hostname
 
 #### 0.15.0
 
