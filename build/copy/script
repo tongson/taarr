@@ -1,0 +1,3 @@
+CGO_ENABLED=0 go build
+rm ~/bin/rr
+cp rr ~/bin/rr
