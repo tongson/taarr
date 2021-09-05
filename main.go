@@ -119,7 +119,7 @@ func output(o string, h string, c string) (string, string, string) {
 
 func sudocopy(dir string, hostname string, id string, interp string, sshconfig string, password string) (bool, string, string, string) {
 	tmpd := fmt.Sprintf(".__rr.dir.%s", id)
-	tmpf := fmt.Sprintf("./.__rr.scr.%s", id)
+	tmpf := fmt.Sprintf("./.__rr.tar.%s", id)
 	tarcmd := `
 	tar -C %s -cf - . | tar -C / --overwrite --no-same-owner -ompxf -
 	rm -rf %s
