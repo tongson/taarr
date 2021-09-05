@@ -203,7 +203,6 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	RRSCRIPT="%s"
 	ssh -T -x "$RRHOST" mkdir "$RRDEST"
 	tar -C "$RRSRC" -czf - . | ssh -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
-	ssh -T -x "$RRHOST" chmod +x "$RRSCRIPT"
 	`
 	untarConfig := `
 	RRHOST="%s"
@@ -213,7 +212,6 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	RRSCRIPT="%s"
 	ssh -F "$RRCONFIG" -T -x "$RRHOST" mkdir "$RRDEST"
 	tar -C "$RRSRC" -czf - . | ssh -F "$RRCONFIG" -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
-	ssh -F "$RRCONFIG" -T -x "$RRHOST" chmod +x "$RRSCRIPT"
 	`
 	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
 	var untar2 lib.RunArgs
@@ -227,10 +225,10 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	}
 	var untar3 lib.RunArgs
 	if sshconfig == "" {
-		args := []string{"-a", "-T", "-x", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", tmpf}
+		args := []string{"-a", "-T", "-x", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", "sh", tmpf}
 		untar3 = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(password)}
 	} else {
-		args := []string{"-F", sshconfig, "-a", "-T", "-x", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", tmpf}
+		args := []string{"-F", sshconfig, "-a", "-T", "-x", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", "sh", tmpf}
 		untar3 = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(password)}
 	}
 	return untar3.Run()
