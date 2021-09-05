@@ -257,6 +257,7 @@ func main() {
 	var console bool = false
 	var failed bool = false
 	var dump bool = false
+	var logger bool = false
 	var sudo bool = false
 	var sudoPassword string = ""
 	var nopasswd bool = false
@@ -266,10 +267,7 @@ func main() {
 	log.SetFlags(0)
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
-		zerolog.TimeFieldFormat = time.RFC3339
-		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
-		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
-		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
+		logger = true
 	} else if call[len(call)-3:] == "rrv" {
 		console = true
 		log.SetOutput(new(logWriter))
@@ -278,17 +276,11 @@ func main() {
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrs" {
 		sudo = true
-		zerolog.TimeFieldFormat = time.RFC3339
-		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
-		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
-		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
+		logger = true
 	} else if call[len(call)-3:] == "rru" {
 		sudo = true
 		nopasswd = true
-		zerolog.TimeFieldFormat = time.RFC3339
-		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
-		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
-		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
+		logger = true
 	} else {
 		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rrd(dump)`, `rrv(force verbose)`")
 	}
@@ -298,6 +290,12 @@ func main() {
 			log.SetOutput(new(logWriter))
 		}
 		log.Printf("rr %s %s", VersionNumber, CodeName)
+	}
+	if logger {
+		zerolog.TimeFieldFormat = time.RFC3339
+		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
+		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	}
 	isDir := lib.StatPath("directory")
 	isFile := lib.StatPath("file")
