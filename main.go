@@ -26,6 +26,7 @@ var start = time.Now()
 const VersionNumber = "0.16.0"
 const CodeName = "\"Tainted Battalion\""
 
+// filename constants
 const OP = "task"
 const RUN = "script"
 const LOG = "rr.json"
