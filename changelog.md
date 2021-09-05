@@ -1,6 +1,7 @@
 #### 0.17.0
 
 * Local invocation can now use interpreter that take in STDIN
+  * Another interpreter besides a posix shell can't take in arguments or use `.files`
 
 #### 0.16.0
 
