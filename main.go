@@ -284,7 +284,7 @@ func main() {
 		nopasswd = true
 		logger = true
 	} else {
-		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rrd(dump)`, `rrv(force verbose)`")
+		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rru(ssh+sudo+nopasswd)`, `rrd(dump)`, `rrv(force verbose)`")
 	}
 	if !dump {
 		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
