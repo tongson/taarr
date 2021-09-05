@@ -97,6 +97,7 @@ func showSpinnerWhile(s int) func() {
 	return func() {
 		done <- true
 		fmt.Fprintf(os.Stderr, "\033[%dD", 1)
+		close(done)
 	}
 }
 
