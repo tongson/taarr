@@ -675,36 +675,45 @@ func main() {
 		} else {
 			realhost = rh[1]
 		}
-		sshenv := []string{"LC_ALL=C"}
-		var ssha lib.RunArgs
-		if sshconfig == "" {
-			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
-		} else {
-			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
-		}
 		{
-			ret, stdout, _, _ := ssha.Run()
-			if ret {
-				sshhost := strings.Split(stdout, "\n")
-				if realhost != sshhost[0] {
-					if console {
-						jsonLog.Error().Str("app", "rr").Str("id", id).Str("hostname", realhost).Msg("Hostname does not match remote host")
-						log.Printf("Hostname %s does not match remote host.", realhost)
+			var done func()
+			if console {
+				done = showSpinnerWhile(0)
+			}
+			sshenv := []string{"LC_ALL=C"}
+			var ssha lib.RunArgs
+			if sshconfig == "" {
+				ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
+			} else {
+				ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
+			}
+			{
+				ret, stdout, _, _ := ssha.Run()
+				if ret {
+					sshhost := strings.Split(stdout, "\n")
+					if realhost != sshhost[0] {
+						if console {
+							jsonLog.Error().Str("app", "rr").Str("id", id).Str("hostname", realhost).Msg("Hostname does not match remote host")
+							log.Printf("Hostname %s does not match remote host.", realhost)
+						} else {
+							serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
+						}
+						os.Exit(1)
 					} else {
-						serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
+						log.Printf("Remote host is %s\n", sshhost[0])
+					}
+				} else {
+					if !console {
+						serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
+					} else {
+						jsonLog.Error().Str("app", "rr").Str("id", id).Str("host", realhost).Msg("Host does not exist or unreachable")
+						log.Printf("%s does not exist or unreachable.", realhost)
 					}
 					os.Exit(1)
-				} else {
-					log.Printf("Remote host is %s\n", sshhost[0])
 				}
-			} else {
-				if !console {
-					serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
-				} else {
-					jsonLog.Error().Str("app", "rr").Str("id", id).Str("host", realhost).Msg("Host does not exist or unreachable")
-					log.Printf("%s does not exist or unreachable.", realhost)
-				}
-				os.Exit(1)
+			}
+			if console {
+				done()
 			}
 		}
 		for _, d := range []string{
