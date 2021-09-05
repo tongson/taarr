@@ -279,7 +279,7 @@ func main() {
 		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
 		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	} else {
-		lib.Bug("Unsupported executable name. Valid: `rr`, `rrs`, `rrd`, `rrv`")
+		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rrd(dump)`, `rrv(force verbose)`")
 	}
 	if !dump {
 		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
