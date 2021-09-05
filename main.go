@@ -177,6 +177,9 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	tmpd := fmt.Sprintf(".__rr.dir.%s", id)
 	tmpf := fmt.Sprintf("./.__rr.tar.%s", id)
 	tarcmd := `
+	set -efu
+	LC_ALL=C
+	unset IFS
 	tar -C %s -cf - . | tar -C / --overwrite --no-same-owner -ompxf -
 	rm -rf %s
 	rm -f %s
