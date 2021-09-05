@@ -1,8 +1,7 @@
 #### 0.16.0
 
-* Fix bug with spinner during a copy
 * Better sudo with password handling
-* Fix issue when changing spinner
+* Fix various spinner issues
 * Changed spinner: line for copying and dots for runs
 * Add spinner when checking SSH hostname
 
