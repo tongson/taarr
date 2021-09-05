@@ -5,6 +5,7 @@
 * Changed spinner: line for copying and dots for runs
 * Add spinner when checking SSH hostname
 * Disable ssh compression
+* Interpreter falls back to "sh" instead of $SHELL environment variable
 
 #### 0.15.0
 
