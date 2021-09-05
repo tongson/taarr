@@ -279,7 +279,7 @@ func main() {
 		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
 		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	} else {
-		lib.Bug("Unsupported executable name.")
+		lib.Bug("Unsupported executable name. Valid: `rr`, `rrs`, `rrd`, `rrv`")
 	}
 	if !dump {
 		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
