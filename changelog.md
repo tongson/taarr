@@ -2,6 +2,8 @@
 
 * Fix bug with spinner during a copy
 * Better sudo with password handling
+* Fix issue when changing spinner
+* Changed spinner: line for copying and dots for runs
 
 #### 0.15.0
 
