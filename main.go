@@ -142,7 +142,7 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	RRDEST="%s"
 	RRSCRIPT="%s"
 	ssh -T -x -C "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" -czf - . | ssh -T -x -C "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxzpf -
+	tar -C "$RRSRC" -cf - . | ssh -T -x -C "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpf -
 	ssh -T -x -C "$RRHOST" chmod +x "$RRSCRIPT"
 	`
 	untarConfig := `
@@ -152,7 +152,7 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	RRCONFIG="%s"
 	RRSCRIPT="%s"
 	ssh -F "$RRCONFIG" -T -x -C "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" -czf - . | ssh -F "$RRCONFIG" -T -x -C "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxzpf -
+	tar -C "$RRSRC" -cf - . | ssh -F "$RRCONFIG" -T -x -C "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpf -
 	ssh -F "$RRCONFIG" -T -x -C "$RRHOST" chmod +x "$RRSCRIPT"
 	`
 	tarenv := []string{"LC_ALL=C", "PATH=/bin:/usr/bin"}
