@@ -1,3 +1,7 @@
+#### 0.17.0
+
+* Local invocation can now use interpreter that take in STDIN
+
 #### 0.16.0
 
 * Better sudo with password handling
