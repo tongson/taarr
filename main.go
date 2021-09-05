@@ -117,6 +117,53 @@ func output(o string, h string, c string) (string, string, string) {
 	return rh, rb, rf
 }
 
+func sshexec(sudo bool, script string, hostname string, id string, sshconfig string, password string) (bool, string, string, string) {
+	tmps := fmt.Sprintf("./.__rr.scr.%s", id)
+	sshenv := []string{"LC_ALL=C"}
+	var ssha lib.RunArgs
+	var sshb lib.RunArgs
+	var sshc lib.RunArgs
+	if sshconfig == "" {
+		ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, fmt.Sprintf("cat - > %s", tmps)}, Env: sshenv, Stdin: []byte(script)}
+	} else {
+		ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, fmt.Sprintf("cat - > %s", tmps)}, Env: sshenv, Stdin: []byte(script)}
+	}
+	if ret, stdout, stderr, goerr := ssha.Run(); !ret {
+		return ret, stdout, stderr, goerr
+	}
+	var ret bool
+	var stdout string
+	var stderr string
+	var goerr string
+	if sshconfig == "" {
+		if !sudo {
+			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "sh", tmps}, Env: sshenv, Stdin: []byte(password)}
+		} else {
+			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", "sh", tmps}, Env: sshenv, Stdin: []byte(password)}
+		}
+	} else {
+		if !sudo {
+			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "sh", tmps}, Env: sshenv, Stdin: []byte(password)}
+		} else {
+			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", "sh", tmps}, Env: sshenv, Stdin: []byte(password)}
+		}
+	}
+	ret, stdout, stderr, goerr = sshb.Run()
+	if !ret {
+		return ret, stdout, stderr, goerr
+	}
+	if sshconfig == "" {
+		sshc = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname, fmt.Sprintf("rm -f %s", tmps)}, Env: sshenv}
+	} else {
+		sshc = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, fmt.Sprintf("rm -f %s", tmps)}, Env: sshenv}
+	}
+	if xret, xstdout, xstderr, xgoerr := sshc.Run(); !xret {
+		return xret, xstdout, xstderr, xgoerr
+	} else {
+		return ret, stdout, stderr, goerr
+	}
+}
+
 func sudocopy(dir string, hostname string, id string, interp string, sshconfig string, password string) (bool, string, string, string) {
 	tmpd := fmt.Sprintf(".__rr.dir.%s", id)
 	tmpf := fmt.Sprintf("./.__rr.tar.%s", id)
@@ -634,28 +681,30 @@ func main() {
 		} else {
 			ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, "uname -n"}, Env: sshenv}
 		}
-		ret, stdout, _, _ := ssha.Run()
-		if ret {
-			sshhost := strings.Split(stdout, "\n")
-			if realhost != sshhost[0] {
-				if console {
-					jsonLog.Error().Str("app", "rr").Str("id", id).Str("hostname", realhost).Msg("Hostname does not match remote host")
-					log.Printf("Hostname %s does not match remote host.", realhost)
+		{
+			ret, stdout, _, _ := ssha.Run()
+			if ret {
+				sshhost := strings.Split(stdout, "\n")
+				if realhost != sshhost[0] {
+					if console {
+						jsonLog.Error().Str("app", "rr").Str("id", id).Str("hostname", realhost).Msg("Hostname does not match remote host")
+						log.Printf("Hostname %s does not match remote host.", realhost)
+					} else {
+						serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
+					}
+					os.Exit(1)
 				} else {
-					serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
+					log.Printf("Remote host is %s\n", sshhost[0])
+				}
+			} else {
+				if !console {
+					serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
+				} else {
+					jsonLog.Error().Str("app", "rr").Str("id", id).Str("host", realhost).Msg("Host does not exist or unreachable")
+					log.Printf("%s does not exist or unreachable.", realhost)
 				}
 				os.Exit(1)
-			} else {
-				log.Printf("Remote host is %s\n", sshhost[0])
 			}
-		} else {
-			if !console {
-				serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
-			} else {
-				jsonLog.Error().Str("app", "rr").Str("id", id).Str("host", realhost).Msg("Host does not exist or unreachable")
-				log.Printf("%s does not exist or unreachable.", realhost)
-			}
-			os.Exit(1)
 		}
 		for _, d := range []string{
 			".files",
@@ -713,29 +762,15 @@ func main() {
 		if console {
 			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		}
-		var sshb lib.RunArgs
-		if sshconfig == "" {
-			if sudo {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname,
-					"sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", modscript}, Env: sshenv, Stdin: []byte(sudoPassword)}
-			} else {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", "-C", hostname},
-					Env: sshenv, Stdin: []byte(modscript)}
-			}
-		} else {
-			if sudo {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname,
-					"sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", modscript}, Env: sshenv, Stdin: []byte(sudoPassword)}
-			} else {
-				sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-T", "-x", "-C", hostname, modscript},
-					Env: sshenv}
-			}
-		}
+		var ret bool
+		var stdout string
+		var stderr string
+		var goerr string
 		var done func()
 		if console {
 			done = showSpinnerWhile(1)
 		}
-		ret, stdout, stderr, goerr := sshb.Run()
+		ret, stdout, stderr, goerr = sshexec(sudo, modscript, hostname, id, sshconfig, sudoPassword)
 		if console {
 			done()
 		}
