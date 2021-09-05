@@ -79,9 +79,9 @@ func showSpinnerWhile(s int) func() {
 	spinner := spin.New()
 	switch s {
 	case 0:
-		spinner.Set(spin.Spin24)
-	default:
 		spinner.Set(spin.Spin26)
+	default:
+		spinner.Set(spin.Box1)
 	}
 	done := make(chan bool)
 	go func() {
