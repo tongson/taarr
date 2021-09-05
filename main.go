@@ -125,9 +125,11 @@ func sshexec(sudo bool, script string, hostname string, id string, sshconfig str
 	var sshb lib.RunArgs
 	var sshc lib.RunArgs
 	if sshconfig == "" {
-		ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-a", "-T", "-x", hostname, fmt.Sprintf("cat - > %s", tmps)}, Env: sshenv, Stdin: []byte(script)}
+		args := []string{"-a", "-T", "-x", hostname, fmt.Sprintf("cat - > %s", tmps)}
+		ssha = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	} else {
-		ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-a", "-T", "-x", hostname, fmt.Sprintf("cat - > %s", tmps)}, Env: sshenv, Stdin: []byte(script)}
+		args := []string{"-F", sshconfig, "-a", "-T", "-x", hostname, fmt.Sprintf("cat - > %s", tmps)}
+		ssha = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
 	if ret, stdout, stderr, goerr := ssha.Run(); !ret {
 		return ret, stdout, stderr, goerr
@@ -138,15 +140,19 @@ func sshexec(sudo bool, script string, hostname string, id string, sshconfig str
 	var goerr string
 	if sshconfig == "" {
 		if !sudo {
-			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-a", "-T", "-x", hostname, "sh", tmps}, Env: sshenv, Stdin: []byte(password)}
+			args := []string{"-a", "-T", "-x", hostname, "sh", tmps}
+			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(password)}
 		} else {
-			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-a", "-T", "-x", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", "sh", tmps}, Env: sshenv, Stdin: []byte(password)}
+			args := []string{"-a", "-T", "-x", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", "sh", tmps}
+			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(password)}
 		}
 	} else {
 		if !sudo {
-			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-a", "-T", "-x", hostname, "sh", tmps}, Env: sshenv, Stdin: []byte(password)}
+			args := []string{"-F", sshconfig, "-a", "-T", "-x", hostname, "sh", tmps}
+			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(password)}
 		} else {
-			sshb = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-a", "-T", "-x", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", "sh", tmps}, Env: sshenv, Stdin: []byte(password)}
+			args := []string{"-F", sshconfig, "-a", "-T", "-x", hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", "sh", tmps}
+			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(password)}
 		}
 	}
 	ret, stdout, stderr, goerr = sshb.Run()
@@ -154,9 +160,11 @@ func sshexec(sudo bool, script string, hostname string, id string, sshconfig str
 		return ret, stdout, stderr, goerr
 	}
 	if sshconfig == "" {
-		sshc = lib.RunArgs{Exe: "ssh", Args: []string{"-a", "-T", "-x", hostname, fmt.Sprintf("rm -f %s", tmps)}, Env: sshenv}
+		args := []string{"-a", "-T", "-x", hostname, fmt.Sprintf("rm -f %s", tmps)}
+		sshc = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv}
 	} else {
-		sshc = lib.RunArgs{Exe: "ssh", Args: []string{"-F", sshconfig, "-a", "-T", "-x", hostname, fmt.Sprintf("rm -f %s", tmps)}, Env: sshenv}
+		args := []string{"-F", sshconfig, "-a", "-T", "-x", hostname, fmt.Sprintf("rm -f %s", tmps)}
+		sshc = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv}
 	}
 	if xret, xstdout, xstderr, xgoerr := sshc.Run(); !xret {
 		return xret, xstdout, xstderr, xgoerr
