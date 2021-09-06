@@ -44,4 +44,7 @@ release:
 
 clean:
 	rm -f bin/rr
-
+	rm -f bin/rr.linux-amd64
+	rm -f bin/rr.linux-i386
+	rm -f bin/rr.macos-intel
+	rm -f bin/rr.macos-m1
