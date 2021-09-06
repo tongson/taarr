@@ -39,8 +39,7 @@ lint:
 check: errcheck staticcheck lint
 	@echo "$(BLUE)$(TIME)$(GREEN) + CHECK DONE$(RESET)"
 
-build: fmt
-	@go mod tidy
+build:
 	@echo "$(BLUE)$(TIME)$(GREEN) + BUILD START$(RESET)"
 	@mkdir -p bin
 	@/usr/bin/env CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w'
