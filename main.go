@@ -169,9 +169,8 @@ func sshexec(sudo bool, script string, hostname string, id string, interp string
 	}
 	if xret, xstdout, xstderr, xgoerr := sshc.Run(); !xret {
 		return xret, xstdout, xstderr, xgoerr
-	} else {
-		return ret, stdout, stderr, goerr
 	}
+	return ret, stdout, stderr, goerr
 }
 
 func sudocopy(dir string, hostname string, id string, interp string, sshconfig string, password string) (bool, string, string, string) {
