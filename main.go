@@ -494,7 +494,7 @@ func main() {
                 LC_ALL=C
                 set -o errexit -o nounset -o noglob
                 unset IFS
-                tar -C %s -cpf - . | tar -C / -xpf -
+                tar -C %s -cpf - . | tar -C / --no-same-owner -ompxf -
                 `
 		for _, d := range []string{
 			".files",
