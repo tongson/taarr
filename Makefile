@@ -43,8 +43,7 @@ build: fmt
 	@go mod tidy
 	@echo "$(BLUE)$(TIME)$(GREEN) + BUILD START$(RESET)"
 	@mkdir -p bin
-	#@/usr/bin/env GOOS=linux go build -o bin/rr -ldflags="-s -w" ./...
-	@/usr/bin/env GOARCH=386 GOOS=linux CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w'
+	@/usr/bin/env CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w'
 	@echo "$(BLUE)$(TIME)$(CYAN) ! BUILD DONE $(RESET)"
 
 clean:
