@@ -23,8 +23,8 @@ import (
 
 var start = time.Now()
 
-const VersionNumber = "0.17.0"
-const CodeName = "\"Monoxide Dime\""
+const versionNumber = "0.17.0"
+const codeName = "\"Monoxide Dime\""
 
 // filename constants
 const OP = "task"
@@ -290,7 +290,7 @@ func main() {
 			console = true
 			log.SetOutput(new(logWriter))
 		}
-		log.Printf("rr %s %s", VersionNumber, CodeName)
+		log.Printf("rr %s %s", versionNumber, codeName)
 	}
 	if logger {
 		zerolog.TimeFieldFormat = time.RFC3339
