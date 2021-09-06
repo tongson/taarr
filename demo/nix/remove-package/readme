@@ -1,0 +1,6 @@
+Uninstall Nix Package
+
+Argument #1 is the package name
+
+Example:
+  rr nix:remove-package tmux

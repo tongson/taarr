@@ -1,0 +1,10 @@
+Find a Nix package with name
+
+Argument #1 is the string to search for
+
+Example:
+  rr nix:find-package tmux
+
+Wraps:
+  nix-env -qa 
+  

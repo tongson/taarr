@@ -1,0 +1,6 @@
+Install a package from Nix Packages
+
+Argument #1 is the package name
+
+Example:
+  rr nix:install-package tmux
