@@ -180,7 +180,7 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	set -efu
 	LC_ALL=C
 	unset IFS
-	tar -C %s -cf - . | tar -C / --overwrite --no-same-owner -ompxf -
+	tar -C %s -cpf - . | tar -C / --overwrite --no-same-owner -ompxf -
 	rm -rf %s
 	rm -f %s
 	`
@@ -202,7 +202,7 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	RRDEST="%s"
 	RRSCRIPT="%s"
 	ssh -T -x "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" -czf - . | ssh -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
+	tar -C "$RRSRC" -cpzf - . | ssh -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
 	`
 	untarConfig := `
 	RRHOST="%s"
@@ -211,7 +211,7 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 	RRCONFIG="%s"
 	RRSCRIPT="%s"
 	ssh -F "$RRCONFIG" -T -x "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" -czf - . | ssh -F "$RRCONFIG" -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
+	tar -C "$RRSRC" -cpzf - . | ssh -F "$RRCONFIG" -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArgs
@@ -237,10 +237,10 @@ func sudocopy(dir string, hostname string, id string, interp string, sshconfig s
 func quickcopy(dir string, hostname string, interp string, sshconfig string) (bool, string, string, string) {
 	untarDefault := `
 	set -o errexit -o nounset -o noglob
-	tar -C %s -czf - . | ssh -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
+	tar -C %s -cpzf - . | ssh -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
 	`
 	untarConfig := `
-	tar -C %s -czf - . | ssh -F %s -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
+	tar -C %s -cpzf - . | ssh -F %s -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar lib.RunArgs
