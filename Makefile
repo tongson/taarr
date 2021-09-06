@@ -1,7 +1,7 @@
 .ONESHELL:
 .SILENT:
 .SHELL := /usr/bin/env bash
-.PHONY: staticcheck errcheck fmt build clean
+.PHONY: errcheck fmt build clean check lint
 SRC= "main.go"
 BOLD=$(shell tput bold)
 RED=$(shell tput setaf 1)
@@ -14,29 +14,19 @@ RESET=$(shell tput sgr0)
 TIME=$(shell date "+%Y-%m-%d %H:%M:%S")
 all: build test
 
-setup:
-	cd tools
-	GO111MODULE=on go build -o ../bin/golint golang.org/x/lint/golint
-	GO111MODULE=on go build -o ../bin/staticcheck honnef.co/go/tools/cmd/staticcheck
-	GO111MODULE=on go build -o ../bin/errcheck github.com/kisielk/errcheck
-
 fmt:
 	@echo "$(BLUE)$(TIME)$(GREEN) + go fmt $(RESET)"
 	@go fmt main.go
 
 errcheck:
 	@echo "$(BLUE)$(TIME)$(GREEN) + errcheck $(RESET)"
-	bin/errcheck "$(SRC)"
-
-staticcheck:
-	@echo "$(BLUE)$(TIME)$(GREEN) + staticheck $(RESET)"
-	bin/staticcheck "$(SRC)" 
+	errcheck "$(SRC)"
 
 lint:
 	@echo "$(BLUE)$(TIME)$(GREEN) + golint $(RESET)"
-	bin/golint "main.go"
+	golint "main.go"
 
-check: errcheck staticcheck lint
+check: errcheck lint
 	@echo "$(BLUE)$(TIME)$(GREEN) + CHECK DONE$(RESET)"
 
 build:
