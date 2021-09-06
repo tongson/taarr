@@ -1,2 +1,2 @@
-test -f /XXX
-test -d /YYY
+test -f /tmp/XXX
+test -d /tmp/YYY
