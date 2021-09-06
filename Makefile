@@ -35,6 +35,13 @@ build:
 	@/usr/bin/env CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w'
 	@echo "$(BLUE)$(TIME)$(CYAN) ! BUILD DONE $(RESET)"
 
+release:
+	@echo "$(BLUE)$(TIME)$(GREEN) + BUILD START$(RESET)"
+	@rr build:linux-amd64
+	@rr build:linux-i386
+	@rr build:macos-intel
+	@rr build:macos-m1
+
 clean:
 	rm -f bin/rr
 
