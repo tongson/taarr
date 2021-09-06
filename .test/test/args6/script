@@ -1,16 +1,16 @@
 one()
 {
-    echo "$1" > /.__rr_ONE
-    echo "$2" > /.__rr_TWO
-    echo "$3" > /.__rr_THREE
-    echo "$4" > /.__rr_FOUR
+    echo "$1" > /tmp/.__rr_ONE
+    echo "$2" > /tmp/.__rr_TWO
+    echo "$3" > /tmp/.__rr_THREE
+    echo "$4" > /tmp/.__rr_FOUR
 }
 one $1 $2 $3 $4
-[ $(</.__rr_ONE) = 1 ] || { echo >&2 "Arg did not match!"; exit 1; }
-[ $(</.__rr_TWO) = 2 ] || { echo >&2 "Arg did not match!"; exit 1; }
-[ $(</.__rr_THREE) = 3 ] || { echo >&2 "Arg did not match!"; exit 1; }
-[ $(</.__rr_FOUR) = 4 ] || { echo >&2 "Arg did not match!"; exit 1; }
-rm -f /.__rr_ONE
-rm -f /.__rr_TWO
-rm -f /.__rr_THREE
-rm -f /.__rr_FOUR
+[ $(</tmp/.__rr_ONE) = 1 ] || { echo >&2 "Arg did not match!"; exit 1; }
+[ $(</tmp/.__rr_TWO) = 2 ] || { echo >&2 "Arg did not match!"; exit 1; }
+[ $(</tmp/.__rr_THREE) = 3 ] || { echo >&2 "Arg did not match!"; exit 1; }
+[ $(</tmp/.__rr_FOUR) = 4 ] || { echo >&2 "Arg did not match!"; exit 1; }
+rm -f /tmp/.__rr_ONE
+rm -f /tmp/.__rr_TWO
+rm -f /tmp/.__rr_THREE
+rm -f /tmp/.__rr_FOUR
