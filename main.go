@@ -27,18 +27,18 @@ const versionNumber = "0.17.0"
 const codeName = "\"Monoxide Dime\""
 
 // filename constants
-const OP = "task"
-const RUN = "script"
-const LOG = "rr.json"
-const DOC = "README"
-const INTERP = "shell"
-const HOSTS = "rr.hosts"
+const cOP = "task"
+const cRUN = "script"
+const cLOG = "rr.json"
+const cDOC = "README"
+const cINTERP = "shell"
+const cHOSTS = "rr.hosts"
 
-const STDOUT = " ┌─ stdout"
-const STDERR = " ┌─ stderr"
-const STDDBG = " ┌─ debug"
-const FOOTER = " └─"
-const PIPEST = "│"
+const cSTDOUT = " ┌─ stdout"
+const cSTDERR = " ┌─ stderr"
+const cSTDDBG = " ┌─ debug"
+const cFOOTER = " └─"
+const cPIPEST = "│"
 
 type logWriter struct {
 }
@@ -113,8 +113,8 @@ func output(o string, h string, c string) (string, string, string) {
 	rf := ""
 	if o != "" {
 		rh = fmt.Sprintf(" %s%s\n", h, c)
-		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, PIPEST, o))
-		rf = fmt.Sprintf(" %s%s\n", h, FOOTER)
+		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, cPIPEST, o))
+		rf = fmt.Sprintf(" %s%s\n", h, cFOOTER)
 	}
 	return rh, rb, rf
 }
@@ -294,7 +294,7 @@ func main() {
 	}
 	if logger {
 		zerolog.TimeFieldFormat = time.RFC3339
-		jsonFile, _ := os.OpenFile(LOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+		jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
 		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	}
@@ -328,7 +328,7 @@ func main() {
 		isReadme := func(s string) (bool, string) {
 			s = strings.TrimSuffix(s, "/")
 			s = strings.TrimSuffix(s, ":")
-			match, _ := lib.FileGlob(fmt.Sprintf("%s/%s*", s, DOC))
+			match, _ := lib.FileGlob(fmt.Sprintf("%s/%s*", s, cDOC))
 			for _, m := range match {
 				if isFile(m) {
 					return true, m
@@ -424,9 +424,9 @@ func main() {
 				os.Exit(1)
 			}
 		}
-		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, RUN)) {
+		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
 			if console {
-				lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, RUN)
+				lib.Panicf("`%s/%s/%s` actual script not found.", namespace, script, cRUN)
 			} else {
 				serrLog.Fatal().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
 				os.Exit(1)
@@ -466,7 +466,7 @@ func main() {
 			arguments = lib.InsertStr(arguments, "set --", 0)
 			sh.WriteString(strings.Join(arguments, " "))
 		}
-		code = lib.FileRead(namespace + "/" + script + "/" + RUN)
+		code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
 		sh.WriteString("\n" + code)
 	}
 	modscript := sh.String()
@@ -474,12 +474,12 @@ func main() {
 		fmt.Print(modscript)
 		os.Exit(0)
 	}
-	interp := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, INTERP))
+	interp := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
 	interp = strings.TrimSuffix(interp, "\n")
 	if interp == "" {
 		interp = "sh"
 	}
-	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, OP))
+	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cOP))
 	op = strings.Split(op, "\n")[0]
 	if op == "" {
 		op = "UNDEFINED"
@@ -527,9 +527,9 @@ func main() {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
 						jsonLog.Error().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
-						ho, bo, fo := output(stdout, hostname, STDOUT)
-						he, be, fe := output(stderr, hostname, STDERR)
-						hd, bd, fd := output(goerr, hostname, STDDBG)
+						ho, bo, fo := output(stdout, hostname, cSTDOUT)
+						he, be, fe := output(stderr, hostname, cSTDERR)
+						hd, bd, fd := output(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -564,9 +564,9 @@ func main() {
 		if console {
 			done()
 		}
-		ho, bo, fo := output(stdout, hostname, STDOUT)
-		he, be, fe := output(stderr, hostname, STDERR)
-		hd, bd, fd := output(goerr, hostname, STDDBG)
+		ho, bo, fo := output(stdout, hostname, cSTDOUT)
+		he, be, fe := output(stderr, hostname, cSTDERR)
+		hd, bd, fd := output(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
@@ -619,9 +619,9 @@ func main() {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
 						jsonLog.Error().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
-						ho, bo, fo := output(stdout, hostname, STDOUT)
-						he, be, fe := output(stderr, hostname, STDERR)
-						hd, bd, fd := output(goerr, hostname, STDDBG)
+						ho, bo, fo := output(stdout, hostname, cSTDOUT)
+						he, be, fe := output(stderr, hostname, cSTDERR)
+						hd, bd, fd := output(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -648,9 +648,9 @@ func main() {
 		if console {
 			done()
 		}
-		ho, bo, fo := output(stdout, hostname, STDOUT)
-		he, be, fe := output(stderr, hostname, STDERR)
-		hd, bd, fd := output(goerr, hostname, STDDBG)
+		ho, bo, fo := output(stdout, hostname, cSTDOUT)
+		he, be, fe := output(stderr, hostname, cSTDERR)
+		hd, bd, fd := output(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
@@ -672,8 +672,8 @@ func main() {
 			}
 		}
 	} else {
-		if lib.IsFile(HOSTS) {
-			sshconfig = HOSTS
+		if lib.IsFile(cHOSTS) {
+			sshconfig = cHOSTS
 		}
 		var realhost string
 		if rh := strings.Split(hostname, "@"); len(rh) == 1 {
@@ -758,9 +758,9 @@ func main() {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
 						jsonLog.Error().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
-						ho, bo, fo := output(stdout, hostname, STDOUT)
-						he, be, fe := output(stderr, hostname, STDERR)
-						hd, bd, fd := output(goerr, hostname, STDDBG)
+						ho, bo, fo := output(stdout, hostname, cSTDOUT)
+						he, be, fe := output(stderr, hostname, cSTDERR)
+						hd, bd, fd := output(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -790,9 +790,9 @@ func main() {
 		if console {
 			done()
 		}
-		ho, bo, fo := output(stdout, hostname, STDOUT)
-		he, be, fe := output(stderr, hostname, STDERR)
-		hd, bd, fd := output(goerr, hostname, STDDBG)
+		ho, bo, fo := output(stdout, hostname, cSTDOUT)
+		he, be, fe := output(stderr, hostname, cSTDERR)
+		hd, bd, fd := output(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
