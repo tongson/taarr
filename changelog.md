@@ -3,6 +3,8 @@
 * Local invocation can now use interpreter that take in STDIN
   * Another interpreter besides a posix shell can't take in arguments or use `.files`
   * STDIN works with lua(LadyLua), lua(PUC), python, dash, bash, zsh
+* Overhaul Makefile
+* Fix local tests
 
 #### 0.16.0
 
