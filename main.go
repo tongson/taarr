@@ -23,8 +23,8 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "0.17.0"
-const codeName = "\"Monoxide Dime\""
+const versionNumber = "0.18.0"
+const codeName = "\"Carbon Pueblo\""
 
 // filename constants
 const cOP = "task"
