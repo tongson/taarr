@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"golang.org/x/crypto/ssh/terminal"
 	"hash/maphash"
@@ -16,6 +18,7 @@ import (
 	"syscall"
 	"time"
 
+	tablewriter "github.com/olekukonko/tablewriter"
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	spin "github.com/tongson/rr/external/go-spin"
@@ -319,6 +322,7 @@ func main() {
 	var console bool = false
 	var failed bool = false
 	var dump bool = false
+	var report bool = false
 	var logger bool = false
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
@@ -331,6 +335,9 @@ func main() {
 		log.SetOutput(new(logWriter))
 	} else if call[len(call)-3:] == "rrd" {
 		dump = true
+		log.SetOutput(io.Discard)
+	} else if call[len(call)-3:] == "rrz" {
+		report = true
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrs" {
 		opt.sudo = true
@@ -348,6 +355,47 @@ func main() {
 		logger = true
 	} else {
 		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rru(ssh+sudo+nopasswd)`, `rrt(teleport)`, `rro(teleport+sudo)`, `rrd(dump)`, `rrv(force verbose)`")
+	}
+	if report {
+		hdrs := []string{"ID", "Target", "Start", "Namespace", "Script", "Task", "Elapsed", "Result"}
+		const maxLn = 512 * 1024
+		var data [][]string
+		rrl, err := os.Open("rr.json")
+		if err != nil {
+			lib.Panic("Missing rr.json.")
+			os.Exit(1)
+		}
+		defer rrl.Close()
+		scanner := bufio.NewScanner(rrl)
+		buf := make([]byte, maxLn)
+		scanner.Buffer(buf, maxLn)
+		for scanner.Scan() {
+			log := make(map[string]string)
+			json.Unmarshal(scanner.Bytes(), &log)
+			if log["elapsed"] != "" {
+				data = append(data, []string{log["id"],
+					log["target"],
+					log["start"],
+					log["namespace"],
+					log["script"],
+					log["task"],
+					log["elapsed"],
+					log["message"]})
+			}
+		}
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetRowLine(true) // Enable row line
+		table.SetCenterSeparator("•")
+		table.SetColumnSeparator("│")
+		table.SetRowSeparator("─")
+		table.SetAlignment(tablewriter.ALIGN_LEFT)
+		table.SetHeader(hdrs)
+		table.SetFooter(hdrs)
+		table.SetBorder(true)
+		table.SetRowLine(true)
+		table.AppendBulk(data)
+		table.Render()
+		os.Exit(0)
 	}
 	if !dump {
 		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
