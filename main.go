@@ -157,8 +157,13 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 	var goerr string
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).sudo {
-			args := []string{"-a", "-T", "-x", (*o).hostname, (*o).interp, tmps}
-			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+			if !(*o).teleport {
+				args := []string{"-a", "-T", "-x", (*o).hostname, (*o).interp, tmps}
+				sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv}
+			} else {
+				args := []string{"ssh", (*o).hostname, (*o).interp, tmps}
+				sshb = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv}
+			}
 		} else {
 			if !(*o).teleport {
 				args := []string{"-a", "-T", "-x", (*o).hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", (*o).interp, tmps}
@@ -286,13 +291,21 @@ func quickcopy(o *optT, dir string) (bool, string, string, string) {
 	set -o errexit -o nounset -o noglob
 	tar -C %s -cpzf - . | ssh -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
 	`
+	untarTeleport := `
+	set -o errexit -o nounset -o noglob
+	tar -C %s -cpzf - . | tsh ssh %s tar -C / --overwrite --no-same-owner -omxpzf -
+	`
 	untarConfig := `
 	tar -C %s -cpzf - . | ssh -F %s -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar lib.RunArgs
-	if (*o).config == "" {
-		untar = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)}, Env: tarenv}
+	if (*o).config == "" || (*o).teleport {
+		if !(*o).teleport {
+			untar = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)}, Env: tarenv}
+		} else {
+			untar = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c", fmt.Sprintf(untarTeleport, dir, (*o).hostname)}, Env: tarenv}
+		}
 	} else {
 		untar = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c", fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)}, Env: tarenv}
 	}
@@ -323,6 +336,9 @@ func main() {
 		opt.sudo = true
 		logger = true
 	} else if call[len(call)-3:] == "rrt" {
+		opt.teleport = true
+		logger = true
+	} else if call[len(call)-3:] == "rro" {
 		opt.sudo = true
 		opt.teleport = true
 		logger = true
@@ -331,7 +347,7 @@ func main() {
 		opt.nopasswd = true
 		logger = true
 	} else {
-		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rru(ssh+sudo+nopasswd)`, `rrt(teleport+sudo)`, `rrd(dump)`, `rrv(force verbose)`")
+		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rru(ssh+sudo+nopasswd)`, `rrt(teleport)`, `rro(teleport+sudo)`, `rrd(dump)`, `rrv(force verbose)`")
 	}
 	if !dump {
 		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
