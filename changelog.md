@@ -1,3 +1,8 @@
+#### 0.18.0
+
+* Teleport mode
+* Report mode
+
 #### 0.17.0
 
 * Local invocation can now use interpreter that take in STDIN
