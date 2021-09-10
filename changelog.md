@@ -1,7 +1,7 @@
 #### 0.18.0
 
 * Teleport mode
-* Report mode
+* Report mode `rrz`
 
 #### 0.17.0
 
