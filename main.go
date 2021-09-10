@@ -891,13 +891,13 @@ func main() {
 	}
 	if tm := fmt.Sprintf("%s", time.Since(start)); !failed {
 		if console {
-			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("elapsed", tm).Msg("success")
+			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("start", start.Format(time.RFC3339)).Str("task", op).Str("target", hostname).Str("namespace", namespace).Str("script", script).Str("elapsed", tm).Msg("success")
 		}
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
 		os.Exit(0)
 	} else {
 		if console {
-			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("elapsed", tm).Msg("failed")
+			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("start", start.Format(time.RFC3339)).Str("task", op).Str("target", hostname).Str("namespace", namespace).Str("script", script).Str("elapsed", tm).Msg("failed")
 			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
 		} else {
 			serrLog.Debug().Str("elapsed", tm).Msg("failed")
