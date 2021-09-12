@@ -558,7 +558,8 @@ func main() {
 	var id string
 	{
 		h := new(maphash.Hash)
-		id = fmt.Sprintf("%016X", h.Sum64())
+		uid := fmt.Sprintf("%016X", h.Sum64())
+		id = string([]rune(uid)[:8])
 		opt.id = id
 	}
 	if len(os.Args) < 2 {
