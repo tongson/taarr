@@ -5,6 +5,7 @@
 * "Idempotence" by checking '+++++changed+++++' string from STDOUT
 * Now logs to `rr.json` even if not in console mode
 * "elapsed" to "duration"
+* ID is just 8 characters now
 
 #### 0.17.0
 
