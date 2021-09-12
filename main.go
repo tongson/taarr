@@ -611,13 +611,13 @@ func main() {
 			pps := fmt.Sprintf("rr %s:%s (%s)", s1, s2, s3)
 			sz := len(pps)
 			line := strings.Repeat("─", sz+2)
-			fmt.Print(fmt.Sprintf("%s┐\n", line))
+			fmt.Printf("%s┐\n", line)
 			if console {
 				fmt.Printf(" \033[37;1m%s\033[0m │\n", pps)
 			} else {
 				fmt.Printf(" %s │\n", pps)
 			}
-			fmt.Print(fmt.Sprintf("%s┘\n", line))
+			fmt.Printf("%s┘\n", line)
 			if console {
 				for _, each := range lib.FileLines(s) {
 					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
