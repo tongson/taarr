@@ -1204,35 +1204,41 @@ func main() {
 			}
 		}
 	}
-	if tm := time.Since(start).Truncate(time.Second).String(); !failed {
-		jsonLog.Debug().
-			Str("app", "rr").
-			Str("id", id).
-			Str("start", start.Format(time.RFC3339)).
-			Str("task", op).
-			Str("target", hostname).
-			Str("namespace", namespace).
-			Str("script", script).
-			Str("duration", tm).
-			Msg(result)
-		log.Printf("Total run time: %s. All OK.", tm)
-		os.Exit(0)
-	} else {
-		jsonLog.Debug().
-			Str("app", "rr").
-			Str("id", id).
-			Str("start", start.Format(time.RFC3339)).
-			Str("task", op).
-			Str("target", hostname).
-			Str("namespace", namespace).
-			Str("script", script).
-			Str("duration", tm).
-			Msg("failed")
-		if console {
-			log.Printf("Total run time: %s. Something went wrong.", tm)
-		} else {
-			serrLog.Debug().Str("duration", tm).Msg("failed")
+  {
+		tm := time.Since(start).Truncate(time.Second).String()
+		if tm == "0s" {
+			tm = "<1s"
 		}
-		os.Exit(1)
+		if !failed {
+			jsonLog.Debug().
+				Str("app", "rr").
+				Str("id", id).
+				Str("start", start.Format(time.RFC3339)).
+				Str("task", op).
+				Str("target", hostname).
+				Str("namespace", namespace).
+				Str("script", script).
+				Str("duration", tm).
+				Msg(result)
+			log.Printf("Total run time: %s. All OK.", tm)
+			os.Exit(0)
+		} else {
+			jsonLog.Debug().
+				Str("app", "rr").
+				Str("id", id).
+				Str("start", start.Format(time.RFC3339)).
+				Str("task", op).
+				Str("target", hostname).
+				Str("namespace", namespace).
+				Str("script", script).
+				Str("duration", tm).
+				Msg("failed")
+			if console {
+				log.Printf("Total run time: %s. Something went wrong.", tm)
+			} else {
+				serrLog.Debug().Str("duration", tm).Msg("failed")
+			}
+			os.Exit(1)
+		}
 	}
 }
