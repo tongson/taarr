@@ -673,7 +673,7 @@ func main() {
 			if console {
 				lib.Panicf("`%s`(namespace) is not a directory.", namespace)
 			} else {
-				serrLog.Fatal().Str("namespace", fmt.Sprintf("%s", namespace)).Msg("Namespace is not a directory")
+				serrLog.Fatal().Str("namespace", namespace).Msg("Namespace is not a directory")
 				os.Exit(1)
 			}
 		}
@@ -682,8 +682,8 @@ func main() {
 				lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
 			} else {
 				serrLog.Fatal().
-					Str("namespace", fmt.Sprintf("%s", namespace)).
-					Str("script", fmt.Sprintf("%s", script)).
+					Str("namespace", namespace).
+					Str("script", script).
 					Msg("namespace/script is not a directory")
 				os.Exit(1)
 			}
@@ -698,8 +698,8 @@ func main() {
 				)
 			} else {
 				serrLog.Fatal().
-					Str("namespace", fmt.Sprintf("%s", namespace)).
-					Str("script", fmt.Sprintf("%s", script)).
+					Str("namespace", namespace).
+					Str("script", script).
 					Msg("Actual script is missing")
 				os.Exit(1)
 			}
