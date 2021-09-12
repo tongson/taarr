@@ -551,10 +551,10 @@ func main() {
 		}
 		log.Printf("rr %s %s", versionNumber, codeName)
 	}
+	zerolog.TimeFieldFormat = time.RFC3339
+	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
 	if logger {
-		zerolog.TimeFieldFormat = time.RFC3339
-		jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
-		jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
 		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	}
 	isDir := lib.StatPath("directory")
@@ -767,16 +767,14 @@ func main() {
 	if op == "" {
 		op = "UNDEFINED"
 	}
+	jsonLog.Info().
+		Str("app", "rr").
+		Str("id", id).
+		Str("namespace", namespace).
+		Str("script", script).
+		Str("target", hostname).
+		Msg(op)
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
-	if console {
-		jsonLog.Info().
-			Str("app", "rr").
-			Str("id", id).
-			Str("namespace", namespace).
-			Str("script", script).
-			Str("target", hostname).
-			Msg(op)
-	}
 	if hostname == "local" || hostname == "localhost" {
 		untar := `
                 LC_ALL=C
@@ -797,13 +795,11 @@ func main() {
 		} {
 			if isDir(d) {
 				log.Printf("Copying %s…", d)
-				if console {
-					jsonLog.Debug().
-						Str("app", "rr").
-						Str("id", id).
-						Str("directory", d).
-						Msg("copying")
-				}
+				jsonLog.Debug().
+					Str("app", "rr").
+					Str("id", id).
+					Str("directory", d).
+					Msg("copying")
 				rargs := lib.RunArgs{
 					Exe:  interp,
 					Args: []string{"-c", fmt.Sprintf(untar, d)},
@@ -841,35 +837,29 @@ func main() {
 					}
 					os.Exit(1)
 				} else {
-					if console {
-						jsonLog.Debug().
-							Str("app", "rr").
-							Str("id", id).
-							Str("stdout", b64so).
-							Str("stderr", b64se).
-							Str("error", goerr).
-							Msg(step)
-						jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					}
+					jsonLog.Debug().
+						Str("app", "rr").
+						Str("id", id).
+						Str("stdout", b64so).
+						Str("stderr", b64se).
+						Str("error", goerr).
+						Msg(step)
+					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					log.Printf("Successfully copied files")
 				}
 			}
 		}
 		if op == "UNDEFINED" {
 			log.Printf("Running %s…", script)
-			if console {
-				jsonLog.Debug().
-					Str("app", "rr").
-					Str("id", id).
-					Str("script", script).
-					Msg("running")
-			}
+			jsonLog.Debug().
+				Str("app", "rr").
+				Str("id", id).
+				Str("script", script).
+				Msg("running")
 		} else {
 			msgop := strings.TrimSuffix(op, "\n")
 			log.Printf("%s…", msgop)
-			if console {
-				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg(msgop)
-			}
+			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg(msgop)
 		}
 		rargs := lib.RunArgs{Exe: interp, Stdin: []byte(modscript)}
 		var done func()
@@ -906,23 +896,21 @@ func main() {
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			if console {
-				scanner := bufio.NewScanner(strings.NewReader(stdout))
-				for scanner.Scan() {
-					if scanner.Text() == cCHANGED {
-						result = "changed"
-					}
+			scanner := bufio.NewScanner(strings.NewReader(stdout))
+			for scanner.Scan() {
+				if scanner.Text() == cCHANGED {
+					result = "changed"
 				}
-				jsonLog.Debug().
-					Str("app", "rr").
-					Str("id", id).
-					Str("code", b64sc).
-					Str("stdout", b64so).
-					Str("stderr", b64se).
-					Str("error", goerr).
-					Msg(op)
-				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			}
+			jsonLog.Debug().
+				Str("app", "rr").
+				Str("id", id).
+				Str("code", b64sc).
+				Str("stdout", b64so).
+				Str("stderr", b64se).
+				Str("error", goerr).
+				Msg(op)
+			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
@@ -936,9 +924,7 @@ func main() {
 		} {
 			if isDir(d) {
 				log.Printf("Copying %s…", d)
-				if console {
-					jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
-				}
+				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				tarenv := []string{"LC_ALL=C"}
 				untar := `
 				tar -C %s -cf - . | tar -C %s --no-same-owner --overwrite -omxpf -
@@ -973,24 +959,20 @@ func main() {
 					}
 					os.Exit(1)
 				} else {
-					if console {
-						jsonLog.Debug().
-							Str("app", "rr").
-							Str("id", id).
-							Str("stdout", b64so).
-							Str("stderr", b64se).
-							Str("error", goerr).
-							Msg(step)
-						jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					}
+					jsonLog.Debug().
+						Str("app", "rr").
+						Str("id", id).
+						Str("stdout", b64so).
+						Str("stderr", b64se).
+						Str("error", goerr).
+						Msg(step)
+					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					log.Printf("Successfully copied files")
 				}
 			}
 		}
 		log.Printf("Running %s…", script)
-		if console {
-			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
-		}
+		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
 		var done func()
 		if console {
@@ -1022,23 +1004,21 @@ func main() {
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			if console {
-				scanner := bufio.NewScanner(strings.NewReader(stdout))
-				for scanner.Scan() {
-					if scanner.Text() == cCHANGED {
-						result = "changed"
-					}
+			scanner := bufio.NewScanner(strings.NewReader(stdout))
+			for scanner.Scan() {
+				if scanner.Text() == cCHANGED {
+					result = "changed"
 				}
-				jsonLog.Debug().
-					Str("app", "rr").
-					Str("id", id).
-					Str("code", b64sc).
-					Str("stdout", b64so).
-					Str("stderr", b64se).
-					Str("error", goerr).
-					Msg(op)
-				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			}
+			jsonLog.Debug().
+				Str("app", "rr").
+				Str("id", id).
+				Str("code", b64sc).
+				Str("stdout", b64so).
+				Str("stderr", b64se).
+				Str("error", goerr).
+				Msg(op)
+			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
@@ -1081,12 +1061,12 @@ func main() {
 				if ret {
 					sshhost := strings.Split(stdout, "\n")
 					if realhost != sshhost[0] {
+						jsonLog.Error().
+							Str("app", "rr").
+							Str("id", id).
+							Str("hostname", realhost).
+							Msg("Hostname does not match remote host")
 						if console {
-							jsonLog.Error().
-								Str("app", "rr").
-								Str("id", id).
-								Str("hostname", realhost).
-								Msg("Hostname does not match remote host")
 							log.Printf("Hostname %s does not match remote host.", realhost)
 						} else {
 							serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
@@ -1096,14 +1076,14 @@ func main() {
 						log.Printf("Remote host is %s\n", sshhost[0])
 					}
 				} else {
+					jsonLog.Error().
+						Str("app", "rr").
+						Str("id", id).
+						Str("host", realhost).
+						Msg("Host does not exist or unreachable")
 					if !console {
 						serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
 					} else {
-						jsonLog.Error().
-							Str("app", "rr").
-							Str("id", id).
-							Str("host", realhost).
-							Msg("Host does not exist or unreachable")
 						log.Printf("%s does not exist or unreachable.", realhost)
 					}
 					os.Exit(1)
@@ -1122,9 +1102,7 @@ func main() {
 			namespace + "/" + script + "/.files-" + realhost,
 		} {
 			if isDir(d) {
-				if console {
-					jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
-				}
+				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				log.Printf("Copying %s to %s…", d, realhost)
 				var ret bool
 				var stdout string
@@ -1145,16 +1123,16 @@ func main() {
 					done()
 				}
 				if step := "copy"; !ret {
+					jsonLog.Error().
+						Str("app", "rr").
+						Str("id", id).
+						Str("stdout", b64so).
+						Str("stderr", b64se).
+						Str("error", goerr).
+						Msg(step)
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().
-							Str("app", "rr").
-							Str("id", id).
-							Str("stdout", b64so).
-							Str("stderr", b64se).
-							Str("error", goerr).
-							Msg(step)
 						ho, bo, fo := output(stdout, hostname, cSTDOUT)
 						he, be, fe := output(stderr, hostname, cSTDERR)
 						hd, bd, fd := output(goerr, hostname, cSTDDBG)
@@ -1163,24 +1141,20 @@ func main() {
 					}
 					os.Exit(1)
 				} else {
-					if console {
-						jsonLog.Debug().
-							Str("app", "rr").
-							Str("id", id).
-							Str("stdout", b64so).
-							Str("stderr", b64se).
-							Str("error", goerr).
-							Msg(step)
-						jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					}
+					jsonLog.Debug().
+						Str("app", "rr").
+						Str("id", id).
+						Str("stdout", b64so).
+						Str("stderr", b64se).
+						Str("error", goerr).
+						Msg(step)
+					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					log.Printf("Successfully copied files")
 				}
 			}
 		}
 		log.Printf("Running %s…", script)
-		if console {
-			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
-		}
+		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		var ret bool
 		var stdout string
 		var stderr string
@@ -1201,69 +1175,65 @@ func main() {
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
+			jsonLog.Error().
+				Str("app", "rr").
+				Str("id", id).
+				Str("code", b64sc).
+				Str("stdout", b64so).
+				Str("stderr", b64se).
+				Str("error", goerr).
+				Msg(op)
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().
-					Str("app", "rr").
-					Str("id", id).
-					Str("code", b64sc).
-					Str("stdout", b64so).
-					Str("stderr", b64se).
-					Str("error", goerr).
-					Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			if console {
-				scanner := bufio.NewScanner(strings.NewReader(stdout))
-				for scanner.Scan() {
-					if scanner.Text() == cCHANGED {
-						result = "changed"
-					}
+			scanner := bufio.NewScanner(strings.NewReader(stdout))
+			for scanner.Scan() {
+				if scanner.Text() == cCHANGED {
+					result = "changed"
 				}
-				jsonLog.Debug().
-					Str("app", "rr").
-					Str("id", id).
-					Str("code", b64sc).
-					Str("stdout", b64so).
-					Str("stderr", b64se).
-					Str("error", goerr).
-					Msg(op)
-				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			}
+			jsonLog.Debug().
+				Str("app", "rr").
+				Str("id", id).
+				Str("code", b64sc).
+				Str("stdout", b64so).
+				Str("stderr", b64se).
+				Str("error", goerr).
+				Msg(op)
+			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
 	}
 	if tm := time.Since(start).String(); !failed {
-		if console {
-			jsonLog.Debug().
-				Str("app", "rr").
-				Str("id", id).
-				Str("start", start.Format(time.RFC3339)).
-				Str("task", op).
-				Str("target", hostname).
-				Str("namespace", namespace).
-				Str("script", script).
-				Str("elapsed", tm).
-				Msg(result)
-		}
+		jsonLog.Debug().
+			Str("app", "rr").
+			Str("id", id).
+			Str("start", start.Format(time.RFC3339)).
+			Str("task", op).
+			Str("target", hostname).
+			Str("namespace", namespace).
+			Str("script", script).
+			Str("elapsed", tm).
+			Msg(result)
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
 		os.Exit(0)
 	} else {
+		jsonLog.Debug().
+			Str("app", "rr").
+			Str("id", id).
+			Str("start", start.Format(time.RFC3339)).
+			Str("task", op).
+			Str("target", hostname).
+			Str("namespace", namespace).
+			Str("script", script).
+			Str("elapsed", tm).
+			Msg("failed")
 		if console {
-			jsonLog.Debug().
-				Str("app", "rr").
-				Str("id", id).
-				Str("start", start.Format(time.RFC3339)).
-				Str("task", op).
-				Str("target", hostname).
-				Str("namespace", namespace).
-				Str("script", script).
-				Str("elapsed", tm).
-				Msg("failed")
 			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
 		} else {
 			serrLog.Debug().Str("elapsed", tm).Msg("failed")
