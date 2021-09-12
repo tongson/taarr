@@ -1215,7 +1215,7 @@ func main() {
 			Str("script", script).
 			Str("duration", tm).
 			Msg(result)
-		log.Printf("Total run time: %s. All OK.", time.Since(start))
+		log.Printf("Total run time: %s. All OK.", tm)
 		os.Exit(0)
 	} else {
 		jsonLog.Debug().
@@ -1229,7 +1229,7 @@ func main() {
 			Str("duration", tm).
 			Msg("failed")
 		if console {
-			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
+			log.Printf("Total run time: %s. Something went wrong.", tm)
 		} else {
 			serrLog.Debug().Str("duration", tm).Msg("failed")
 		}
