@@ -748,7 +748,7 @@ func main() {
 		sh.WriteString("\n" + code)
 	}
 	modscript := sh.String()
-	if dump == true {
+	if dump {
 		fmt.Print(modscript)
 		os.Exit(0)
 	}
