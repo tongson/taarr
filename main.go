@@ -36,6 +36,7 @@ const cLOG = "rr.json"
 const cDOC = "README"
 const cINTERP = "shell"
 const cHOSTS = "rr.hosts"
+const cCHANGED = "+++++changed+++++"
 
 const cSTDOUT = " ┌─ stdout"
 const cSTDERR = " ┌─ stderr"
@@ -302,7 +303,7 @@ func sudocopy(o *optT, dir string) (bool, string, string, string) {
 				"ssh",
 				(*o).hostname,
 				fmt.Sprintf("cat - > %s", tmpf)},
-				Env: sshenv,
+				Env:   sshenv,
 				Stdin: []byte(tarexec),
 			}
 		}
@@ -457,6 +458,7 @@ func main() {
 	var opt optT
 	var console bool = false
 	var failed bool = false
+	var result string = "ok"
 	var dump bool = false
 	var report bool = false
 	var logger bool = false
@@ -905,6 +907,12 @@ func main() {
 			}
 		} else {
 			if console {
+				scanner := bufio.NewScanner(strings.NewReader(stdout))
+				for scanner.Scan() {
+					if scanner.Text() == cCHANGED {
+						result = "changed"
+					}
+				}
 				jsonLog.Debug().
 					Str("app", "rr").
 					Str("id", id).
@@ -913,7 +921,7 @@ func main() {
 					Str("stderr", b64se).
 					Str("error", goerr).
 					Msg(op)
-				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(op)
+				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
@@ -1015,6 +1023,12 @@ func main() {
 			}
 		} else {
 			if console {
+				scanner := bufio.NewScanner(strings.NewReader(stdout))
+				for scanner.Scan() {
+					if scanner.Text() == cCHANGED {
+						result = "changed"
+					}
+				}
 				jsonLog.Debug().
 					Str("app", "rr").
 					Str("id", id).
@@ -1023,7 +1037,7 @@ func main() {
 					Str("stderr", b64se).
 					Str("error", goerr).
 					Msg(op)
-				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(op)
+				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
@@ -1202,6 +1216,12 @@ func main() {
 			}
 		} else {
 			if console {
+				scanner := bufio.NewScanner(strings.NewReader(stdout))
+				for scanner.Scan() {
+					if scanner.Text() == cCHANGED {
+						result = "changed"
+					}
+				}
 				jsonLog.Debug().
 					Str("app", "rr").
 					Str("id", id).
@@ -1210,7 +1230,7 @@ func main() {
 					Str("stderr", b64se).
 					Str("error", goerr).
 					Msg(op)
-				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(op)
+				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
@@ -1228,7 +1248,7 @@ func main() {
 				Str("namespace", namespace).
 				Str("script", script).
 				Str("elapsed", tm).
-				Msg("success")
+				Msg(result)
 		}
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
 		os.Exit(0)
