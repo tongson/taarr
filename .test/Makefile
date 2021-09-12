@@ -27,6 +27,8 @@ test:
 	../bin/rr test:args4:1
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . arguments handling 6$(RESET)"
 	../bin/rr test:args6:1 2 3 4
+	@echo "$(BLUE)$(TIME)$(MAGENTA) . changed status $(RESET)"
+	../bin/rr test:changed
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . untar files $(RESET)"
 	../bin/rr local test:files
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . failure conditioin $(RESET)"
