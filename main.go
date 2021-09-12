@@ -815,6 +815,13 @@ func main() {
 					done()
 				}
 				if step := "copy"; !ret {
+					jsonLog.Error().
+						Str("app", "rr").
+						Str("id", id).
+						Str("stdout", b64so).
+						Str("stderr", b64se).
+						Str("error", goerr).
+						Msg(step)
 					if !console {
 						serrLog.Error().
 							Str("stdout", stdout).
@@ -822,13 +829,6 @@ func main() {
 							Str("error", goerr).
 							Msg(step)
 					} else {
-						jsonLog.Error().
-							Str("app", "rr").
-							Str("id", id).
-							Str("stdout", b64so).
-							Str("stderr", b64se).
-							Str("error", goerr).
-							Msg(step)
 						ho, bo, fo := output(stdout, hostname, cSTDOUT)
 						he, be, fe := output(stderr, hostname, cSTDERR)
 						hd, bd, fd := output(goerr, hostname, cSTDDBG)
@@ -878,6 +878,14 @@ func main() {
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
+			jsonLog.Error().
+				Str("app", "rr").
+				Str("id", id).
+				Str("code", b64sc).
+				Str("stdout", b64so).
+				Str("stderr", b64se).
+				Str("error", goerr).
+				Msg(op)
 			if !console {
 				serrLog.Error().
 					Str("stdout", stdout).
@@ -885,14 +893,6 @@ func main() {
 					Str("error", goerr).
 					Msg(op)
 			} else {
-				jsonLog.Error().
-					Str("app", "rr").
-					Str("id", id).
-					Str("code", b64sc).
-					Str("stdout", b64so).
-					Str("stderr", b64se).
-					Str("error", goerr).
-					Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
@@ -941,16 +941,16 @@ func main() {
 					done()
 				}
 				if step := "copy"; !ret {
+					jsonLog.Error().
+						Str("app", "rr").
+						Str("id", id).
+						Str("stdout", b64so).
+						Str("stderr", b64se).
+						Str("error", goerr).
+						Msg(step)
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().
-							Str("app", "rr").
-							Str("id", id).
-							Str("stdout", b64so).
-							Str("stderr", b64se).
-							Str("error", goerr).
-							Msg(step)
 						ho, bo, fo := output(stdout, hostname, cSTDOUT)
 						he, be, fe := output(stderr, hostname, cSTDERR)
 						hd, bd, fd := output(goerr, hostname, cSTDDBG)
@@ -990,17 +990,17 @@ func main() {
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
+			jsonLog.Error().
+				Str("app", "rr").
+				Str("id", id).
+				Str("code", b64sc).
+				Str("stdout", b64so).
+				Str("stderr", b64se).
+				Str("error", goerr).
+				Msg(op)
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().
-					Str("app", "rr").
-					Str("id", id).
-					Str("code", b64sc).
-					Str("stdout", b64so).
-					Str("stderr", b64se).
-					Str("error", goerr).
-					Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
