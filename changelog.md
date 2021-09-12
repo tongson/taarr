@@ -4,6 +4,7 @@
 * Added report mode `rrz`
 * "Idempotence" by checking '+++++changed+++++' string from STDOUT
 * Now logs to `rr.json` even if not in console mode
+* "elapsed" to "duration"
 
 #### 0.17.0
 
