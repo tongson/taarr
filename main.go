@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/crypto/ssh/terminal"
 	"hash/maphash"
 	"io"
 	"log"
@@ -22,6 +21,7 @@ import (
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	spin "github.com/tongson/rr/external/go-spin"
+	terminal "golang.org/x/crypto/ssh/terminal"
 )
 
 var start = time.Now()
