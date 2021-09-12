@@ -489,7 +489,7 @@ func main() {
 		opt.sudo = true
 		opt.nopasswd = true
 	} else {
-		valid :=`Valid modes:
+		valid := `Valid modes:
 	rr  = local or ssh
 	rrs = ssh + sudo
 	rru = ssh + sudo + nopasswd
@@ -1214,7 +1214,7 @@ func main() {
 			}
 		}
 	}
-  {
+	{
 		tm := time.Since(start).Truncate(time.Second).String()
 		if tm == "0s" {
 			tm = "<1s"
