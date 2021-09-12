@@ -475,7 +475,7 @@ func main() {
 	} else if call[len(call)-3:] == "rrd" {
 		dump = true
 		log.SetOutput(io.Discard)
-	} else if call[len(call)-3:] == "rrz" {
+	} else if call[len(call)-3:] == "rrl" {
 		report = true
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrs" {
