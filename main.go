@@ -547,6 +547,26 @@ func main() {
 		table.SetFooter(hdrs)
 		table.SetBorder(true)
 		table.SetRowLine(true)
+		table.SetHeaderColor(
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+		)
+		table.SetFooterColor(
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+			tablewriter.Colors{tablewriter.Bold},
+		)
 		table.AppendBulk(data)
 		table.Render()
 		os.Exit(0)
