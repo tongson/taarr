@@ -453,6 +453,9 @@ func quickcopy(o *optT, dir string) (bool, string, string, string) {
 }
 
 func main() {
+	runtime.MemProfileRate = 0
+	defer lib.RecoverPanic()
+	log.SetFlags(0)
 	serrLog := zerolog.New(os.Stderr).With().Timestamp().Logger()
 	zerolog.TimeFieldFormat = time.RFC3339
 	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
@@ -463,9 +466,6 @@ func main() {
 	var result string = "ok"
 	var dump bool = false
 	var report bool = false
-	runtime.MemProfileRate = 0
-	defer lib.RecoverPanic()
-	log.SetFlags(0)
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrv" {
