@@ -29,7 +29,7 @@ var start = time.Now()
 const versionNumber = "0.18.0"
 const codeName = "\"Carbon Pueblo\""
 
-// filename constants
+// constants
 const cOP = "task"
 const cRUN = "script"
 const cLOG = "rr.json"
