@@ -1213,7 +1213,7 @@ func main() {
 			jsonLog.Debug().
 				Str("app", "rr").
 				Str("id", id).
-				Str("start", start.Format(time.RFC3339)).
+				Str("start", start.Format(time.RFC822)).
 				Str("task", op).
 				Str("target", hostname).
 				Str("namespace", namespace).
@@ -1226,7 +1226,7 @@ func main() {
 			jsonLog.Debug().
 				Str("app", "rr").
 				Str("id", id).
-				Str("start", start.Format(time.RFC3339)).
+				Str("start", start.Format(time.RFC822)).
 				Str("task", op).
 				Str("target", hostname).
 				Str("namespace", namespace).
