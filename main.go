@@ -489,7 +489,17 @@ func main() {
 		opt.sudo = true
 		opt.nopasswd = true
 	} else {
-		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rru(ssh+sudo+nopasswd)`, `rrt(teleport)`, `rro(teleport+sudo)`, `rrd(dump)`, `rrv(force verbose)`")
+		valid :=`Valid modes:
+	rr  = local or ssh
+	rrs = ssh + sudo
+	rru = ssh + sudo + nopasswd
+	rrt = teleport
+	rro = teleport + sudo
+	rrd = dump
+	rrv = forced verbose
+	rrl = report`
+		fmt.Fprintf(os.Stderr, "Unsupported executable name.\n%s\n", valid)
+		os.Exit(1)
 	}
 	if report {
 		hdrs := []string{
