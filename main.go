@@ -456,10 +456,10 @@ func main() {
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
-	serrLog := zerolog.New(os.Stderr).With().Timestamp().Logger()
 	zerolog.TimeFieldFormat = time.RFC3339
 	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
 	jsonLog := zerolog.New(jsonFile).With().Timestamp().Logger()
+	var serrLog zerolog.Logger
 	var opt optT
 	var console bool = false
 	var failed bool = false
@@ -544,8 +544,11 @@ func main() {
 		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
 			console = true
 			log.SetOutput(new(logWriter))
+			log.Printf("rr %s %s", versionNumber, codeName)
 		}
-		log.Printf("rr %s %s", versionNumber, codeName)
+	}
+	if !console {
+		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	}
 	isDir := lib.StatPath("directory")
 	isFile := lib.StatPath("file")
