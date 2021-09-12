@@ -159,7 +159,15 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 			ssha = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte(script)}
 		}
 	} else {
-		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
+		args := []string{
+			"-F",
+			(*o).config,
+			"-a",
+			"-T",
+			"-x",
+			(*o).hostname,
+			fmt.Sprintf("cat - > %s", tmps),
+		}
 		ssha = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
 	if ret, stdout, stderr, goerr := ssha.Run(); !ret {
@@ -180,10 +188,32 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 			}
 		} else {
 			if !(*o).teleport {
-				args := []string{"-a", "-T", "-x", (*o).hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", (*o).interp, tmps}
+				args := []string{
+					"-a",
+					"-T",
+					"-x",
+					(*o).hostname,
+					"sudo",
+					"-k",
+					"--prompt=\"\"",
+					"-S",
+					"-s",
+					"--",
+					(*o).interp, tmps,
+				}
 				sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 			} else {
-				args := []string{"ssh", (*o).hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", (*o).interp, tmps}
+				args := []string{
+					"ssh",
+					(*o).hostname,
+					"sudo",
+					"-k",
+					"--prompt=\"\"",
+					"-S",
+					"-s",
+					"--",
+					(*o).interp, tmps,
+				}
 				sshb = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 			}
 		}
@@ -192,7 +222,22 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 			args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, (*o).interp, tmps}
 			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		} else {
-			args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", (*o).interp, tmps}
+			args := []string{
+				"-F",
+				(*o).config,
+				"-a",
+				"-T",
+				"-x",
+				(*o).hostname,
+				"sudo",
+				"-k",
+				"--prompt=\"\"",
+				"-S",
+				"-s",
+				"--",
+				(*o).interp,
+				tmps,
+			}
 			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
 	}
@@ -253,7 +298,13 @@ func sudocopy(o *optT, dir string) (bool, string, string, string) {
 				Stdin: []byte(tarexec),
 			}
 		} else {
-			untar1 = lib.RunArgs{Exe: "tsh", Args: []string{"ssh", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}, Env: sshenv, Stdin: []byte(tarexec)}
+			untar1 = lib.RunArgs{Exe: "tsh", Args: []string{
+				"ssh",
+				(*o).hostname,
+				fmt.Sprintf("cat - > %s", tmpf)},
+				Env: sshenv,
+				Stdin: []byte(tarexec),
+			}
 		}
 	} else {
 		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}
@@ -300,10 +351,18 @@ func sudocopy(o *optT, dir string) (bool, string, string, string) {
 				Env: tarenv,
 			}
 		} else {
-			untar2 = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c", fmt.Sprintf(teleportDefault, (*o).hostname, dir, tmpd, tmpf)}, Env: tarenv}
+			untar2 = lib.RunArgs{Exe: (*o).interp, Args: []string{
+				"-c",
+				fmt.Sprintf(teleportDefault, (*o).hostname, dir, tmpd, tmpf)},
+				Env: tarenv,
+			}
 		}
 	} else {
-		untar2 = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c", fmt.Sprintf(untarConfig, (*o).hostname, dir, tmpd, (*o).config, tmpf)}, Env: tarenv}
+		untar2 = lib.RunArgs{Exe: (*o).interp, Args: []string{
+			"-c",
+			fmt.Sprintf(untarConfig, (*o).hostname, dir, tmpd, (*o).config, tmpf)},
+			Env: tarenv,
+		}
 	}
 	if ret, stdout, stderr, goerr := untar2.Run(); !ret {
 		return ret, stdout, stderr, goerr
@@ -336,7 +395,20 @@ func sudocopy(o *optT, dir string) (bool, string, string, string) {
 			untar3 = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
 	} else {
-		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", (*o).interp, tmpf}
+		args := []string{"-F",
+			(*o).config,
+			"-a",
+			"-T",
+			"-x",
+			(*o).hostname,
+			"sudo",
+			"-k",
+			"--prompt=\"\"",
+			"-S",
+			"-s",
+			"--",
+			(*o).interp, tmpf,
+		}
 		untar3 = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 	}
 	return untar3.Run()
@@ -364,10 +436,17 @@ func quickcopy(o *optT, dir string) (bool, string, string, string) {
 				Env:  tarenv,
 			}
 		} else {
-			untar = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c", fmt.Sprintf(untarTeleport, dir, (*o).hostname)}, Env: tarenv}
+			untar = lib.RunArgs{Exe: (*o).interp, Args: []string{
+				"-c",
+				fmt.Sprintf(untarTeleport, dir, (*o).hostname)},
+				Env: tarenv,
+			}
 		}
 	} else {
-		untar = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c", fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)}, Env: tarenv}
+		untar = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c",
+			fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)},
+			Env: tarenv,
+		}
 	}
 	return untar.Run()
 }
@@ -603,7 +682,10 @@ func main() {
 			if console {
 				lib.Panicf("`%s/%s` is not a diretory.", namespace, script)
 			} else {
-				serrLog.Fatal().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("namespace/script is not a directory")
+				serrLog.Fatal().
+					Str("namespace", fmt.Sprintf("%s", namespace)).
+					Str("script", fmt.Sprintf("%s", script)).
+					Msg("namespace/script is not a directory")
 				os.Exit(1)
 			}
 		}
@@ -616,7 +698,10 @@ func main() {
 					cRUN,
 				)
 			} else {
-				serrLog.Fatal().Str("namespace", fmt.Sprintf("%s", namespace)).Str("script", fmt.Sprintf("%s", script)).Msg("Actual script is missing")
+				serrLog.Fatal().
+					Str("namespace", fmt.Sprintf("%s", namespace)).
+					Str("script", fmt.Sprintf("%s", script)).
+					Msg("Actual script is missing")
 				os.Exit(1)
 			}
 		}
@@ -740,7 +825,13 @@ func main() {
 							Str("error", goerr).
 							Msg(step)
 					} else {
-						jsonLog.Error().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
+						jsonLog.Error().
+							Str("app", "rr").
+							Str("id", id).
+							Str("stdout", b64so).
+							Str("stderr", b64se).
+							Str("error", goerr).
+							Msg(step)
 						ho, bo, fo := output(stdout, hostname, cSTDOUT)
 						he, be, fe := output(stderr, hostname, cSTDERR)
 						hd, bd, fd := output(goerr, hostname, cSTDDBG)
@@ -750,7 +841,13 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Debug().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
+						jsonLog.Debug().
+							Str("app", "rr").
+							Str("id", id).
+							Str("stdout", b64so).
+							Str("stderr", b64se).
+							Str("error", goerr).
+							Msg(step)
 						jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
@@ -797,12 +894,26 @@ func main() {
 					Str("error", goerr).
 					Msg(op)
 			} else {
-				jsonLog.Error().Str("app", "rr").Str("id", id).Str("code", b64sc).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
+				jsonLog.Error().
+					Str("app", "rr").
+					Str("id", id).
+					Str("code", b64sc).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", goerr).
+					Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
-				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("code", b64sc).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
+				jsonLog.Debug().
+					Str("app", "rr").
+					Str("id", id).
+					Str("code", b64sc).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", goerr).
+					Msg(op)
 				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
@@ -840,7 +951,13 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
+						jsonLog.Error().
+							Str("app", "rr").
+							Str("id", id).
+							Str("stdout", b64so).
+							Str("stderr", b64se).
+							Str("error", goerr).
+							Msg(step)
 						ho, bo, fo := output(stdout, hostname, cSTDOUT)
 						he, be, fe := output(stderr, hostname, cSTDERR)
 						hd, bd, fd := output(goerr, hostname, cSTDDBG)
@@ -850,7 +967,13 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Debug().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
+						jsonLog.Debug().
+							Str("app", "rr").
+							Str("id", id).
+							Str("stdout", b64so).
+							Str("stderr", b64se).
+							Str("error", goerr).
+							Msg(step)
 						jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
@@ -881,12 +1004,26 @@ func main() {
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().Str("app", "rr").Str("id", id).Str("code", b64sc).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
+				jsonLog.Error().
+					Str("app", "rr").
+					Str("id", id).
+					Str("code", b64sc).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", goerr).
+					Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
-				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("code", b64sc).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
+				jsonLog.Debug().
+					Str("app", "rr").
+					Str("id", id).
+					Str("code", b64sc).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", goerr).
+					Msg(op)
 				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
@@ -917,7 +1054,14 @@ func main() {
 					ssha = lib.RunArgs{Exe: "tsh", Args: []string{"ssh", opt.hostname, "uname -n"}, Env: sshenv}
 				}
 			} else {
-				ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-F", opt.config, "-T", "-x", opt.hostname, "uname -n"}, Env: sshenv}
+				ssha = lib.RunArgs{Exe: "ssh", Args: []string{
+					"-F",
+					opt.config,
+					"-T",
+					"-x",
+					opt.hostname,
+					"uname -n",
+				}, Env: sshenv}
 			}
 			{
 				ret, stdout, _, _ := ssha.Run()
@@ -925,7 +1069,11 @@ func main() {
 					sshhost := strings.Split(stdout, "\n")
 					if realhost != sshhost[0] {
 						if console {
-							jsonLog.Error().Str("app", "rr").Str("id", id).Str("hostname", realhost).Msg("Hostname does not match remote host")
+							jsonLog.Error().
+								Str("app", "rr").
+								Str("id", id).
+								Str("hostname", realhost).
+								Msg("Hostname does not match remote host")
 							log.Printf("Hostname %s does not match remote host.", realhost)
 						} else {
 							serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
@@ -938,7 +1086,11 @@ func main() {
 					if !console {
 						serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
 					} else {
-						jsonLog.Error().Str("app", "rr").Str("id", id).Str("host", realhost).Msg("Host does not exist or unreachable")
+						jsonLog.Error().
+							Str("app", "rr").
+							Str("id", id).
+							Str("host", realhost).
+							Msg("Host does not exist or unreachable")
 						log.Printf("%s does not exist or unreachable.", realhost)
 					}
 					os.Exit(1)
@@ -983,7 +1135,13 @@ func main() {
 					if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						jsonLog.Error().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
+						jsonLog.Error().
+							Str("app", "rr").
+							Str("id", id).
+							Str("stdout", b64so).
+							Str("stderr", b64se).
+							Str("error", goerr).
+							Msg(step)
 						ho, bo, fo := output(stdout, hostname, cSTDOUT)
 						he, be, fe := output(stderr, hostname, cSTDERR)
 						hd, bd, fd := output(goerr, hostname, cSTDDBG)
@@ -993,7 +1151,13 @@ func main() {
 					os.Exit(1)
 				} else {
 					if console {
-						jsonLog.Debug().Str("app", "rr").Str("id", id).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(step)
+						jsonLog.Debug().
+							Str("app", "rr").
+							Str("id", id).
+							Str("stdout", b64so).
+							Str("stderr", b64se).
+							Str("error", goerr).
+							Msg(step)
 						jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					}
 					log.Printf("Successfully copied files")
@@ -1027,12 +1191,26 @@ func main() {
 			if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
-				jsonLog.Error().Str("app", "rr").Str("id", id).Str("code", b64sc).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
+				jsonLog.Error().
+					Str("app", "rr").
+					Str("id", id).
+					Str("code", b64sc).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", goerr).
+					Msg(op)
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
 			if console {
-				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("code", b64sc).Str("stdout", b64so).Str("stderr", b64se).Str("error", goerr).Msg(op)
+				jsonLog.Debug().
+					Str("app", "rr").
+					Str("id", id).
+					Str("code", b64sc).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", goerr).
+					Msg(op)
 				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(op)
 			}
 			if stdout != "" || stderr != "" || goerr != "" {
@@ -1057,7 +1235,16 @@ func main() {
 		os.Exit(0)
 	} else {
 		if console {
-			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("start", start.Format(time.RFC3339)).Str("task", op).Str("target", hostname).Str("namespace", namespace).Str("script", script).Str("elapsed", tm).Msg("failed")
+			jsonLog.Debug().
+				Str("app", "rr").
+				Str("id", id).
+				Str("start", start.Format(time.RFC3339)).
+				Str("task", op).
+				Str("target", hostname).
+				Str("namespace", namespace).
+				Str("script", script).
+				Str("elapsed", tm).
+				Msg("failed")
 			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
 		} else {
 			serrLog.Debug().Str("elapsed", tm).Msg("failed")
