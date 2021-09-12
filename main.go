@@ -499,7 +499,7 @@ func main() {
 			"Namespace",
 			"Script",
 			"Task",
-			"Elapsed",
+			"Duration",
 			"Result",
 		}
 		const maxLn = 512 * 1024
@@ -516,14 +516,14 @@ func main() {
 		for scanner.Scan() {
 			log := make(map[string]string)
 			json.Unmarshal(scanner.Bytes(), &log)
-			if log["elapsed"] != "" {
+			if log["duration"] != "" {
 				data = append(data, []string{log["id"],
 					log["target"],
 					log["start"],
 					log["namespace"],
 					log["script"],
 					log["task"],
-					log["elapsed"],
+					log["duration"],
 					log["message"]})
 			}
 		}
@@ -1212,7 +1212,7 @@ func main() {
 			Str("target", hostname).
 			Str("namespace", namespace).
 			Str("script", script).
-			Str("elapsed", tm).
+			Str("duration", tm).
 			Msg(result)
 		log.Printf("Total run time: %s. All OK.", time.Since(start))
 		os.Exit(0)
@@ -1225,12 +1225,12 @@ func main() {
 			Str("target", hostname).
 			Str("namespace", namespace).
 			Str("script", script).
-			Str("elapsed", tm).
+			Str("duration", tm).
 			Msg("failed")
 		if console {
 			log.Printf("Total run time: %s. Something went wrong.", time.Since(start))
 		} else {
-			serrLog.Debug().Str("elapsed", tm).Msg("failed")
+			serrLog.Debug().Str("duration", tm).Msg("failed")
 		}
 		os.Exit(1)
 	}
