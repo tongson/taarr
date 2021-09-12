@@ -1,9 +1,9 @@
 #### 0.18.0
 
-* Teleport mode `rrt` & `rrl`
-* Report mode `rrz`
+* Added Teleport mode `rrt` & `rrl`
+* Added report mode `rrz`
 * "Idempotence" by checking '+++++changed+++++' string from STDOUT
-* Now also logs to `rr.json` even without a console
+* Now logs to `rr.json` even if not in console mode
 
 #### 0.17.0
 
