@@ -495,7 +495,7 @@ func main() {
 		hdrs := []string{
 			"ID",
 			"Target",
-			"Start",
+			"Started",
 			"Namespace",
 			"Script",
 			"Task",
