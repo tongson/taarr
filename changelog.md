@@ -6,7 +6,7 @@
 * Now logs to `rr.json` even if not in console mode
 * "elapsed" to "duration"
 * ID is just 8 characters now
-* Elapsed time truncated at seconds
+* Duration truncated at seconds
 
 #### 0.17.0
 
