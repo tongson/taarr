@@ -1204,7 +1204,7 @@ func main() {
 			}
 		}
 	}
-	if tm := time.Since(start).String(); !failed {
+	if tm := time.Since(start).Truncate(time.Second).String(); !failed {
 		jsonLog.Debug().
 			Str("app", "rr").
 			Str("id", id).
