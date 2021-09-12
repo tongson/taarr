@@ -453,21 +453,21 @@ func quickcopy(o *optT, dir string) (bool, string, string, string) {
 }
 
 func main() {
-	var serrLog zerolog.Logger
-	var jsonLog zerolog.Logger
+	serrLog := zerolog.New(os.Stderr).With().Timestamp().Logger()
+	zerolog.TimeFieldFormat = time.RFC3339
+	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	jsonLog := zerolog.New(jsonFile).With().Timestamp().Logger()
 	var opt optT
 	var console bool = false
 	var failed bool = false
 	var result string = "ok"
 	var dump bool = false
 	var report bool = false
-	var logger bool = false
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
-		logger = true
 	} else if call[len(call)-3:] == "rrv" {
 		console = true
 		log.SetOutput(new(logWriter))
@@ -479,18 +479,14 @@ func main() {
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrs" {
 		opt.sudo = true
-		logger = true
 	} else if call[len(call)-3:] == "rrt" {
 		opt.teleport = true
-		logger = true
 	} else if call[len(call)-3:] == "rro" {
 		opt.sudo = true
 		opt.teleport = true
-		logger = true
 	} else if call[len(call)-3:] == "rru" {
 		opt.sudo = true
 		opt.nopasswd = true
-		logger = true
 	} else {
 		lib.Bug("Unsupported executable name. Valid: `rr(local/ssh)`, `rrs(ssh+sudo)`, `rru(ssh+sudo+nopasswd)`, `rrt(teleport)`, `rro(teleport+sudo)`, `rrd(dump)`, `rrv(force verbose)`")
 	}
@@ -550,12 +546,6 @@ func main() {
 			log.SetOutput(new(logWriter))
 		}
 		log.Printf("rr %s %s", versionNumber, codeName)
-	}
-	zerolog.TimeFieldFormat = time.RFC3339
-	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
-	jsonLog = zerolog.New(jsonFile).With().Timestamp().Logger()
-	if logger {
-		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	}
 	isDir := lib.StatPath("directory")
 	isFile := lib.StatPath("file")
