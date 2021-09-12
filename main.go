@@ -1217,7 +1217,7 @@ func main() {
 			}
 		}
 	}
-	if tm := fmt.Sprintf("%s", time.Since(start)); !failed {
+	if tm := time.Since(start).String(); !failed {
 		if console {
 			jsonLog.Debug().
 				Str("app", "rr").
