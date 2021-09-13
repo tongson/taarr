@@ -2,7 +2,7 @@
 
 * Added Teleport mode `rrt` & `rrl`
 * Added report mode `rrz`
-* "Idempotence" by checking '+++++changed+++++' string from STDOUT
+* "Idempotence" by checking '+++++repaired+++++' string from STDOUT
 * Now logs to `rr.json` even if not in console mode
 * "elapsed" to "duration"
 * ID is just 8 characters now
