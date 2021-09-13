@@ -1,1 +1,10 @@
-printf "+++++repaired+++++\\n"
+if test -d /some_dir
+then
+  exit 0
+else
+  {
+  true
+  } >/dev/null 2>&1 || exit 1
+  printf "+++++repaired+++++\\n"
+  exit 0
+fi
