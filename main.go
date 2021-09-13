@@ -36,7 +36,7 @@ const cLOG = "rr.json"
 const cDOC = "README"
 const cINTERP = "shell"
 const cHOSTS = "rr.hosts"
-const cCHANGED = "+++++changed+++++"
+const cREPAIRED = "+++++repaired+++++"
 
 const cSTDOUT = " ┌─ stdout"
 const cSTDERR = " ┌─ stderr"
@@ -923,8 +923,8 @@ func main() {
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(stdout))
 			for scanner.Scan() {
-				if scanner.Text() == cCHANGED {
-					result = "changed"
+				if scanner.Text() == cREPAIRED {
+					result = "repaired"
 				}
 			}
 			jsonLog.Debug().
@@ -1031,8 +1031,8 @@ func main() {
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(stdout))
 			for scanner.Scan() {
-				if scanner.Text() == cCHANGED {
-					result = "changed"
+				if scanner.Text() == cREPAIRED {
+					result = "repaired"
 				}
 			}
 			jsonLog.Debug().
@@ -1216,8 +1216,8 @@ func main() {
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(stdout))
 			for scanner.Scan() {
-				if scanner.Text() == cCHANGED {
-					result = "changed"
+				if scanner.Text() == cREPAIRED {
+					result = "repaired"
 				}
 			}
 			jsonLog.Debug().
