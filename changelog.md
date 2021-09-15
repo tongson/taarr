@@ -1,11 +1,11 @@
 #### 0.18.0
 
-* Added Teleport mode `rrt` & `rrl`
-* Added report mode `rrz`
+* Added Teleport mode `rrt` & `rro`
+* Added report mode `rrl`
 * "Idempotence" by checking '+++++repaired+++++' string from STDOUT
-* Now logs to `rr.json` even if not in console mode
+* Log to `rr.json` even if not in console mode
 * "elapsed" to "duration"
-* ID is just 8 characters now
+* ID's are just 8 characters now
 * Duration truncated at seconds
 
 #### 0.17.0
