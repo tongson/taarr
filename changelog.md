@@ -1,3 +1,9 @@
+#### 0.19.0
+
+* Remove script level `task` file
+  * Top-level `TASK` file is now the task field in the log
+  * Can be overriden by env variable `TASK`
+
 #### 0.18.0
 
 * Added Teleport mode `rrt` & `rro`
