@@ -539,7 +539,7 @@ func main() {
 		}
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetRowLine(true) // Enable row line
-		table.SetCenterSeparator("•")
+		table.SetCenterSeparator("⋅")
 		table.SetColumnSeparator("│")
 		table.SetRowSeparator("─")
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
