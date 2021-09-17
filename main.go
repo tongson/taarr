@@ -37,6 +37,7 @@ const cDOC = "README"
 const cINTERP = "shell"
 const cHOSTS = "rr.hosts"
 const cREPAIRED = "+++++repaired+++++"
+const cTIME = "02 Jan 06 15:04"
 
 const cSTDOUT = " ┌─ stdout"
 const cSTDERR = " ┌─ stderr"
@@ -1250,7 +1251,7 @@ func main() {
 			jsonLog.Debug().
 				Str("app", "rr").
 				Str("id", id).
-				Str("start", start.Format(time.RFC822)).
+				Str("start", start.Format(cTIME)).
 				Str("task", op).
 				Str("target", hostname).
 				Str("namespace", namespace).
@@ -1263,7 +1264,7 @@ func main() {
 			jsonLog.Debug().
 				Str("app", "rr").
 				Str("id", id).
-				Str("start", start.Format(time.RFC822)).
+				Str("start", start.Format(cTIME)).
 				Str("task", op).
 				Str("target", hostname).
 				Str("namespace", namespace).
