@@ -14,6 +14,7 @@ RESET=$(shell tput sgr0)
 TIME=$(shell date "+%Y-%m-%d %H:%M:%S")
 
 test:
+	rm -f rr.json
 	@echo "$(BLUE)$(TIME)$(YELLOW) + TEST START $(RESET)"
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . arguments handling 1$(RESET)"
 	../bin/rr local test:args1 --one --two --three
@@ -27,6 +28,8 @@ test:
 	../bin/rr test:args4:1
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . arguments handling 6$(RESET)"
 	../bin/rr test:args6:1 2 3 4
+	@echo "$(BLUE)$(TIME)$(MAGENTA) . task reporting$(RESET)"
+	env TASK="task/op field" ../bin/rr test:args4:1
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . repaired status $(RESET)"
 	../bin/rr test:repaired
 	@echo "$(BLUE)$(TIME)$(MAGENTA) . untar files $(RESET)"
