@@ -30,7 +30,7 @@ const versionNumber = "0.19.0"
 const codeName = "\"Startling Raisin\""
 
 // constants
-const cOP = "task"
+const cOP = "TASK"
 const cRUN = "script"
 const cLOG = "rr.json"
 const cDOC = "README"
@@ -787,10 +787,17 @@ func main() {
 	} else {
 		opt.interp = interp
 	}
-	op := lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cOP))
-	op = strings.Split(op, "\n")[0]
-	if op == "" {
-		op = "UNDEFINED"
+	var op string
+	{
+		var ok bool
+		op, ok = os.LookupEnv(cOP)
+		if !ok {
+			op = lib.FileRead(cOP)
+			op = strings.Split(op, "\n")[0]
+			if op == "" {
+				op = "UNDEFINED"
+			}
+		}
 	}
 	jsonLog.Info().
 		Str("app", "rr").
