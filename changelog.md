@@ -4,6 +4,7 @@
   * Top-level `TASK` file is now the task field in the log
   * Can be overriden by env variable `TASK`
 * Better looking table separator in report mode
+* Shorter start timestamps in report mode
 
 #### 0.18.0
 
