@@ -26,7 +26,7 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "0.20.0"
+const versionNumber = "1.0.0"
 const codeName = "\"Cardboard Headlamp\""
 
 // constants
@@ -463,12 +463,16 @@ func main() {
 	jsonLog := zerolog.New(jsonFile).With().Timestamp().Logger()
 	var serrLog zerolog.Logger
 	var opt optT
+	var plain bool = false
 	var console bool = false
 	var failed bool = false
 	var result string = "ok"
 	var dump bool = false
 	var report bool = false
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
+		log.SetOutput(io.Discard)
+	} else if call[len(call)-3:] == "rrp" {
+		plain = true
 		log.SetOutput(io.Discard)
 	} else if call[len(call)-3:] == "rrv" {
 		console = true
@@ -572,7 +576,7 @@ func main() {
 		table.Render()
 		os.Exit(0)
 	}
-	if !dump {
+	if !dump && !plain {
 		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
 			console = true
 			log.SetOutput(new(logWriter))
@@ -838,13 +842,13 @@ func main() {
 					Args: []string{"-c", fmt.Sprintf(untar, d)},
 				}
 				var done func()
-				if console {
+				if console && !plain {
 					done = showSpinnerWhile(0)
 				}
 				ret, stdout, stderr, goerr := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-				if console {
+				if console && !plain {
 					done()
 				}
 				if step := "copy"; !ret {
@@ -855,7 +859,10 @@ func main() {
 						Str("stderr", b64se).
 						Str("error", goerr).
 						Msg(step)
-					if !console {
+					if plain {
+						os.Stderr.WriteString(stderr)
+						os.Stdout.WriteString(stdout)
+					} else if !console {
 						serrLog.Error().
 							Str("stdout", stdout).
 							Str("stderr", stderr).
@@ -878,7 +885,9 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					log.Printf("Successfully copied files")
+					if !plain {
+						log.Printf("Successfully copied files")
+					}
 				}
 			}
 		}
@@ -896,11 +905,11 @@ func main() {
 		}
 		rargs := lib.RunArgs{Exe: interp, Stdin: []byte(modscript)}
 		var done func()
-		if console {
+		if console && !plain {
 			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, goerr := rargs.Run()
-		if console {
+		if console && !plain {
 			done()
 		}
 		ho, bo, fo := output(stdout, hostname, cSTDOUT)
@@ -919,7 +928,10 @@ func main() {
 				Str("stderr", b64se).
 				Str("error", goerr).
 				Msg(op)
-			if !console {
+			if plain {
+				os.Stderr.WriteString(stderr)
+				os.Stdout.WriteString(stdout)
+			} else if !console {
 				serrLog.Error().
 					Str("stdout", stdout).
 					Str("stderr", stderr).
@@ -944,7 +956,10 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			if stdout != "" || stderr != "" || goerr != "" {
+			if plain {
+				os.Stderr.WriteString(stderr)
+				os.Stdout.WriteString(stdout)
+			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		}
@@ -964,13 +979,13 @@ func main() {
 				`
 				rsargs := lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, destination)}, Env: tarenv}
 				var done func()
-				if console {
+				if console && !plain {
 					done = showSpinnerWhile(0)
 				}
 				ret, stdout, stderr, goerr := rsargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-				if console {
+				if console && !plain {
 					done()
 				}
 				if step := "copy"; !ret {
@@ -981,7 +996,10 @@ func main() {
 						Str("stderr", b64se).
 						Str("error", goerr).
 						Msg(step)
-					if !console {
+					if plain {
+						os.Stderr.WriteString(stderr)
+						os.Stdout.WriteString(stdout)
+					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
 						ho, bo, fo := output(stdout, hostname, cSTDOUT)
@@ -1000,7 +1018,9 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					log.Printf("Successfully copied files")
+					if !plain {
+						log.Printf("Successfully copied files")
+					}
 				}
 			}
 		}
@@ -1008,11 +1028,11 @@ func main() {
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
 		var done func()
-		if console {
+		if console && !plain {
 			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, goerr := nsargs.Run()
-		if console {
+		if console && !plain {
 			done()
 		}
 		ho, bo, fo := output(stdout, hostname, cSTDOUT)
@@ -1031,7 +1051,10 @@ func main() {
 				Str("stderr", b64se).
 				Str("error", goerr).
 				Msg(op)
-			if !console {
+			if plain {
+				os.Stderr.WriteString(stderr)
+				os.Stdout.WriteString(stdout)
+			} else if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
@@ -1052,7 +1075,10 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			if stdout != "" || stderr != "" || goerr != "" {
+			if plain {
+				os.Stderr.WriteString(stderr)
+				os.Stdout.WriteString(stdout)
+			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
@@ -1068,7 +1094,7 @@ func main() {
 		}
 		{
 			var done func()
-			if console {
+			if console && !plain {
 				done = showSpinnerWhile(0)
 			}
 			sshenv := []string{"LC_ALL=C"}
@@ -1099,14 +1125,18 @@ func main() {
 							Str("id", id).
 							Str("hostname", realhost).
 							Msg("Hostname does not match remote host")
-						if console {
+						if plain {
+							os.Stderr.WriteString("Hostname does not match remote host.")
+						} else if console {
 							log.Printf("Hostname %s does not match remote host.", realhost)
 						} else {
 							serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
 						}
 						os.Exit(1)
 					} else {
-						log.Printf("Remote host is %s\n", sshhost[0])
+						if !plain {
+							log.Printf("Remote host is %s\n", sshhost[0])
+						}
 					}
 				} else {
 					jsonLog.Error().
@@ -1114,7 +1144,9 @@ func main() {
 						Str("id", id).
 						Str("host", realhost).
 						Msg("Host does not exist or unreachable")
-					if !console {
+					if plain {
+						os.Stderr.WriteString("Host does not exist or unreachable.")
+					} else if !console {
 						serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
 					} else {
 						log.Printf("%s does not exist or unreachable.", realhost)
@@ -1122,7 +1154,7 @@ func main() {
 					os.Exit(1)
 				}
 			}
-			if console {
+			if console && !plain {
 				done()
 			}
 		}
@@ -1142,7 +1174,7 @@ func main() {
 				var stderr string
 				var goerr string
 				var done func()
-				if console {
+				if console && !plain {
 					done = showSpinnerWhile(0)
 				}
 				if !opt.sudo {
@@ -1152,7 +1184,7 @@ func main() {
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-				if console {
+				if console && !plain {
 					done()
 				}
 				if step := "copy"; !ret {
@@ -1163,7 +1195,10 @@ func main() {
 						Str("stderr", b64se).
 						Str("error", goerr).
 						Msg(step)
-					if !console {
+					if plain {
+						os.Stderr.WriteString(stderr)
+						os.Stdout.WriteString(stdout)
+					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
 						ho, bo, fo := output(stdout, hostname, cSTDOUT)
@@ -1182,22 +1217,26 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					log.Printf("Successfully copied files")
+					if !plain {
+						log.Printf("Successfully copied files")
+					}
 				}
 			}
 		}
-		log.Printf("Running %s…", script)
+		if !plain {
+			log.Printf("Running %s…", script)
+		}
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		var ret bool
 		var stdout string
 		var stderr string
 		var goerr string
 		var done func()
-		if console {
+		if console && !plain {
 			done = showSpinnerWhile(1)
 		}
 		ret, stdout, stderr, goerr = sshexec(&opt, modscript)
-		if console {
+		if console && !plain {
 			done()
 		}
 		ho, bo, fo := output(stdout, hostname, cSTDOUT)
@@ -1216,7 +1255,10 @@ func main() {
 				Str("stderr", b64se).
 				Str("error", goerr).
 				Msg(op)
-			if !console {
+			if plain {
+				os.Stderr.WriteString(stderr)
+				os.Stdout.WriteString(stdout)
+			} else if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
@@ -1237,7 +1279,10 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			if stdout != "" || stderr != "" || goerr != "" {
+			if plain {
+				os.Stderr.WriteString(stderr)
+				os.Stdout.WriteString(stdout)
+			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
@@ -1258,7 +1303,9 @@ func main() {
 				Str("script", script).
 				Str("duration", tm).
 				Msg(result)
-			log.Printf("Total run time: %s. All OK.", tm)
+			if !plain {
+				log.Printf("Total run time: %s. All OK.", tm)
+			}
 			os.Exit(0)
 		} else {
 			jsonLog.Debug().
@@ -1271,7 +1318,7 @@ func main() {
 				Str("script", script).
 				Str("duration", tm).
 				Msg("failed")
-			if console {
+			if console && !plain {
 				log.Printf("Total run time: %s. Something went wrong.", tm)
 			} else {
 				serrLog.Debug().Str("duration", tm).Msg("failed")
