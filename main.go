@@ -26,7 +26,7 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "0.20.0"
+const versionNumber = "1.0.0"
 const codeName = "\"Cardboard Headlamp\""
 
 // constants
