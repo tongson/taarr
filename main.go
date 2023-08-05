@@ -520,17 +520,23 @@ func main() {
 			"Duration",
 			"Result",
 		}
-		const maxLn = 512 * 1024
 		var data [][]string
 		rrl, err := os.Open("rr.json")
 		if err != nil {
 			lib.Panic("Missing rr.json.")
 			os.Exit(1)
 		}
+		var maxSz int
 		defer rrl.Close()
 		scanner := bufio.NewScanner(rrl)
-		buf := make([]byte, maxLn)
-		scanner.Buffer(buf, maxLn)
+		rrlInfo, err := rrl.Stat()
+		if err != nil {
+			lib.Panic("Unable to open rr.json.")
+			os.Exit(1)
+		}
+		maxSz = int(rrlInfo.Size())
+		buf := make([]byte, 0, maxSz)
+		scanner.Buffer(buf, maxSz)
 		for scanner.Scan() {
 			log := make(map[string]string)
 			json.Unmarshal(scanner.Bytes(), &log)
