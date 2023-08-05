@@ -521,7 +521,7 @@ func main() {
 			"Result",
 		}
 		var data [][]string
-		rrl, err := os.Open("rr.json")
+		rrl, err := os.Open(cLOG)
 		if err != nil {
 			lib.Panic("Missing rr.json.")
 			os.Exit(1)
