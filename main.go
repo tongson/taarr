@@ -523,7 +523,7 @@ func main() {
 		var data [][]string
 		rrl, err := os.Open(cLOG)
 		if err != nil {
-			lib.Panic("Missing rr.json.")
+			lib.Panicf("Missing %s.", cLOG)
 			os.Exit(1)
 		}
 		var maxSz int
@@ -531,7 +531,7 @@ func main() {
 		scanner := bufio.NewScanner(rrl)
 		rrlInfo, err := rrl.Stat()
 		if err != nil {
-			lib.Panic("Unable to open rr.json.")
+			lib.Panicf("Unable to open %s.", cLOG)
 			os.Exit(1)
 		}
 		maxSz = int(rrlInfo.Size())
