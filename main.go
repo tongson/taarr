@@ -173,6 +173,7 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 		}
 		ssha = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
+	log.Printf("CONNECTION: copying script…")
 	if ret, stdout, stderr, goerr := ssha.Run(); !ret {
 		return ret, stdout, stderr, goerr
 	}
@@ -244,6 +245,7 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
 	}
+	log.Printf("CONNECTION: running script…")
 	ret, stdout, stderr, goerr = sshb.Run()
 	if !ret {
 		return ret, stdout, stderr, goerr
@@ -266,6 +268,7 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
 		sshc = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv}
 	}
+	log.Printf("CONNECTION: cleaning up…")
 	if xret, xstdout, xstderr, xgoerr := sshc.Run(); !xret {
 		return xret, xstdout, xstderr, xgoerr
 	}
@@ -1116,6 +1119,7 @@ func main() {
 				}, Env: sshenv}
 			}
 			{
+				log.Printf("CONNECTION: checking for hostname match…")
 				ret, stdout, _, _ := ssha.Run()
 				if ret {
 					sshhost := strings.Split(stdout, "\n")
@@ -1168,7 +1172,7 @@ func main() {
 		} {
 			if isDir(d) {
 				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
-				log.Printf("Copying %s to %s…", d, realhost)
+				log.Printf("CONNECTION: copying %s to %s…", d, realhost)
 				var ret bool
 				var stdout string
 				var stderr string
