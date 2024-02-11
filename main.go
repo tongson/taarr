@@ -26,8 +26,8 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "1.0.1"
-const codeName = "\"Anvil Clerk\""
+const versionNumber = "1.0.2"
+const codeName = "\"Grimacing Tripod\""
 
 // constants
 const cOP = "TASK"
@@ -107,20 +107,20 @@ func showSpinnerWhile(s int) func() {
 			select {
 			case <-done:
 			default:
-				fmt.Fprintf(os.Stderr, "%s\r", spinner.Next())
+				fmt.Fprintf(os.Stderr, "\n\033[1A\033[K%s\r", spinner.Next())
 				time.Sleep(100 * time.Millisecond)
 			}
 		}
 	}()
 	return func() {
 		done <- true
-		fmt.Fprintf(os.Stderr, "\033[%dD", 1)
+		fmt.Fprintf(os.Stderr, "\n\033[1A\033[K")
 		close(done)
 	}
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	fmt.Printf("\033[38;2;85;85;85m%s\033[0m", time.Now().Format(time.RFC1123Z))
+	fmt.Printf("\n\033[1A\033[K\033[38;2;85;85;85m%s\033[0m", time.Now().Format(time.RFC1123Z))
 	return fmt.Print(" " + string(bytes))
 }
 
