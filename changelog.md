@@ -1,3 +1,19 @@
+#### 1.0.2
+
+* Update dependencies
+* Indicate connections in the output
+* Fix handling of huge log files
+* Better ansi escape sequence for the spinner
+* Fix tests
+
+#### 1.0.1
+
+* Update dependencies
+
+#### 1.0.0
+
+* Add plain mode for reusing output
+
 #### 0.19.0
 
 * Remove script level `task` file
