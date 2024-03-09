@@ -20,7 +20,6 @@ import (
 	tablewriter "github.com/olekukonko/tablewriter"
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
-	spin "github.com/tongson/rr/external/go-spin"
 	terminal "golang.org/x/crypto/ssh/terminal"
 )
 
@@ -91,32 +90,6 @@ func getPassword(prompt string) string {
 
 	// Return the password as a string.
 	return string(p)
-}
-
-func showSpinnerWhile(s int) func() {
-	spinner := spin.New()
-	switch s {
-	case 0:
-		spinner.Set(spin.Spin26)
-	default:
-		spinner.Set(spin.Box1)
-	}
-	done := make(chan bool)
-	go func() {
-		for {
-			select {
-			case <-done:
-			default:
-				fmt.Fprintf(os.Stderr, "\n\033[1A\033[K%s\r", spinner.Next())
-				time.Sleep(100 * time.Millisecond)
-			}
-		}
-	}()
-	return func() {
-		done <- true
-		fmt.Fprintf(os.Stderr, "\n\033[1A\033[K")
-		close(done)
-	}
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
@@ -850,16 +823,9 @@ func main() {
 					Exe:  interp,
 					Args: []string{"-c", fmt.Sprintf(untar, d)},
 				}
-				var done func()
-				if console && !plain {
-					done = showSpinnerWhile(0)
-				}
 				ret, stdout, stderr, goerr := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-				if console && !plain {
-					done()
-				}
 				if step := "copy"; !ret {
 					jsonLog.Error().
 						Str("app", "rr").
@@ -913,14 +879,7 @@ func main() {
 			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg(msgop)
 		}
 		rargs := lib.RunArgs{Exe: interp, Stdin: []byte(modscript)}
-		var done func()
-		if console && !plain {
-			done = showSpinnerWhile(1)
-		}
 		ret, stdout, stderr, goerr := rargs.Run()
-		if console && !plain {
-			done()
-		}
 		ho, bo, fo := output(stdout, hostname, cSTDOUT)
 		he, be, fe := output(stderr, hostname, cSTDERR)
 		hd, bd, fd := output(goerr, hostname, cSTDDBG)
@@ -987,16 +946,9 @@ func main() {
 				tar -C %s -cf - . | tar -C %s --no-same-owner --overwrite -omxpf -
 				`
 				rsargs := lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, destination)}, Env: tarenv}
-				var done func()
-				if console && !plain {
-					done = showSpinnerWhile(0)
-				}
 				ret, stdout, stderr, goerr := rsargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-				if console && !plain {
-					done()
-				}
 				if step := "copy"; !ret {
 					jsonLog.Error().
 						Str("app", "rr").
@@ -1036,14 +988,7 @@ func main() {
 		log.Printf("Running %s…", script)
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
-		var done func()
-		if console && !plain {
-			done = showSpinnerWhile(1)
-		}
 		ret, stdout, stderr, goerr := nsargs.Run()
-		if console && !plain {
-			done()
-		}
 		ho, bo, fo := output(stdout, hostname, cSTDOUT)
 		he, be, fe := output(stderr, hostname, cSTDERR)
 		hd, bd, fd := output(goerr, hostname, cSTDDBG)
@@ -1102,10 +1047,6 @@ func main() {
 			realhost = rh[1]
 		}
 		{
-			var done func()
-			if console && !plain {
-				done = showSpinnerWhile(0)
-			}
 			sshenv := []string{"LC_ALL=C"}
 			var ssha lib.RunArgs
 			if opt.config == "" || opt.teleport {
@@ -1164,9 +1105,6 @@ func main() {
 					os.Exit(1)
 				}
 			}
-			if console && !plain {
-				done()
-			}
 		}
 		for _, d := range []string{
 			".files",
@@ -1183,10 +1121,6 @@ func main() {
 				var stdout string
 				var stderr string
 				var goerr string
-				var done func()
-				if console && !plain {
-					done = showSpinnerWhile(0)
-				}
 				if !opt.sudo {
 					ret, stdout, stderr, goerr = quickcopy(&opt, d)
 				} else {
@@ -1194,9 +1128,6 @@ func main() {
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
-				if console && !plain {
-					done()
-				}
 				if step := "copy"; !ret {
 					jsonLog.Error().
 						Str("app", "rr").
@@ -1241,14 +1172,7 @@ func main() {
 		var stdout string
 		var stderr string
 		var goerr string
-		var done func()
-		if console && !plain {
-			done = showSpinnerWhile(1)
-		}
 		ret, stdout, stderr, goerr = sshexec(&opt, modscript)
-		if console && !plain {
-			done()
-		}
 		ho, bo, fo := output(stdout, hostname, cSTDOUT)
 		he, be, fe := output(stderr, hostname, cSTDERR)
 		hd, bd, fd := output(goerr, hostname, cSTDDBG)
