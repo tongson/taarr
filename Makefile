@@ -38,6 +38,7 @@ build:
 release:
 	@echo "$(BLUE)$(TIME)$(GREEN) + BUILD START$(RESET)"
 	@rr build:linux-amd64
+  @rr build:linux-arm64
 	@rr build:linux-i386
 	@rr build:macos-intel
 	@rr build:macos-m1
