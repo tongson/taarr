@@ -21,7 +21,7 @@ import (
 	tablewriter "github.com/olekukonko/tablewriter"
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
-	terminal "golang.org/x/crypto/ssh/terminal"
+	terminal "golang.org/x/term"
 )
 
 var start = time.Now()
