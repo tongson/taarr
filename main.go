@@ -513,7 +513,11 @@ func main() {
 		scanner.Buffer(buf, maxSz)
 		for scanner.Scan() {
 			log := make(map[string]string)
-			json.Unmarshal(scanner.Bytes(), &log)
+			err := json.Unmarshal(scanner.Bytes(), &log)
+			if err != nil {
+				lib.Panicf("Unable to decode %s.", cLOG)
+				os.Exit(1)
+			}
 			if log["duration"] != "" {
 				data = append(data, []string{log["id"],
 					log["target"],
