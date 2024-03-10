@@ -1,0 +1,3 @@
+mkdir -p bin
+/usr/bin/env CGO_ENABLED=0 go build -trimpath -o bin/rr -ldflags '-s -w'
+
