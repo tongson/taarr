@@ -17,11 +17,11 @@ import (
 	"syscall"
 	"time"
 
+	isatty "github.com/mattn/go-isatty"
 	tablewriter "github.com/olekukonko/tablewriter"
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	terminal "golang.org/x/crypto/ssh/terminal"
-	isatty "github.com/mattn/go-isatty"
 )
 
 var start = time.Now()
