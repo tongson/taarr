@@ -1,3 +1,9 @@
+#### 1.0.3
+
+* Update dependencies
+* Remove spinner
+* Use isatty to determine console
+
 #### 1.0.2
 
 * Update dependencies
