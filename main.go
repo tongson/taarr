@@ -21,6 +21,7 @@ import (
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	terminal "golang.org/x/crypto/ssh/terminal"
+	isatty "github.com/mattn/go-isatty"
 )
 
 var start = time.Now()
@@ -559,7 +560,7 @@ func main() {
 		os.Exit(0)
 	}
 	if !dump && !plain {
-		if fileInfo, _ := os.Stdout.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
+		if isatty.IsTerminal(os.Stdout.Fd()) {
 			console = true
 			log.SetOutput(new(logWriter))
 			log.Printf("rr %s %s", versionNumber, codeName)
