@@ -1110,7 +1110,7 @@ func main() {
 			}
 			{
 				log.Printf("CONNECTION: checking for hostname match…")
-				ret, stdout, _, _ := ssha.Run()
+				ret, stdout, stderr, _ := ssha.Run()
 				if ret {
 					sshhost := strings.Split(stdout, "\n")
 					if realhost != sshhost[0] {
@@ -1133,17 +1133,18 @@ func main() {
 						}
 					}
 				} else {
+					hostErr := fmt.Sprintf("Host does not exist or unreachable. [%s]", stderr)
 					jsonLog.Error().
 						Str("app", "rr").
 						Str("id", id).
 						Str("host", realhost).
-						Msg("Host does not exist or unreachable")
+						Msg(hostErr)
 					if plain {
-						stdWriter("", "Host does not exist or unreachable.", "")
+						stdWriter("", hostErr, "")
 					} else if !console {
-						serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
+						serrLog.Error().Str("host", realhost).Msg(hostErr)
 					} else {
-						log.Printf("%s does not exist or unreachable.", realhost)
+						log.Printf("%s does not exist or unreachable. [%s]", realhost, stderr)
 					}
 					os.Exit(1)
 				}
