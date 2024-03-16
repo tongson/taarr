@@ -475,8 +475,6 @@ func main() {
 	defer lib.RecoverPanic()
 	log.SetFlags(0)
 	zerolog.TimeFieldFormat = time.RFC3339
-	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
-	jsonLog := zerolog.New(jsonFile).With().Timestamp().Logger()
 	var serrLog zerolog.Logger
 	var opt optT
 	var plain bool = false
@@ -716,6 +714,8 @@ func main() {
 	var script string
 	var code string
 	var interp string
+	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	jsonLog := zerolog.New(jsonFile).With().Timestamp().Logger()
 	{
 		var s []string
 		// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
