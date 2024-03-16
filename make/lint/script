@@ -1,2 +1,2 @@
-golint "main.go"
-
+rr make:errcheck
+rr make:staticcheck
