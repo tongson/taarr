@@ -17,11 +17,11 @@ import (
 	"syscall"
 	"time"
 
+	isatty "github.com/mattn/go-isatty"
 	tablewriter "github.com/olekukonko/tablewriter"
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
-	terminal "golang.org/x/crypto/ssh/terminal"
-	isatty "github.com/mattn/go-isatty"
+	terminal "golang.org/x/term"
 )
 
 var start = time.Now()
@@ -70,7 +70,7 @@ func getPassword(prompt string) string {
 	// Restore it in the event of an interrupt.
 	// CITATION: Konstantin Shaposhnikov - https://groups.google.com/forum/#!topic/golang-nuts/kTVAbtee9UA
 	// syscall.SIGTERM according to staticcheck
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
@@ -108,6 +108,44 @@ func output(o string, h string, c string) (string, string, string) {
 		rf = fmt.Sprintf(" %s%s\n", h, cFOOTER)
 	}
 	return rh, rb, rf
+}
+
+func stdWriter(stdout string, stderr string, goerr string) {
+	we := bufio.NewWriter(os.Stderr)
+	wo := bufio.NewWriter(os.Stdout)
+	if goerr != "" {
+		_, err := we.WriteString(goerr)
+		if err != nil {
+			lib.Panic("Problem writing to stderr")
+			os.Exit(1)
+		}
+		err = we.Flush()
+		if err != nil {
+			lib.Panic("Problem flushing stderr")
+			os.Exit(1)
+		}
+	} else {
+		_, err := we.WriteString(stderr)
+		if err != nil {
+			lib.Panic("Problem writing to stderr")
+			os.Exit(1)
+		}
+		err = we.Flush()
+		if err != nil {
+			lib.Panic("Problem flushing stderr")
+			os.Exit(1)
+		}
+		_, err = wo.WriteString(stdout)
+		if err != nil {
+			lib.Panic("Problem writing to stdout")
+			os.Exit(1)
+		}
+		err = wo.Flush()
+		if err != nil {
+			lib.Panic("Problem flushing stdout")
+			os.Exit(1)
+		}
+	}
 }
 
 func sshexec(o *optT, script string) (bool, string, string, string) {
@@ -501,7 +539,13 @@ func main() {
 			os.Exit(1)
 		}
 		var maxSz int
-		defer rrl.Close()
+		defer func() {
+			err := rrl.Close()
+			if err != nil {
+				lib.Panic("Problem closing log.")
+				os.Exit(1)
+			}
+		}()
 		scanner := bufio.NewScanner(rrl)
 		rrlInfo, err := rrl.Stat()
 		if err != nil {
@@ -513,7 +557,11 @@ func main() {
 		scanner.Buffer(buf, maxSz)
 		for scanner.Scan() {
 			log := make(map[string]string)
-			json.Unmarshal(scanner.Bytes(), &log)
+			err := json.Unmarshal(scanner.Bytes(), &log)
+			if err != nil {
+				lib.Panicf("Unable to decode %s.", cLOG)
+				os.Exit(1)
+			}
 			if log["duration"] != "" {
 				data = append(data, []string{log["id"],
 					log["target"],
@@ -836,8 +884,7 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					if plain {
-						os.Stderr.WriteString(stderr)
-						os.Stdout.WriteString(stdout)
+						stdWriter(stdout, stderr, goerr)
 					} else if !console {
 						serrLog.Error().
 							Str("stdout", stdout).
@@ -898,8 +945,7 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if !console {
 				serrLog.Error().
 					Str("stdout", stdout).
@@ -926,8 +972,7 @@ func main() {
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
@@ -959,8 +1004,7 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					if plain {
-						os.Stderr.WriteString(stderr)
-						os.Stdout.WriteString(stdout)
+						stdWriter(stdout, stderr, goerr)
 					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
@@ -1007,8 +1051,7 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
@@ -1031,8 +1074,7 @@ func main() {
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
@@ -1078,7 +1120,7 @@ func main() {
 							Str("hostname", realhost).
 							Msg("Hostname does not match remote host")
 						if plain {
-							os.Stderr.WriteString("Hostname does not match remote host.")
+							stdWriter("", "Hostname does not match remote host.", "")
 						} else if console {
 							log.Printf("Hostname %s does not match remote host.", realhost)
 						} else {
@@ -1097,7 +1139,7 @@ func main() {
 						Str("host", realhost).
 						Msg("Host does not exist or unreachable")
 					if plain {
-						os.Stderr.WriteString("Host does not exist or unreachable.")
+						stdWriter("", "Host does not exist or unreachable.", "")
 					} else if !console {
 						serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
 					} else {
@@ -1138,8 +1180,7 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					if plain {
-						os.Stderr.WriteString(stderr)
-						os.Stdout.WriteString(stdout)
+						stdWriter(stdout, stderr, goerr)
 					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
@@ -1191,8 +1232,7 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
@@ -1215,8 +1255,7 @@ func main() {
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
