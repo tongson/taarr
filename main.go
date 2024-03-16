@@ -26,8 +26,8 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "1.0.3"
-const codeName = "\"Unmatched Carrot\""
+const versionNumber = "1.0.4"
+const codeName = "\"Revocable Marsh\""
 
 // constants
 const cOP = "TASK"
