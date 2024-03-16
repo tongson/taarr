@@ -798,12 +798,12 @@ func main() {
 				str, err := getPassword("sudo password: ")
 				if err != nil {
 					if console {
-					lib.Panicf(
-						"`%s/%s/%s` actual script not found.",
-						namespace,
-						script,
-						cRUN,
-					)
+						lib.Panicf(
+							"`%s/%s/%s` actual script not found.",
+							namespace,
+							script,
+							cRUN,
+						)
 					} else {
 						serrLog.Fatal().
 							Str("namespace", namespace).
