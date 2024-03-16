@@ -60,11 +60,12 @@ type optT struct {
 }
 
 // https://gist.github.com/jlinoff/e8e26b4ffa38d379c7f1891fd174a6d0
-func getPassword(prompt string) string {
+func getPassword(prompt string) (string, error) {
+	var err error
 	// Get the initial state of the terminal.
-	initialTermState, e1 := terminal.GetState(syscall.Stdin)
-	if e1 != nil {
-		panic(e1)
+	initialTermState, err := terminal.GetState(syscall.Stdin)
+	if err != nil {
+		return "", err
 	}
 
 	// Restore it in the event of an interrupt.
@@ -83,14 +84,14 @@ func getPassword(prompt string) string {
 	p, err := terminal.ReadPassword(syscall.Stdin)
 	fmt.Println("")
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
 	// Stop looking for ^C on the channel.
 	signal.Stop(c)
 
 	// Return the password as a string.
-	return string(p)
+	return string(p), err
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
@@ -794,7 +795,24 @@ func main() {
 		}
 		if opt.sudo {
 			if !opt.nopasswd {
-				opt.password = fmt.Sprintf("%s\n", getPassword("sudo password: "))
+				str, err := getPassword("sudo password: ")
+				if err != nil {
+					if console {
+					lib.Panicf(
+						"`%s/%s/%s` actual script not found.",
+						namespace,
+						script,
+						cRUN,
+					)
+					} else {
+						serrLog.Fatal().
+							Str("namespace", namespace).
+							Str("script", script).
+							Msg("Actual script is missing")
+						os.Exit(1)
+					}
+				}
+				opt.password = fmt.Sprintf("%s\n", str)
 			}
 		}
 		//Pass environment variables with `rr` prefix
