@@ -473,9 +473,6 @@ func quickcopy(o *optT, dir string) (bool, string, string, string) {
 func main() {
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
-	log.SetFlags(0)
-	zerolog.TimeFieldFormat = time.RFC3339
-	var serrLog zerolog.Logger
 	var opt optT
 	var plain bool = false
 	var console bool = false
@@ -606,6 +603,9 @@ func main() {
 		table.Render()
 		os.Exit(0)
 	}
+	log.SetFlags(0)
+	zerolog.TimeFieldFormat = time.RFC3339
+	var serrLog zerolog.Logger
 	if !dump && !plain {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			console = true
