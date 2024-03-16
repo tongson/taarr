@@ -862,6 +862,9 @@ func main() {
 		Msg(op)
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
+		if opt.sudo {
+			log.Printf("Invoked sudo+ssh mode via local, ignored mode, just `sudo rr`.")
+		}
 		untar := `
                 LC_ALL=C
                 set -o errexit -o nounset -o noglob
