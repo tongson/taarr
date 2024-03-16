@@ -110,6 +110,44 @@ func output(o string, h string, c string) (string, string, string) {
 	return rh, rb, rf
 }
 
+func stdWriter(stdout string, stderr string, goerr string) {
+	we := bufio.NewWriter(os.Stderr)
+	wo := bufio.NewWriter(os.Stdout)
+	if goerr != "" {
+		_, err := we.WriteString(goerr)
+		if err != nil {
+			lib.Panic("Problem writing to stderr")
+			os.Exit(1)
+		}
+		err = we.Flush()
+		if err != nil {
+			lib.Panic("Problem flushing stderr")
+			os.Exit(1)
+		}
+	} else {
+		_, err := we.WriteString(stderr)
+		if err != nil {
+			lib.Panic("Problem writing to stderr")
+			os.Exit(1)
+		}
+		err = we.Flush()
+		if err != nil {
+			lib.Panic("Problem flushing stderr")
+			os.Exit(1)
+		}
+		_, err = wo.WriteString(stdout)
+		if err != nil {
+			lib.Panic("Problem writing to stdout")
+			os.Exit(1)
+		}
+		err = wo.Flush()
+		if err != nil {
+			lib.Panic("Problem flushing stdout")
+			os.Exit(1)
+		}
+	}
+}
+
 func sshexec(o *optT, script string) (bool, string, string, string) {
 	tmps := fmt.Sprintf("./.__rr.scr.%s", (*o).id)
 	sshenv := []string{"LC_ALL=C"}
@@ -501,7 +539,13 @@ func main() {
 			os.Exit(1)
 		}
 		var maxSz int
-		defer rrl.Close()
+		defer func() {
+			err := rrl.Close()
+			if err != nil {
+				lib.Panic("Problem closing log.")
+				os.Exit(1)
+			}
+		}()
 		scanner := bufio.NewScanner(rrl)
 		rrlInfo, err := rrl.Stat()
 		if err != nil {
@@ -840,8 +884,7 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					if plain {
-						os.Stderr.WriteString(stderr)
-						os.Stdout.WriteString(stdout)
+						stdWriter(stdout, stderr, goerr)
 					} else if !console {
 						serrLog.Error().
 							Str("stdout", stdout).
@@ -902,8 +945,7 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if !console {
 				serrLog.Error().
 					Str("stdout", stdout).
@@ -930,8 +972,7 @@ func main() {
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
@@ -963,8 +1004,7 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					if plain {
-						os.Stderr.WriteString(stderr)
-						os.Stdout.WriteString(stdout)
+						stdWriter(stdout, stderr, goerr)
 					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
@@ -1011,8 +1051,7 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
@@ -1035,8 +1074,7 @@ func main() {
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
@@ -1082,7 +1120,7 @@ func main() {
 							Str("hostname", realhost).
 							Msg("Hostname does not match remote host")
 						if plain {
-							os.Stderr.WriteString("Hostname does not match remote host.")
+							stdWriter("", "Hostname does not match remote host.", "")
 						} else if console {
 							log.Printf("Hostname %s does not match remote host.", realhost)
 						} else {
@@ -1101,7 +1139,7 @@ func main() {
 						Str("host", realhost).
 						Msg("Host does not exist or unreachable")
 					if plain {
-						os.Stderr.WriteString("Host does not exist or unreachable.")
+						stdWriter("", "Host does not exist or unreachable.", "")
 					} else if !console {
 						serrLog.Error().Str("host", realhost).Msg("Host does not exist or unreachable")
 					} else {
@@ -1142,8 +1180,7 @@ func main() {
 						Str("error", goerr).
 						Msg(step)
 					if plain {
-						os.Stderr.WriteString(stderr)
-						os.Stdout.WriteString(stdout)
+						stdWriter(stdout, stderr, goerr)
 					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
@@ -1195,8 +1232,7 @@ func main() {
 				Str("error", goerr).
 				Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if !console {
 				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
 			} else {
@@ -1219,8 +1255,7 @@ func main() {
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				os.Stderr.WriteString(stderr)
-				os.Stdout.WriteString(stdout)
+				stdWriter(stdout, stderr, goerr)
 			} else if stdout != "" || stderr != "" || goerr != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
