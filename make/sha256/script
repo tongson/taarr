@@ -1,0 +1,2 @@
+cd bin
+sha256sum * > rr.sha256
