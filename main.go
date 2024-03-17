@@ -776,20 +776,20 @@ func main() {
 		} else {
 			arguments = os.Args[offset+1:]
 		}
-		fnwalk := lib.PathWalker(&sh)
+		fnWalkDir:= lib.PathWalker(&sh)
 		if isDir(".lib") {
-			lib.Assert(filepath.WalkDir(".lib", fnwalk), "filepath.WalkDir(\".lib\")")
+			lib.Assert(filepath.WalkDir(".lib", fnWalkDir), "filepath.WalkDir(\".lib\")")
 		}
 
 		if isDir(namespace + "/.lib") {
 			lib.Assert(
-				filepath.WalkDir(namespace+"/.lib", fnwalk),
+				filepath.WalkDir(namespace+"/.lib", fnWalkDir),
 				"filepath.WalkDir(namespace+\".lib\")",
 			)
 		}
 		if isDir(namespace + "/" + script + "/.lib") {
 			lib.Assert(
-				filepath.WalkDir(namespace+"/"+script+"/.lib", fnwalk),
+				filepath.WalkDir(namespace+"/"+script+"/.lib", fnWalkDir),
 				"filepath.WalkDir(namespace+\".lib\")",
 			)
 		}
