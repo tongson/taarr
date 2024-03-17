@@ -288,7 +288,7 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 	return ret, stdout, stderr, goerr
 }
 
-func sudocopy(o *optT, dir string) (bool, string, string, string) {
+func sudoCopy(o *optT, dir string) (bool, string, string, string) {
 	tmpd := fmt.Sprintf(".__rr.dir.%s", (*o).id)
 	tmpf := fmt.Sprintf("./.__rr.tar.%s", (*o).id)
 	tarcmd := `
@@ -433,7 +433,7 @@ func sudocopy(o *optT, dir string) (bool, string, string, string) {
 	return untar3.Run()
 }
 
-func quickcopy(o *optT, dir string) (bool, string, string, string) {
+func quickCopy(o *optT, dir string) (bool, string, string, string) {
 	untarDefault := `
 	set -o errexit -o nounset -o noglob
 	tar -C %s -cpzf - . | ssh -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
@@ -1187,9 +1187,9 @@ func main() {
 				var stderr string
 				var goerr string
 				if !opt.sudo {
-					ret, stdout, stderr, goerr = quickcopy(&opt, d)
+					ret, stdout, stderr, goerr = quickCopy(&opt, d)
 				} else {
-					ret, stdout, stderr, goerr = sudocopy(&opt, d)
+					ret, stdout, stderr, goerr = sudoCopy(&opt, d)
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
