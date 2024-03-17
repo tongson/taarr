@@ -99,7 +99,7 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(" " + string(bytes))
 }
 
-func output(o string, h string, c string) (string, string, string) {
+func conOutput(o string, h string, c string) (string, string, string) {
 	rh := ""
 	rb := ""
 	rf := ""
@@ -149,7 +149,7 @@ func stdWriter(stdout string, stderr string, goerr string) {
 	}
 }
 
-func sshexec(o *optT, script string) (bool, string, string, string) {
+func sshExec(o *optT, script string) (bool, string, string, string) {
 	tmps := fmt.Sprintf("./.__rr.scr.%s", (*o).id)
 	sshenv := []string{"LC_ALL=C"}
 	var ssha lib.RunArgs
@@ -778,19 +778,19 @@ func main() {
 		}
 		fnwalk := lib.PathWalker(&sh)
 		if isDir(".lib") {
-			lib.Assert(filepath.Walk(".lib", fnwalk), "filepath.Walk(\".lib\")")
+			lib.Assert(filepath.WalkDir(".lib", fnwalk), "filepath.WalkDir(\".lib\")")
 		}
 
 		if isDir(namespace + "/.lib") {
 			lib.Assert(
-				filepath.Walk(namespace+"/.lib", fnwalk),
-				"filepath.Walk(namespace+\".lib\")",
+				filepath.WalkDir(namespace+"/.lib", fnwalk),
+				"filepath.WalkDir(namespace+\".lib\")",
 			)
 		}
 		if isDir(namespace + "/" + script + "/.lib") {
 			lib.Assert(
-				filepath.Walk(namespace+"/"+script+"/.lib", fnwalk),
-				"filepath.Walk(namespace+\".lib\")",
+				filepath.WalkDir(namespace+"/"+script+"/.lib", fnwalk),
+				"filepath.WalkDir(namespace+\".lib\")",
 			)
 		}
 		if opt.sudo {
@@ -913,9 +913,9 @@ func main() {
 							Str("error", goerr).
 							Msg(step)
 					} else {
-						ho, bo, fo := output(stdout, hostname, cSTDOUT)
-						he, be, fe := output(stderr, hostname, cSTDERR)
-						hd, bd, fd := output(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -949,9 +949,9 @@ func main() {
 		}
 		rargs := lib.RunArgs{Exe: interp, Stdin: []byte(modscript)}
 		ret, stdout, stderr, goerr := rargs.Run()
-		ho, bo, fo := output(stdout, hostname, cSTDOUT)
-		he, be, fe := output(stderr, hostname, cSTDERR)
-		hd, bd, fd := output(goerr, hostname, cSTDDBG)
+		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
@@ -1029,9 +1029,9 @@ func main() {
 					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						ho, bo, fo := output(stdout, hostname, cSTDOUT)
-						he, be, fe := output(stderr, hostname, cSTDERR)
-						hd, bd, fd := output(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -1055,9 +1055,9 @@ func main() {
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
 		ret, stdout, stderr, goerr := nsargs.Run()
-		ho, bo, fo := output(stdout, hostname, cSTDOUT)
-		he, be, fe := output(stderr, hostname, cSTDERR)
-		hd, bd, fd := output(goerr, hostname, cSTDDBG)
+		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
@@ -1206,9 +1206,9 @@ func main() {
 					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						ho, bo, fo := output(stdout, hostname, cSTDOUT)
-						he, be, fe := output(stderr, hostname, cSTDERR)
-						hd, bd, fd := output(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -1236,10 +1236,10 @@ func main() {
 		var stdout string
 		var stderr string
 		var goerr string
-		ret, stdout, stderr, goerr = sshexec(&opt, modscript)
-		ho, bo, fo := output(stdout, hostname, cSTDOUT)
-		he, be, fe := output(stderr, hostname, cSTDERR)
-		hd, bd, fd := output(goerr, hostname, cSTDDBG)
+		ret, stdout, stderr, goerr = sshExec(&opt, modscript)
+		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
