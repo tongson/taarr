@@ -26,8 +26,8 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "1.0.3"
-const codeName = "\"Unmatched Carrot\""
+const versionNumber = "1.0.4"
+const codeName = "\"Revocable Marsh\""
 
 // constants
 const cOP = "TASK"
@@ -99,7 +99,7 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(" " + string(bytes))
 }
 
-func output(o string, h string, c string) (string, string, string) {
+func conOutput(o string, h string, c string) (string, string, string) {
 	rh := ""
 	rb := ""
 	rf := ""
@@ -149,7 +149,7 @@ func stdWriter(stdout string, stderr string, goerr string) {
 	}
 }
 
-func sshexec(o *optT, script string) (bool, string, string, string) {
+func sshExec(o *optT, script string) (bool, string, string, string) {
 	tmps := fmt.Sprintf("./.__rr.scr.%s", (*o).id)
 	sshenv := []string{"LC_ALL=C"}
 	var ssha lib.RunArgs
@@ -288,7 +288,7 @@ func sshexec(o *optT, script string) (bool, string, string, string) {
 	return ret, stdout, stderr, goerr
 }
 
-func sudocopy(o *optT, dir string) (bool, string, string, string) {
+func sudoCopy(o *optT, dir string) (bool, string, string, string) {
 	tmpd := fmt.Sprintf(".__rr.dir.%s", (*o).id)
 	tmpf := fmt.Sprintf("./.__rr.tar.%s", (*o).id)
 	tarcmd := `
@@ -433,7 +433,7 @@ func sudocopy(o *optT, dir string) (bool, string, string, string) {
 	return untar3.Run()
 }
 
-func quickcopy(o *optT, dir string) (bool, string, string, string) {
+func quickCopy(o *optT, dir string) (bool, string, string, string) {
 	untarDefault := `
 	set -o errexit -o nounset -o noglob
 	tar -C %s -cpzf - . | ssh -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
@@ -473,11 +473,6 @@ func quickcopy(o *optT, dir string) (bool, string, string, string) {
 func main() {
 	runtime.MemProfileRate = 0
 	defer lib.RecoverPanic()
-	log.SetFlags(0)
-	zerolog.TimeFieldFormat = time.RFC3339
-	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
-	jsonLog := zerolog.New(jsonFile).With().Timestamp().Logger()
-	var serrLog zerolog.Logger
 	var opt optT
 	var plain bool = false
 	var console bool = false
@@ -608,6 +603,9 @@ func main() {
 		table.Render()
 		os.Exit(0)
 	}
+	log.SetFlags(0)
+	zerolog.TimeFieldFormat = time.RFC3339
+	var serrLog zerolog.Logger
 	if !dump && !plain {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			console = true
@@ -716,6 +714,8 @@ func main() {
 	var script string
 	var code string
 	var interp string
+	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	jsonLog := zerolog.New(jsonFile).With().Timestamp().Logger()
 	{
 		var s []string
 		// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
@@ -776,21 +776,21 @@ func main() {
 		} else {
 			arguments = os.Args[offset+1:]
 		}
-		fnwalk := lib.PathWalker(&sh)
+		fnWalkDir:= lib.PathWalker(&sh)
 		if isDir(".lib") {
-			lib.Assert(filepath.Walk(".lib", fnwalk), "filepath.Walk(\".lib\")")
+			lib.Assert(filepath.WalkDir(".lib", fnWalkDir), "filepath.WalkDir(\".lib\")")
 		}
 
 		if isDir(namespace + "/.lib") {
 			lib.Assert(
-				filepath.Walk(namespace+"/.lib", fnwalk),
-				"filepath.Walk(namespace+\".lib\")",
+				filepath.WalkDir(namespace+"/.lib", fnWalkDir),
+				"filepath.WalkDir(namespace+\".lib\")",
 			)
 		}
 		if isDir(namespace + "/" + script + "/.lib") {
 			lib.Assert(
-				filepath.Walk(namespace+"/"+script+"/.lib", fnwalk),
-				"filepath.Walk(namespace+\".lib\")",
+				filepath.WalkDir(namespace+"/"+script+"/.lib", fnWalkDir),
+				"filepath.WalkDir(namespace+\".lib\")",
 			)
 		}
 		if opt.sudo {
@@ -798,12 +798,12 @@ func main() {
 				str, err := getPassword("sudo password: ")
 				if err != nil {
 					if console {
-					lib.Panicf(
-						"`%s/%s/%s` actual script not found.",
-						namespace,
-						script,
-						cRUN,
-					)
+						lib.Panicf(
+							"`%s/%s/%s` actual script not found.",
+							namespace,
+							script,
+							cRUN,
+						)
 					} else {
 						serrLog.Fatal().
 							Str("namespace", namespace).
@@ -862,6 +862,9 @@ func main() {
 		Msg(op)
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
+		if opt.sudo {
+			log.Printf("Invoked sudo+ssh mode via local, ignored mode, just `sudo rr`.")
+		}
 		untar := `
                 LC_ALL=C
                 set -o errexit -o nounset -o noglob
@@ -910,9 +913,9 @@ func main() {
 							Str("error", goerr).
 							Msg(step)
 					} else {
-						ho, bo, fo := output(stdout, hostname, cSTDOUT)
-						he, be, fe := output(stderr, hostname, cSTDERR)
-						hd, bd, fd := output(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -946,9 +949,9 @@ func main() {
 		}
 		rargs := lib.RunArgs{Exe: interp, Stdin: []byte(modscript)}
 		ret, stdout, stderr, goerr := rargs.Run()
-		ho, bo, fo := output(stdout, hostname, cSTDOUT)
-		he, be, fe := output(stderr, hostname, cSTDERR)
-		hd, bd, fd := output(goerr, hostname, cSTDDBG)
+		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
@@ -1026,9 +1029,9 @@ func main() {
 					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						ho, bo, fo := output(stdout, hostname, cSTDOUT)
-						he, be, fe := output(stderr, hostname, cSTDERR)
-						hd, bd, fd := output(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -1052,9 +1055,9 @@ func main() {
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
 		ret, stdout, stderr, goerr := nsargs.Run()
-		ho, bo, fo := output(stdout, hostname, cSTDOUT)
-		he, be, fe := output(stderr, hostname, cSTDERR)
-		hd, bd, fd := output(goerr, hostname, cSTDDBG)
+		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
@@ -1184,9 +1187,9 @@ func main() {
 				var stderr string
 				var goerr string
 				if !opt.sudo {
-					ret, stdout, stderr, goerr = quickcopy(&opt, d)
+					ret, stdout, stderr, goerr = quickCopy(&opt, d)
 				} else {
-					ret, stdout, stderr, goerr = sudocopy(&opt, d)
+					ret, stdout, stderr, goerr = sudoCopy(&opt, d)
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
@@ -1203,9 +1206,9 @@ func main() {
 					} else if !console {
 						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
 					} else {
-						ho, bo, fo := output(stdout, hostname, cSTDOUT)
-						he, be, fe := output(stderr, hostname, cSTDERR)
-						hd, bd, fd := output(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -1233,10 +1236,10 @@ func main() {
 		var stdout string
 		var stderr string
 		var goerr string
-		ret, stdout, stderr, goerr = sshexec(&opt, modscript)
-		ho, bo, fo := output(stdout, hostname, cSTDOUT)
-		he, be, fe := output(stderr, hostname, cSTDERR)
-		hd, bd, fd := output(goerr, hostname, cSTDDBG)
+		ret, stdout, stderr, goerr = sshExec(&opt, modscript)
+		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
 		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))

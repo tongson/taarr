@@ -1,3 +1,10 @@
+#### 1.0.4
+
+* Update dependencies
+* Free performance improvement
+* Code style
+* Improve "make" scripts
+
 #### 1.0.3
 
 * Update dependencies
