@@ -114,37 +114,39 @@ func conOutput(o string, h string, c string) (string, string, string) {
 func stdWriter(stdout string, stderr string, goerr string) {
 	we := bufio.NewWriter(os.Stderr)
 	wo := bufio.NewWriter(os.Stdout)
+	defer we.Flush()
+	defer wo.Flush()
 	if goerr != "" {
 		_, err := we.WriteString(goerr)
 		if err != nil {
-			lib.Panic("Problem writing to stderr")
-			os.Exit(1)
+			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDERR at that time.")
+			os.Exit(255)
 		}
 		err = we.Flush()
 		if err != nil {
-			lib.Panic("Problem flushing stderr")
-			os.Exit(1)
+			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDERR at that time.")
+			os.Exit(255)
 		}
 	} else {
 		_, err := we.WriteString(stderr)
 		if err != nil {
-			lib.Panic("Problem writing to stderr")
-			os.Exit(1)
+			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDERR at that time.")
+			os.Exit(255)
 		}
 		err = we.Flush()
 		if err != nil {
-			lib.Panic("Problem flushing stderr")
-			os.Exit(1)
+			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDERR at that time.")
+			os.Exit(255)
 		}
 		_, err = wo.WriteString(stdout)
 		if err != nil {
-			lib.Panic("Problem writing to stdout")
-			os.Exit(1)
+			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDOUT at that time.")
+			os.Exit(255)
 		}
 		err = wo.Flush()
 		if err != nil {
-			lib.Panic("Problem flushing stdout")
-			os.Exit(1)
+			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDOUT at that time.")
+			os.Exit(255)
 		}
 	}
 }
