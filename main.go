@@ -189,13 +189,11 @@ func sshExec(o *optT, script string) (bool, string, string, string) {
 		ssha = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
 	log.Printf("CONNECTION: copying script…")
-	if ret, stdout, stderr, goerr := ssha.Run(); !ret {
-		return ret, stdout, stderr, goerr
+	if ret, res := ssha.Run(); !ret {
+		return ret, res
 	}
 	var ret bool
-	var stdout string
-	var stderr string
-	var goerr string
+	var res lib.RunOut
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).sudo {
 			if !(*o).teleport {
@@ -261,9 +259,9 @@ func sshExec(o *optT, script string) (bool, string, string, string) {
 		}
 	}
 	log.Printf("CONNECTION: running script…")
-	ret, stdout, stderr, goerr = sshb.Run()
+	ret, res = sshb.Run()
 	if !ret {
-		return ret, stdout, stderr, goerr
+		return ret, res
 	}
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
@@ -284,10 +282,10 @@ func sshExec(o *optT, script string) (bool, string, string, string) {
 		sshc = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv}
 	}
 	log.Printf("CONNECTION: cleaning up…")
-	if xret, xstdout, xstderr, xgoerr := sshc.Run(); !xret {
-		return xret, xstdout, xstderr, xgoerr
+	if xret, xres := sshc.Run(); !xret {
+		return xret, xres
 	}
-	return ret, stdout, stderr, goerr
+	return ret, res
 }
 
 func sudoCopy(o *optT, dir string) (bool, string, string, string) {
@@ -331,8 +329,8 @@ func sudoCopy(o *optT, dir string) (bool, string, string, string) {
 		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}
 		untar1 = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(tarexec)}
 	}
-	if ret, stdout, stderr, goerr := untar1.Run(); !ret {
-		return ret, stdout, stderr, goerr
+	if ret, res := untar1.Run(); !ret {
+		return ret, res
 	}
 	untarDefault := `
 	RRHOST="%s"
@@ -385,8 +383,8 @@ func sudoCopy(o *optT, dir string) (bool, string, string, string) {
 			Env: tarenv,
 		}
 	}
-	if ret, stdout, stderr, goerr := untar2.Run(); !ret {
-		return ret, stdout, stderr, goerr
+	if ret, res := untar2.Run(); !ret {
+		return ret, res
 	}
 	var untar3 lib.RunArgs
 	if (*o).config == "" || (*o).teleport {
@@ -895,29 +893,29 @@ func main() {
 					Exe:  interp,
 					Args: []string{"-c", fmt.Sprintf(untar, d)},
 				}
-				ret, stdout, stderr, goerr := rargs.Run()
-				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+				ret, res := rargs.Run()
+				b64so := base64.StdEncoding.EncodeToString([]byte(res.Stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(res.Stderr))
 				if step := "copy"; !ret {
 					jsonLog.Error().
 						Str("app", "rr").
 						Str("id", id).
 						Str("stdout", b64so).
 						Str("stderr", b64se).
-						Str("error", goerr).
+						Str("error", res.Error).
 						Msg(step)
 					if plain {
-						stdWriter(stdout, stderr, goerr)
+						stdWriter(res.Stdout, res.Stderr, res.Error)
 					} else if !console {
 						serrLog.Error().
-							Str("stdout", stdout).
-							Str("stderr", stderr).
-							Str("error", goerr).
+							Str("stdout", res.Stdout).
+							Str("stderr", res.Stderr).
+							Str("error", res.Error).
 							Msg(step)
 					} else {
-						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
-						he, be, fe := conOutput(stderr, hostname, cSTDERR)
-						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(res.Stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(res.Stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(res.Error, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -928,7 +926,7 @@ func main() {
 						Str("id", id).
 						Str("stdout", b64so).
 						Str("stderr", b64se).
-						Str("error", goerr).
+						Str("error", res.Error).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					if !plain {
@@ -950,12 +948,12 @@ func main() {
 			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg(msgop)
 		}
 		rargs := lib.RunArgs{Exe: interp, Stdin: []byte(modscript)}
-		ret, stdout, stderr, goerr := rargs.Run()
-		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
-		he, be, fe := conOutput(stderr, hostname, cSTDERR)
-		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
-		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+		ret, res := rargs.Run()
+		ho, bo, fo := conOutput(res.Stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(res.Stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(res.Error, hostname, cSTDDBG)
+		b64so := base64.StdEncoding.EncodeToString([]byte(res.Stdout))
+		b64se := base64.StdEncoding.EncodeToString([]byte(res.Stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
@@ -965,21 +963,21 @@ func main() {
 				Str("code", b64sc).
 				Str("stdout", b64so).
 				Str("stderr", b64se).
-				Str("error", goerr).
+				Str("error", res.Error).
 				Msg(op)
 			if plain {
-				stdWriter(stdout, stderr, goerr)
+				stdWriter(res.Stdout, res.Stderr, res.Error)
 			} else if !console {
 				serrLog.Error().
-					Str("stdout", stdout).
-					Str("stderr", stderr).
-					Str("error", goerr).
+					Str("stdout", res.Stdout).
+					Str("stderr", res.Stderr).
+					Str("error", res.Error).
 					Msg(op)
 			} else {
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(stdout))
+			scanner := bufio.NewScanner(strings.NewReader(res.Stdout))
 			for scanner.Scan() {
 				if scanner.Text() == cREPAIRED {
 					result = "repaired"
@@ -991,12 +989,12 @@ func main() {
 				Str("code", b64sc).
 				Str("stdout", b64so).
 				Str("stderr", b64se).
-				Str("error", goerr).
+				Str("error", res.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				stdWriter(stdout, stderr, goerr)
-			} else if stdout != "" || stderr != "" || goerr != "" {
+				stdWriter(res.Stdout, res.Stderr, res.Error)
+			} else if res.Stdout != "" || res.Stderr != "" || res.Error != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		}
@@ -1015,25 +1013,25 @@ func main() {
 				tar -C %s -cf - . | tar -C %s --no-same-owner --overwrite -omxpf -
 				`
 				rsargs := lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, destination)}, Env: tarenv}
-				ret, stdout, stderr, goerr := rsargs.Run()
-				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+				ret, res := rsargs.Run()
+				b64so := base64.StdEncoding.EncodeToString([]byte(res.Stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(res.Stderr))
 				if step := "copy"; !ret {
 					jsonLog.Error().
 						Str("app", "rr").
 						Str("id", id).
 						Str("stdout", b64so).
 						Str("stderr", b64se).
-						Str("error", goerr).
+						Str("error", res.Error).
 						Msg(step)
 					if plain {
-						stdWriter(stdout, stderr, goerr)
+						stdWriter(res.Stdout, res.Stderr, res.Error)
 					} else if !console {
-						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
+						serrLog.Error().Str("stdout", res.Stdout).Str("stderr", res.Stderr).Str("error", res.Error).Msg(step)
 					} else {
-						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
-						he, be, fe := conOutput(stderr, hostname, cSTDERR)
-						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(res.Stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(res.Stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(res.Error, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -1044,7 +1042,7 @@ func main() {
 						Str("id", id).
 						Str("stdout", b64so).
 						Str("stderr", b64se).
-						Str("error", goerr).
+						Str("error", res.Error).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					if !plain {
@@ -1056,12 +1054,12 @@ func main() {
 		log.Printf("Running %s…", script)
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
-		ret, stdout, stderr, goerr := nsargs.Run()
-		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
-		he, be, fe := conOutput(stderr, hostname, cSTDERR)
-		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
-		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+		ret, res := nsargs.Run()
+		ho, bo, fo := conOutput(res.Stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(res.Stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(res.Error, hostname, cSTDDBG)
+		b64so := base64.StdEncoding.EncodeToString([]byte(res.Stdout))
+		b64se := base64.StdEncoding.EncodeToString([]byte(res.Stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
@@ -1071,17 +1069,17 @@ func main() {
 				Str("code", b64sc).
 				Str("stdout", b64so).
 				Str("stderr", b64se).
-				Str("error", goerr).
+				Str("error", res.Error).
 				Msg(op)
 			if plain {
-				stdWriter(stdout, stderr, goerr)
+				stdWriter(res.Stdout, res.Stderr, res.Error)
 			} else if !console {
-				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+				serrLog.Error().Str("stdout", res.Stdout).Str("stderr", res.Stderr).Str("error", res.Error).Msg(op)
 			} else {
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(stdout))
+			scanner := bufio.NewScanner(strings.NewReader(res.Stdout))
 			for scanner.Scan() {
 				if scanner.Text() == cREPAIRED {
 					result = "repaired"
@@ -1093,12 +1091,12 @@ func main() {
 				Str("code", b64sc).
 				Str("stdout", b64so).
 				Str("stderr", b64se).
-				Str("error", goerr).
+				Str("error", res.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				stdWriter(stdout, stderr, goerr)
-			} else if stdout != "" || stderr != "" || goerr != "" {
+				stdWriter(res.Stdout, res.Stderr, res.Error)
+			} else if res.Stdout != "" || res.Stderr != "" || res.Error != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
@@ -1133,9 +1131,9 @@ func main() {
 			}
 			{
 				log.Printf("CONNECTION: checking for hostname match…")
-				ret, stdout, stderr, _ := ssha.Run()
+				ret, res := ssha.Run()
 				if ret {
-					sshhost := strings.Split(stdout, "\n")
+					sshhost := strings.Split(res.Stdout, "\n")
 					if realhost != sshhost[0] {
 						jsonLog.Error().
 							Str("app", "rr").
@@ -1156,7 +1154,7 @@ func main() {
 						}
 					}
 				} else {
-					hostErr := fmt.Sprintf("Host does not exist or unreachable. [%s]", stderr)
+					hostErr := fmt.Sprintf("Host does not exist or unreachable. [%s]", res.Stderr)
 					jsonLog.Error().
 						Str("app", "rr").
 						Str("id", id).
@@ -1167,7 +1165,7 @@ func main() {
 					} else if !console {
 						serrLog.Error().Str("host", realhost).Msg(hostErr)
 					} else {
-						log.Printf("%s does not exist or unreachable. [%s]", realhost, stderr)
+						log.Printf("%s does not exist or unreachable. [%s]", realhost, res.Stderr)
 					}
 					os.Exit(1)
 				}
@@ -1185,32 +1183,30 @@ func main() {
 				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				log.Printf("CONNECTION: copying %s to %s…", d, realhost)
 				var ret bool
-				var stdout string
-				var stderr string
-				var goerr string
+				var res lib.RunOut
 				if !opt.sudo {
-					ret, stdout, stderr, goerr = quickCopy(&opt, d)
+					ret, res = quickCopy(&opt, d)
 				} else {
-					ret, stdout, stderr, goerr = sudoCopy(&opt, d)
+					ret, res = sudoCopy(&opt, d)
 				}
-				b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+				b64so := base64.StdEncoding.EncodeToString([]byte(res.Stdout))
+				b64se := base64.StdEncoding.EncodeToString([]byte(res.Stderr))
 				if step := "copy"; !ret {
 					jsonLog.Error().
 						Str("app", "rr").
 						Str("id", id).
 						Str("stdout", b64so).
 						Str("stderr", b64se).
-						Str("error", goerr).
+						Str("error", res.Error).
 						Msg(step)
 					if plain {
-						stdWriter(stdout, stderr, goerr)
+						stdWriter(res.Stdout, res.Stderr, res.Error)
 					} else if !console {
-						serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(step)
+						serrLog.Error().Str("stdout", res.Stdout).Str("stderr", res.Stderr).Str("error", res.Error).Msg(step)
 					} else {
-						ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
-						he, be, fe := conOutput(stderr, hostname, cSTDERR)
-						hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
+						ho, bo, fo := conOutput(res.Stdout, hostname, cSTDOUT)
+						he, be, fe := conOutput(res.Stderr, hostname, cSTDERR)
+						hd, bd, fd := conOutput(res.Error, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
@@ -1221,7 +1217,7 @@ func main() {
 						Str("id", id).
 						Str("stdout", b64so).
 						Str("stderr", b64se).
-						Str("error", goerr).
+						Str("error", res.Error).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					if !plain {
@@ -1235,15 +1231,13 @@ func main() {
 		}
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
 		var ret bool
-		var stdout string
-		var stderr string
-		var goerr string
-		ret, stdout, stderr, goerr = sshExec(&opt, modscript)
-		ho, bo, fo := conOutput(stdout, hostname, cSTDOUT)
-		he, be, fe := conOutput(stderr, hostname, cSTDERR)
-		hd, bd, fd := conOutput(goerr, hostname, cSTDDBG)
-		b64so := base64.StdEncoding.EncodeToString([]byte(stdout))
-		b64se := base64.StdEncoding.EncodeToString([]byte(stderr))
+		var res lib.RunOut
+		ret, res = sshExec(&opt, modscript)
+		ho, bo, fo := conOutput(res.Stdout, hostname, cSTDOUT)
+		he, be, fe := conOutput(res.Stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(res.Error, hostname, cSTDDBG)
+		b64so := base64.StdEncoding.EncodeToString([]byte(res.Stdout))
+		b64se := base64.StdEncoding.EncodeToString([]byte(res.Stderr))
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
@@ -1253,17 +1247,17 @@ func main() {
 				Str("code", b64sc).
 				Str("stdout", b64so).
 				Str("stderr", b64se).
-				Str("error", goerr).
+				Str("error", res.Error).
 				Msg(op)
 			if plain {
-				stdWriter(stdout, stderr, goerr)
+				stdWriter(res.Stdout, res.Stderr, res.Error)
 			} else if !console {
-				serrLog.Error().Str("stdout", stdout).Str("stderr", stderr).Str("error", goerr).Msg(op)
+				serrLog.Error().Str("stdout", res.Stdout).Str("stderr", res.Stderr).Str("error", res.Error).Msg(op)
 			} else {
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(stdout))
+			scanner := bufio.NewScanner(strings.NewReader(res.Stdout))
 			for scanner.Scan() {
 				if scanner.Text() == cREPAIRED {
 					result = "repaired"
@@ -1275,12 +1269,12 @@ func main() {
 				Str("code", b64sc).
 				Str("stdout", b64so).
 				Str("stderr", b64se).
-				Str("error", goerr).
+				Str("error", res.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			if plain {
-				stdWriter(stdout, stderr, goerr)
-			} else if stdout != "" || stderr != "" || goerr != "" {
+				stdWriter(res.Stdout, res.Stderr, res.Error)
+			} else if res.Stdout != "" || res.Stderr != "" || res.Error != "" {
 				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
 			}
 		}
