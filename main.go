@@ -471,7 +471,6 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 
 func main() {
 	runtime.MemProfileRate = 0
-	defer lib.RecoverPanic()
 	var opt optT
 	var plain bool = false
 	var console bool = false
