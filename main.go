@@ -189,7 +189,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	}
 	log.Printf("CONNECTION: copying script…")
 	if ret, out := ssha.Run(); !ret {
-		return ret, out 
+		return ret, out
 	}
 	var ret bool
 	var out lib.RunOut
