@@ -1,0 +1,3 @@
+echo "$1" > "$ONE"
+echo "$2" > "$TWO"
+echo "$3" > "$THREE"
