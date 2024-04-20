@@ -65,7 +65,7 @@ func TestOp(T *testing.T) {
 func TestRepaired(T *testing.T) {
 	T.Parallel()
 	T.Run("repaired1", func(t *testing.T) {
-		rr := RunArg{Exe: cEXE, Args: []string{"repaired:noeol"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"repaired:nolinebreak"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
@@ -74,7 +74,7 @@ func TestRepaired(T *testing.T) {
 		}
 	})
 	T.Run("repaired2", func(t *testing.T) {
-		rr := RunArg{Exe: cEXE, Args: []string{"repaired:eol"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"repaired:linebreak"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
