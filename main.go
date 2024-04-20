@@ -530,14 +530,14 @@ func main() {
 		rrl, err := os.Open(cLOG)
 		defer rrl.Close()
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` in the current directory.", cLOG)
+			_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` in the current directory.\n", cLOG)
 			os.Exit(1)
 		}
 		var maxSz int
 		scanner := bufio.NewScanner(rrl)
 		rrlInfo, err := rrl.Stat()
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Unable to open `%s`.", cLOG)
+			_, _ = fmt.Fprintf(os.Stderr, "Unable to open `%s`.\n", cLOG)
 			os.Exit(1)
 		}
 		maxSz = int(rrlInfo.Size())
@@ -547,7 +547,7 @@ func main() {
 			log := make(map[string]string)
 			err := json.Unmarshal(scanner.Bytes(), &log)
 			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Unable to decode `%s`.", cLOG)
+				_, _ = fmt.Fprintf(os.Stderr, "Unable to decode `%s`.\n", cLOG)
 				os.Exit(1)
 			}
 			if log["duration"] != "" {
@@ -697,7 +697,7 @@ func main() {
 	}
 	if len(os.Args) < offset+1 {
 		if console {
-			_, _ = fmt.Fprintf(os.Stderr, "`namespace:script` not specified.")
+			_, _ = fmt.Fprintf(os.Stderr, "`namespace:script` not specified.\n")
 			os.Exit(2)
 		} else {
 			serrLog.Fatal().Msg("namespace:script not specified")
@@ -731,7 +731,7 @@ func main() {
 		namespace, script = s[0], s[1]
 		if !isDir(namespace) {
 			if console {
-				_, _ = fmt.Fprintf(os.Stderr, "`%s`(namespace) is not a directory.", namespace)
+				_, _ = fmt.Fprintf(os.Stderr, "`%s`(namespace) is not a directory.\n", namespace)
 				os.Exit(2)
 			} else {
 				serrLog.Fatal().Str("namespace", namespace).Msg("Namespace is not a directory")
@@ -740,7 +740,7 @@ func main() {
 		}
 		if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
 			if console {
-				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory.", namespace, script)
+				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory.\n", namespace, script)
 				os.Exit(2)
 			} else {
 				serrLog.Fatal().
@@ -752,7 +752,7 @@ func main() {
 		}
 		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
 			if console {
-				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.", namespace, script, cRUN)
+				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
 				os.Exit(2)
 			} else {
 				serrLog.Fatal().
@@ -779,13 +779,13 @@ func main() {
 		}
 		if isDir(namespace + "/.lib") {
 			if err := filepath.WalkDir(namespace+"/.lib", fnWalkDir); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/.lib", namespace)
+				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/.lib\n", namespace)
 				os.Exit(255)
 			}
 		}
 		if isDir(namespace + "/" + script + "/.lib") {
 			if err := filepath.WalkDir(namespace+"/"+script+"/.lib", fnWalkDir); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/%s/.lib", namespace, script)
+				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/%s/.lib\n", namespace, script)
 				os.Exit(255)
 			}
 		}
@@ -794,7 +794,7 @@ func main() {
 				str, err := getPassword("sudo password: ")
 				if err != nil {
 					if console {
-						_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.", namespace, script, cRUN)
+						_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
 						os.Exit(2)
 					} else {
 						serrLog.Fatal().
