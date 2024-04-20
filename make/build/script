@@ -3,4 +3,5 @@ mkdir -p bin
 ln -sf rr bin/rrv
 ln -sf rr bin/rrl
 ln -sf rr bin/rrp
+ln -sf rr bin/rrd
 
