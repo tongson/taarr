@@ -73,8 +73,7 @@ func TestArgs(T *testing.T) {
 	})
 	T.Run("args3", func(t *testing.T) {
 		vee := mkTemp()
-		vars := fmt.Sprintf("TEMPFILE=%s\n", vee)
-		StringToFile(cLIB, vars)
+		StringToFile(cLIB, fmt.Sprintf("TEMPFILE=%s\n", vee))
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args3", "-v"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
