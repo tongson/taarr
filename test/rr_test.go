@@ -85,19 +85,19 @@ func TestArgs(T *testing.T) {
 		})
 	})
 	// XXX: Might remove support for calls like this.
-	T.Run("args4", func(t *testing.T) {
+	T.Run("args4a", func(t *testing.T) {
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args4:1"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
 	})
-	T.Run("args5", func(t *testing.T) {
+	T.Run("args4b", func(t *testing.T) {
 		rr := RunArg{Exe: cEXE, Args: []string{"local", "args:args4:1"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
 	})
-	T.Run("args6", func(t *testing.T) {
+	T.Run("args4c", func(t *testing.T) {
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args6:1", "2", "3", "4"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
