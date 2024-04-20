@@ -12,6 +12,12 @@ import (
 const cLIB = ".lib/999-test.sh"
 const cEXE = "../bin/rr"
 
+func TestMain(m *testing.M) {
+	code := m.Run()
+	os.Remove("LOG")
+	os.Exit(code)
+}
+
 func TestRun(T *testing.T) {
 	T.Parallel()
 	T.Run("gl_simple1", func(t *testing.T) {
