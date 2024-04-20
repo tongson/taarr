@@ -1,4 +1,2 @@
-what_option_v() ( echo "v" > /tmp/.__rr_V )
+what_option_v() ( echo "v" > "$TEMPFILE" )
 dispatch what "$@"
-[ $(</tmp/.__rr_V) = "v" ] || { echo >&2 "Arg did not match!"; exit 1; }
-rm -f /tmp/.__rr_V

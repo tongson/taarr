@@ -72,10 +72,20 @@ func TestArgs(T *testing.T) {
 		})
 	})
 	T.Run("args3", func(t *testing.T) {
+		vee := mkTemp()
+		vars := fmt.Sprintf("TEMPFILE=%s\n", vee)
+		StringToFile(cLIB, vars)
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args3", "-v"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
+		if got := FileRead(vee); got != "v\n" {
+			t.Errorf("Unexpected contents of %s: `%s`\n", vee, got)
+		}
+		t.Cleanup(func() {
+			os.Remove(cLIB)
+			os.Remove(vee)
+		})
 	})
 	T.Run("args4", func(t *testing.T) {
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args4:1"}}
