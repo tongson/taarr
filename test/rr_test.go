@@ -38,7 +38,7 @@ func TestOp(T *testing.T) {
 	T.Parallel()
 	msg := "Somebody set up us the bomb"
 	T.Run("environment", func(t *testing.T) {
-        	env := []string{fmt.Sprintf("OP=%s", msg)}
+		env := []string{fmt.Sprintf("OP=%s", msg)}
 		rr := RunArg{Exe: cEXE, Args: []string{"op:env"}, Env: env}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
