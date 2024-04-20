@@ -153,9 +153,9 @@ func stdWriter(stdout string, stderr string, goerr string) {
 func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	tmps := fmt.Sprintf("./.__rr.scr.%s", (*o).id)
 	sshenv := []string{"LC_ALL=C"}
-	var ssha lib.RunArgs
-	var sshb lib.RunArgs
-	var sshc lib.RunArgs
+	var ssha lib.RunArg
+	var sshb lib.RunArg
+	var sshc lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
 			args := []string{
@@ -165,7 +165,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 				(*o).hostname,
 				fmt.Sprintf("cat - > %s", tmps),
 			}
-			ssha = lib.RunArgs{
+			ssha = lib.RunArg{
 				Exe:   "ssh",
 				Args:  args,
 				Env:   sshenv,
@@ -173,7 +173,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 			}
 		} else {
 			args := []string{"ssh", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
-			ssha = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte(script)}
+			ssha = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte(script)}
 		}
 	} else {
 		args := []string{
@@ -185,7 +185,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 			(*o).hostname,
 			fmt.Sprintf("cat - > %s", tmps),
 		}
-		ssha = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
+		ssha = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
 	log.Printf("CONNECTION: copying script…")
 	if ret, out := ssha.Run(); !ret {
@@ -197,10 +197,10 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		if !(*o).sudo {
 			if !(*o).teleport {
 				args := []string{"-a", "-T", "-x", (*o).hostname, (*o).interp, tmps}
-				sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv}
+				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 			} else {
 				args := []string{"ssh", (*o).hostname, (*o).interp, tmps}
-				sshb = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv}
+				sshb = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
 			}
 		} else {
 			if !(*o).teleport {
@@ -217,7 +217,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 					"--",
 					(*o).interp, tmps,
 				}
-				sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 			} else {
 				args := []string{
 					"ssh",
@@ -230,13 +230,13 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 					"--",
 					(*o).interp, tmps,
 				}
-				sshb = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+				sshb = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 			}
 		}
 	} else {
 		if !(*o).sudo {
 			args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, (*o).interp, tmps}
-			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		} else {
 			args := []string{
 				"-F",
@@ -254,7 +254,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 				(*o).interp,
 				tmps,
 			}
-			sshb = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
 	}
 	log.Printf("CONNECTION: running script…")
@@ -271,14 +271,14 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 				(*o).hostname,
 				fmt.Sprintf("rm -f %s", tmps),
 			}
-			sshc = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv}
+			sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 		} else {
 			args := []string{"ssh", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
-			sshc = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv}
+			sshc = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
 		}
 	} else {
 		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
-		sshc = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv}
+		sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 	}
 	log.Printf("CONNECTION: cleaning up…")
 	if xret, xout := sshc.Run(); !xret {
@@ -300,10 +300,10 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	`
 	tarexec := fmt.Sprintf(tarcmd, tmpd, tmpd, tmpf)
 	sshenv := []string{"LC_ALL=C"}
-	var untar1 lib.RunArgs
+	var untar1 lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
-			untar1 = lib.RunArgs{
+			untar1 = lib.RunArg{
 				Exe: "ssh",
 				Args: []string{
 					"-a",
@@ -316,7 +316,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Stdin: []byte(tarexec),
 			}
 		} else {
-			untar1 = lib.RunArgs{Exe: "tsh", Args: []string{
+			untar1 = lib.RunArg{Exe: "tsh", Args: []string{
 				"ssh",
 				(*o).hostname,
 				fmt.Sprintf("cat - > %s", tmpf)},
@@ -326,7 +326,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 		}
 	} else {
 		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}
-		untar1 = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(tarexec)}
+		untar1 = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(tarexec)}
 	}
 	if ret, out := untar1.Run(); !ret {
 		return ret, out
@@ -357,10 +357,10 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tar -C "$RRSRC" -cpzf - . | ssh -F "$RRCONFIG" -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
-	var untar2 lib.RunArgs
+	var untar2 lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
-			untar2 = lib.RunArgs{
+			untar2 = lib.RunArg{
 				Exe: (*o).interp,
 				Args: []string{
 					"-c",
@@ -369,14 +369,14 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Env: tarenv,
 			}
 		} else {
-			untar2 = lib.RunArgs{Exe: (*o).interp, Args: []string{
+			untar2 = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
 				fmt.Sprintf(teleportDefault, (*o).hostname, dir, tmpd, tmpf)},
 				Env: tarenv,
 			}
 		}
 	} else {
-		untar2 = lib.RunArgs{Exe: (*o).interp, Args: []string{
+		untar2 = lib.RunArg{Exe: (*o).interp, Args: []string{
 			"-c",
 			fmt.Sprintf(untarConfig, (*o).hostname, dir, tmpd, (*o).config, tmpf)},
 			Env: tarenv,
@@ -385,7 +385,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	if ret, out := untar2.Run(); !ret {
 		return ret, out
 	}
-	var untar3 lib.RunArgs
+	var untar3 lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
 			args := []string{
@@ -402,7 +402,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				(*o).interp,
 				tmpf,
 			}
-			untar3 = lib.RunArgs{
+			untar3 = lib.RunArg{
 				Exe:   "ssh",
 				Args:  args,
 				Env:   sshenv,
@@ -410,7 +410,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 			}
 		} else {
 			args := []string{"ssh", (*o).hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", (*o).interp, tmpf}
-			untar3 = lib.RunArgs{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+			untar3 = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
 	} else {
 		args := []string{"-F",
@@ -427,7 +427,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 			"--",
 			(*o).interp, tmpf,
 		}
-		untar3 = lib.RunArgs{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+		untar3 = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 	}
 	return untar3.Run()
 }
@@ -445,23 +445,23 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tar -C %s -cpzf - . | ssh -F %s -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
-	var untar lib.RunArgs
+	var untar lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
-			untar = lib.RunArgs{
+			untar = lib.RunArg{
 				Exe:  (*o).interp,
 				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)},
 				Env:  tarenv,
 			}
 		} else {
-			untar = lib.RunArgs{Exe: (*o).interp, Args: []string{
+			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
 				fmt.Sprintf(untarTeleport, dir, (*o).hostname)},
 				Env: tarenv,
 			}
 		}
 	} else {
-		untar = lib.RunArgs{Exe: (*o).interp, Args: []string{"-c",
+		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
 			fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)},
 			Env: tarenv,
 		}
@@ -881,7 +881,7 @@ func main() {
 					Str("id", id).
 					Str("directory", d).
 					Msg("copying")
-				rargs := lib.RunArgs{
+				rargs := lib.RunArg{
 					Exe:  interp,
 					Args: []string{"-c", fmt.Sprintf(untar, d)},
 				}
@@ -939,7 +939,7 @@ func main() {
 			log.Printf("%s…", msgop)
 			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg(msgop)
 		}
-		rargs := lib.RunArgs{Exe: interp, Stdin: []byte(modscript)}
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(modscript)}
 		ret, out := rargs.Run()
 		ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
@@ -1004,7 +1004,7 @@ func main() {
 				untar := `
 				tar -C %s -cf - . | tar -C %s --no-same-owner --overwrite -omxpf -
 				`
-				rsargs := lib.RunArgs{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, destination)}, Env: tarenv}
+				rsargs := lib.RunArg{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, destination)}, Env: tarenv}
 				ret, out := rsargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
@@ -1045,7 +1045,7 @@ func main() {
 		}
 		log.Printf("Running %s…", script)
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
-		nsargs := lib.RunArgs{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
+		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
 		ret, out := nsargs.Run()
 		ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
@@ -1104,15 +1104,15 @@ func main() {
 		}
 		{
 			sshenv := []string{"LC_ALL=C"}
-			var ssha lib.RunArgs
+			var ssha lib.RunArg
 			if opt.config == "" || opt.teleport {
 				if !opt.teleport {
-					ssha = lib.RunArgs{Exe: "ssh", Args: []string{"-T", "-x", opt.hostname, "uname -n"}, Env: sshenv}
+					ssha = lib.RunArg{Exe: "ssh", Args: []string{"-T", "-x", opt.hostname, "uname -n"}, Env: sshenv}
 				} else {
-					ssha = lib.RunArgs{Exe: "tsh", Args: []string{"ssh", opt.hostname, "uname -n"}, Env: sshenv}
+					ssha = lib.RunArg{Exe: "tsh", Args: []string{"ssh", opt.hostname, "uname -n"}, Env: sshenv}
 				}
 			} else {
-				ssha = lib.RunArgs{Exe: "ssh", Args: []string{
+				ssha = lib.RunArg{Exe: "ssh", Args: []string{
 					"-F",
 					opt.config,
 					"-T",
