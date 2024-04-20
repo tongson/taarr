@@ -120,7 +120,7 @@ func TestReadme(T *testing.T) {
 			t.Error("wants `true`")
 		} else {
 			stdout := o.Stdout
-			if got := strings.Split(stdout , "\n")[3]; got != "TEST" {
+			if got := strings.Split(stdout, "\n")[3]; got != "TEST" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
 			if got := strings.Split(stdout, "\n")[4]; got != "README" {
