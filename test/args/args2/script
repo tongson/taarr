@@ -1,0 +1,5 @@
+whatever_command_one()
+{
+    echo "$1" > "$ONE"
+}
+dispatch whatever "$@"

@@ -1,0 +1,2 @@
+what_option_v() ( echo "v" > "$TEMPFILE" )
+dispatch what "$@"
