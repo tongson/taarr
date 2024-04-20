@@ -140,3 +140,18 @@ func TestReadme(T *testing.T) {
 	})
 }
 
+func TestInterpreter(T *testing.T) {
+	T.Parallel()
+	T.Run("interpreter/python", func(t *testing.T) {
+		// One directory down. CWD is `interpreter`.
+		// ../../bin/rrp to force output.
+		rr := RunArg{Exe: "../" + cEXE + "p", Args: []string{"shell:python"}, Dir: "interpreter"}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			if got := o.Stdout; got != "__main__\n" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+	})
+}
