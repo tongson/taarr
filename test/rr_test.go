@@ -3,6 +3,7 @@ package rr
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	. "github.com/tongson/gl"
@@ -10,6 +11,12 @@ import (
 
 const cLIB = ".lib/999-test.sh"
 const cEXE = "../bin/rr"
+
+func TestMain(m *testing.M) {
+	code := m.Run()
+	os.Remove("LOG")
+	os.Exit(code)
+}
 
 func TestRun(T *testing.T) {
 	T.Parallel()
@@ -23,6 +30,56 @@ func TestRun(T *testing.T) {
 		exe := RunArg{Exe: "false"}
 		if ret, _ := exe.Run(); ret {
 			t.Error("wants `false`")
+		}
+	})
+}
+
+func TestOp(T *testing.T) {
+	T.Parallel()
+	msg := "Somebody set up us the bomb"
+	T.Run("environment", func(t *testing.T) {
+		env := []string{fmt.Sprintf("OP=%s", msg)}
+		rr := RunArg{Exe: cEXE, Args: []string{"op:env"}, Env: env}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), msg); !got {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("file", func(t *testing.T) {
+		StringToFile("OP", msg)
+		rr := RunArg{Exe: cEXE, Args: []string{"op:file"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), msg); !got {
+			t.Error("wants `true`")
+		}
+		t.Cleanup(func() {
+			os.Remove("OP")
+		})
+	})
+}
+
+func TestRepaired(T *testing.T) {
+	T.Parallel()
+	T.Run("repaired1", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"repaired:noeol"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), "\"message\":\"repaired\""); !got {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("repaired2", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"repaired:eol"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), "\"message\":\"repaired\""); !got {
+			t.Error("wants `true`")
 		}
 	})
 }
@@ -101,6 +158,56 @@ func TestArgs(T *testing.T) {
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args6:1", "2", "3", "4"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
+		}
+	})
+}
+
+func TestReadme(T *testing.T) {
+	T.Parallel()
+	T.Run("readme1", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"readme/check"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			stdout := o.Stdout
+			if got := strings.Split(stdout, "\n")[3]; got != "TEST" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+			if got := strings.Split(stdout, "\n")[4]; got != "README" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+
+	})
+	T.Run("readme2", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"readme/check/"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			stdout := o.Stdout
+			if got := strings.Split(stdout, "\n")[3]; got != "TEST" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+			if got := strings.Split(stdout, "\n")[4]; got != "README" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+
+	})
+}
+
+func TestInterpreter(T *testing.T) {
+	T.Parallel()
+	T.Run("interpreter/python", func(t *testing.T) {
+		// One directory down. CWD is `interpreter`.
+		// ../../bin/rrp to force output.
+		rr := RunArg{Exe: "../" + cEXE + "p", Args: []string{"shell:python"}, Dir: "interpreter"}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			if got := o.Stdout; got != "__main__\n" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
 		}
 	})
 }
