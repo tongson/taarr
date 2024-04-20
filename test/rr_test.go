@@ -3,6 +3,7 @@ package rr
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	. "github.com/tongson/gl"
@@ -104,3 +105,38 @@ func TestArgs(T *testing.T) {
 		}
 	})
 }
+
+func TestReadme(T *testing.T) {
+	T.Parallel()
+	T.Run("readme1", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"readme/check"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			read := o.Stdout
+			if got := strings.Split(read, "\n")[3]; got != "TEST" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+			if got := strings.Split(read, "\n")[4]; got != "README" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+
+	})
+	T.Run("readme2", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"readme/check/"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			read := o.Stdout
+			if got := strings.Split(read, "\n")[3]; got != "TEST" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+			if got := strings.Split(read, "\n")[4]; got != "README" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+
+	})
+}
+
