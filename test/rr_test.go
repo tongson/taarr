@@ -18,6 +18,22 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func TestRun(T *testing.T) {
+	T.Parallel()
+	T.Run("gl_simple1", func(t *testing.T) {
+		exe := RunArg{Exe: "true"}
+		if ret, _ := exe.Run(); !ret {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("gl_simple2", func(t *testing.T) {
+		exe := RunArg{Exe: "false"}
+		if ret, _ := exe.Run(); ret {
+			t.Error("wants `false`")
+		}
+	})
+}
+
 func TestOp(T *testing.T) {
 	T.Parallel()
 	msg := "Somebody set up us the bomb"
@@ -43,22 +59,6 @@ func TestOp(T *testing.T) {
 		t.Cleanup(func() {
 			os.Remove("OP")
 		})
-	})
-}
-
-func TestRun(T *testing.T) {
-	T.Parallel()
-	T.Run("gl_simple1", func(t *testing.T) {
-		exe := RunArg{Exe: "true"}
-		if ret, _ := exe.Run(); !ret {
-			t.Error("wants `true`")
-		}
-	})
-	T.Run("gl_simple2", func(t *testing.T) {
-		exe := RunArg{Exe: "false"}
-		if ret, _ := exe.Run(); ret {
-			t.Error("wants `false`")
-		}
 	})
 }
 
