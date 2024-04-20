@@ -9,7 +9,7 @@ import (
 )
 
 const cLIB = ".lib/999-test.sh"
-const cRR = "../bin/rr"
+const cEXE = "../bin/rr"
 
 func TestRun(T *testing.T) {
 	T.Parallel()
@@ -35,7 +35,7 @@ func TestArgs(T *testing.T) {
 		three := mkTemp()
 		vars := fmt.Sprintf("ONE=%s\nTWO=%s\nTHREE=%s\n", one, two, three)
 		StringToFile(cLIB, vars)
-		rr := RunArg{Exe: cRR, Args: []string{"args:args1", "--one", "--two", "--three"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"args:args1", "--one", "--two", "--three"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
@@ -59,7 +59,7 @@ func TestArgs(T *testing.T) {
 		one := mkTemp()
 		vars := fmt.Sprintf("ONE=%s\n", one)
 		StringToFile(cLIB, vars)
-		rr := RunArg{Exe: cRR, Args: []string{"args:args2", "one", "1"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"args:args2", "one", "1"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
@@ -72,25 +72,25 @@ func TestArgs(T *testing.T) {
 		})
 	})
 	T.Run("args3", func(t *testing.T) {
-		rr := RunArg{Exe: cRR, Args: []string{"args:args3", "-v"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"args:args3", "-v"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
 	})
 	T.Run("args4", func(t *testing.T) {
-		rr := RunArg{Exe: cRR, Args: []string{"args:args4:1"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"args:args4:1"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
 	})
 	T.Run("args5", func(t *testing.T) {
-		rr := RunArg{Exe: cRR, Args: []string{"local", "args:args4:1"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"local", "args:args4:1"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
 	})
 	T.Run("args6", func(t *testing.T) {
-		rr := RunArg{Exe: cRR, Args: []string{"args:args6:1", "2", "3", "4"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"args:args6:1", "2", "3", "4"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
