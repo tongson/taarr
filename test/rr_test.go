@@ -113,11 +113,11 @@ func TestReadme(T *testing.T) {
 		if x, o := rr.Run(); !x {
 			t.Error("wants `true`")
 		} else {
-			read := o.Stdout
-			if got := strings.Split(read, "\n")[3]; got != "TEST" {
+			stdout := o.Stdout
+			if got := strings.Split(stdout , "\n")[3]; got != "TEST" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
-			if got := strings.Split(read, "\n")[4]; got != "README" {
+			if got := strings.Split(stdout, "\n")[4]; got != "README" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
 		}
@@ -128,11 +128,11 @@ func TestReadme(T *testing.T) {
 		if x, o := rr.Run(); !x {
 			t.Error("wants `true`")
 		} else {
-			read := o.Stdout
-			if got := strings.Split(read, "\n")[3]; got != "TEST" {
+			stdout := o.Stdout
+			if got := strings.Split(stdout, "\n")[3]; got != "TEST" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
-			if got := strings.Split(read, "\n")[4]; got != "README" {
+			if got := strings.Split(stdout, "\n")[4]; got != "README" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
 		}
