@@ -62,6 +62,28 @@ func TestOp(T *testing.T) {
 	})
 }
 
+func TestRepaired(T *testing.T) {
+	T.Parallel()
+	T.Run("repaired1", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"repaired:noeol"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), "\"message\":\"repaired\""); !got {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("repaired2", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"repaired:eol"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), "\"message\":\"repaired\""); !got {
+			t.Error("wants `true`")
+		}
+	})
+}
+
 func TestArgs(T *testing.T) {
 	T.Parallel()
 	T.Run("args1", func(t *testing.T) {
