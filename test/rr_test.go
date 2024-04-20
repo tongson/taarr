@@ -33,8 +33,7 @@ func TestArgs(T *testing.T) {
 		one := mkTemp()
 		two := mkTemp()
 		three := mkTemp()
-		vars := fmt.Sprintf("ONE=%s\nTWO=%s\nTHREE=%s\n", one, two, three)
-		StringToFile(cLIB, vars)
+		StringToFile(cLIB, fmt.Sprintf("ONE=%s\nTWO=%s\nTHREE=%s\n", one, two, three))
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args1", "--one", "--two", "--three"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
@@ -57,8 +56,7 @@ func TestArgs(T *testing.T) {
 	})
 	T.Run("args2", func(t *testing.T) {
 		one := mkTemp()
-		vars := fmt.Sprintf("ONE=%s\n", one)
-		StringToFile(cLIB, vars)
+		StringToFile(cLIB, fmt.Sprintf("ONE=%s\n", one))
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args2", "one", "1"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
