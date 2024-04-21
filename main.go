@@ -284,6 +284,11 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 }
 
 func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
+	// Four stage connection for ssh+sudo untar
+	// 1. ssh hostname 'cat - > untar.sh'
+	// 2. ssh hostname 'mkdir dir'
+	// 3. sh -c 'tar -czf - | ssh hostname 'tar -xf -'
+	// 4. ssh hostname 'sudo untar.sh'
 	tmpd := fmt.Sprintf(".__rr.dir.%s", (*o).id)
 	tmpf := fmt.Sprintf("./.__rr.tar.%s", (*o).id)
 	tarcmd := `
