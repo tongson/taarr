@@ -1215,9 +1215,9 @@ func main() {
 						Str("stderr", b64se).
 						Str("error", out.Error).
 						Msg(step)
-					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
+						jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg(step)
 					if !plain {
-						log.Printf("Copied files")
+						log.Printf("Finished copying")
 					}
 				}
 			}
