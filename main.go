@@ -44,7 +44,7 @@ const cSTDERR = " ┌─ stderr"
 const cSTDDBG = " ┌─ debug"
 const cFOOTER = " └─"
 
-const cTARC = "--no-same-owner --no-same-permission"
+const cTARC = "--no-same-owner --no-same-permissions"
 const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acls --no-selinux --no-xattrs --touch"
 
 type logWriter struct {
