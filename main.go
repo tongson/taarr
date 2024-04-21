@@ -186,6 +186,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		}
 		ssha = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
+	// ssh hostname 'cat - > src'
 	log.Printf("CONNECTION: copying script…")
 	if ret, out := ssha.Run(); !ret {
 		return ret, out
@@ -252,6 +253,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
 	}
+	// ssh hostname sh src
 	log.Printf("CONNECTION: running script…")
 	ret, out = sshb.Run()
 	if !ret {
@@ -273,6 +275,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		args := []string{"-F", (*o).config, "-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
 		sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 	}
+	// ssh hostname rm -f src
 	log.Printf("CONNECTION: cleaning up…")
 	if xret, xout := sshc.Run(); !xret {
 		return xret, xout
