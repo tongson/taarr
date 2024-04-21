@@ -289,6 +289,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	// 2. ssh hostname 'mkdir dir'
 	// 3. sh -c 'tar -czf - | ssh hostname 'tar -xf -'
 	// 4. ssh hostname 'sudo untar.sh'
+	// Why four connections? sudo STDIN is for the password
 	tmpd := fmt.Sprintf(".__rr.dir.%s", (*o).id)
 	tmpf := fmt.Sprintf("./.__rr.tar.%s", (*o).id)
 	tarcmd := `
