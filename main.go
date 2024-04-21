@@ -865,7 +865,7 @@ func main() {
                 LC_ALL=C
                 set -o errexit -o nounset -o noglob
                 unset IFS
-                tar -C %s %s -cf - . | tar -C / %s -xf -
+                tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
                 `
 		for _, d := range []string{
 			".files",
@@ -889,45 +889,19 @@ func main() {
 					Exe:  interp,
 					Args: []string{"-c", fmt.Sprintf(untar, d, cTARC, cTARX)},
 				}
-				ret, out := rargs.Run()
+				_, out := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-				if step := "copy"; !ret {
-					jsonLog.Error().
-						Str("app", "rr").
-						Str("id", id).
-						Str("stdout", b64so).
-						Str("stderr", b64se).
-						Str("error", out.Error).
-						Msg(step)
-					if plain {
-						stdWriter(out.Stdout, out.Stderr, out.Error)
-					} else if !console {
-						serrLog.Error().
-							Str("stdout", out.Stdout).
-							Str("stderr", out.Stderr).
-							Str("error", out.Error).
-							Msg(step)
-					} else {
-						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
-						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
-						hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
-						log.Printf("Failure copying files!")
-					}
-					os.Exit(1)
-				} else {
-					jsonLog.Debug().
-						Str("app", "rr").
-						Str("id", id).
-						Str("stdout", b64so).
-						Str("stderr", b64se).
-						Str("error", out.Error).
-						Msg(step)
-					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					if !plain {
-						log.Printf("Successfully copied files")
-					}
+				jsonLog.Debug().
+					Str("app", "rr").
+					Str("id", id).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", out.Error).
+					Msg("copy")
+				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg("copy")
+				if !plain {
+					log.Printf("Finished copying")
 				}
 			}
 		}
