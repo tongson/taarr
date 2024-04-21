@@ -30,14 +30,14 @@ const versionNumber = "1.0.4"
 const codeName = "\"Revocable Marsh\""
 
 // constants
-const cOP       = "OP"
-const cHOSTS    = "HOSTS"
-const cLOG      = "LOG"
+const cOP = "OP"
+const cHOSTS = "HOSTS"
+const cLOG = "LOG"
 const cREPAIRED = "__REPAIRED__"
-const cRUN      = "script"
-const cINTERP   = "shell"
-const cDOC      = "readme"
-const cTIME     = "02 Jan 06 15:04"
+const cRUN = "script"
+const cINTERP = "shell"
+const cDOC = "readme"
+const cTIME = "02 Jan 06 15:04"
 
 const cSTDOUT = " ┌─ stdout"
 const cSTDERR = " ┌─ stderr"
@@ -1215,7 +1215,7 @@ func main() {
 						Str("stderr", b64se).
 						Str("error", out.Error).
 						Msg(step)
-						jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg(step)
+					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg(step)
 					if !plain {
 						log.Printf("Finished copying")
 					}
