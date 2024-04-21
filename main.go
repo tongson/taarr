@@ -437,15 +437,16 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 
 func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	untarDefault := `
-	set -o errexit -o nounset -o noglob
-	tar -C %s %s -czf - . | ssh -a -T -x %s tar -C / %s -xzf -
+	set -o nounset -o noglob
+	tar -C %s %s -czf - . | ssh -a -T -x %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarTeleport := `
-	set -o errexit -o nounset -o noglob
-	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s -xzf -
+	set -o nounset -o noglob
+	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarConfig := `
-	tar -C %s %s -czf - . | ssh -F %s -a -T -x %s tar -C / %s -xzf -
+	set -o nounset -o noglob
+	tar -C %s %s -czf - . | ssh -F %s -a -T -x %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar lib.RunArg
@@ -1186,7 +1187,7 @@ func main() {
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-				if step := "copy"; !ret {
+				if step := "copy"; !ret && opt.sudo {
 					jsonLog.Error().
 						Str("app", "rr").
 						Str("id", id).
@@ -1216,7 +1217,7 @@ func main() {
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
 					if !plain {
-						log.Printf("Successfully copied files")
+						log.Printf("Copied files")
 					}
 				}
 			}
