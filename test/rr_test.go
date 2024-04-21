@@ -211,3 +211,31 @@ func TestInterpreter(T *testing.T) {
 		}
 	})
 }
+
+func TestFiles(T *testing.T) {
+	T.Parallel()
+	T.Run("local", func(t *testing.T) {
+		x := "/tmp/__rr_XXX"
+		y := "/tmp/__rr_YYY"
+		z := "/tmp/__rr_ZZZ"
+		rr := RunArg{Exe: cEXE, Args: []string{"files:local"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if !IsDir(x) {
+			t.Error("wants `true`")
+		}
+		if !IsDir(y) {
+			t.Error("wants `true`")
+		}
+		if !IsFile(z) {
+			t.Error("wants `true`")
+		}
+		t.Cleanup(func() {
+			os.Remove(x)
+			os.Remove(y)
+			os.Remove(z)
+		})
+
+	})
+}
