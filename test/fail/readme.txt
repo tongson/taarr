@@ -1,1 +1,0 @@
-gede in ns
