@@ -30,19 +30,22 @@ const versionNumber = "1.0.4"
 const codeName = "\"Revocable Marsh\""
 
 // constants
-const cOP       = "OP"
-const cHOSTS    = "HOSTS"
-const cLOG      = "LOG"
+const cOP = "OP"
+const cHOSTS = "HOSTS"
+const cLOG = "LOG"
 const cREPAIRED = "__REPAIRED__"
-const cRUN      = "script"
-const cINTERP   = "shell"
-const cDOC      = "readme"
-const cTIME     = "02 Jan 06 15:04"
+const cRUN = "script"
+const cINTERP = "shell"
+const cDOC = "readme"
+const cTIME = "02 Jan 06 15:04"
 
 const cSTDOUT = " ┌─ stdout"
 const cSTDERR = " ┌─ stderr"
 const cSTDDBG = " ┌─ debug"
 const cFOOTER = " └─"
+
+const cTARC = "--no-same-owner --no-same-permissions"
+const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acls --no-selinux --no-xattrs --touch"
 
 type logWriter struct {
 }
@@ -294,11 +297,11 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	set -efu
 	LC_ALL=C
 	unset IFS
-	tar -C %s -cpf - . | tar -C / --overwrite --no-same-owner -ompxf -
+	tar -C %s %s -cf - . | tar -C / %s -xf -
 	rm -rf %s
 	rm -f %s
 	`
-	tarexec := fmt.Sprintf(tarcmd, tmpd, tmpd, tmpf)
+	tarexec := fmt.Sprintf(tarcmd, tmpd, cTARC, cTARX, tmpd, tmpf)
 	sshenv := []string{"LC_ALL=C"}
 	var untar1 lib.RunArg
 	if (*o).config == "" || (*o).teleport {
@@ -337,7 +340,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	RRDEST="%s"
 	RRSCRIPT="%s"
 	ssh -T -x "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" -cpzf - . | ssh -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
+	tar -C "$RRSRC" %s -czf - . | ssh -a -T -x "$RRHOST" tar -C "$RRDEST" %s -xzf -
 	`
 	teleportDefault := `
 	RRHOST="%s"
@@ -345,7 +348,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	RRDEST="%s"
 	RRSCRIPT="%s"
 	tsh ssh "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" -cpzf - . | tsh ssh "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
+	tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar -C "$RRDEST" %s -xzf -
 	`
 	untarConfig := `
 	RRHOST="%s"
@@ -354,7 +357,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	RRCONFIG="%s"
 	RRSCRIPT="%s"
 	ssh -F "$RRCONFIG" -T -x "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" -cpzf - . | ssh -F "$RRCONFIG" -a -T -x "$RRHOST" tar -C "$RRDEST" --no-same-owner -omxpzf -
+	tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -a -T -x "$RRHOST" tar -C "$RRDEST" %s -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArg
@@ -364,21 +367,21 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Exe: (*o).interp,
 				Args: []string{
 					"-c",
-					fmt.Sprintf(untarDefault, (*o).hostname, dir, tmpd, tmpf),
+					fmt.Sprintf(untarDefault, (*o).hostname, dir, tmpd, tmpf, cTARC, cTARX),
 				},
 				Env: tarenv,
 			}
 		} else {
 			untar2 = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
-				fmt.Sprintf(teleportDefault, (*o).hostname, dir, tmpd, tmpf)},
+				fmt.Sprintf(teleportDefault, (*o).hostname, dir, tmpd, tmpf, cTARC, cTARX)},
 				Env: tarenv,
 			}
 		}
 	} else {
 		untar2 = lib.RunArg{Exe: (*o).interp, Args: []string{
 			"-c",
-			fmt.Sprintf(untarConfig, (*o).hostname, dir, tmpd, (*o).config, tmpf)},
+			fmt.Sprintf(untarConfig, (*o).hostname, dir, tmpd, (*o).config, tmpf, cTARC, cTARX)},
 			Env: tarenv,
 		}
 	}
@@ -434,15 +437,16 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 
 func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	untarDefault := `
-	set -o errexit -o nounset -o noglob
-	tar -C %s -cpzf - . | ssh -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
+	set -o nounset -o noglob
+	tar -C %s %s -czf - . | ssh -a -T -x %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarTeleport := `
-	set -o errexit -o nounset -o noglob
-	tar -C %s -cpzf - . | tsh ssh %s tar -C / --overwrite --no-same-owner -omxpzf -
+	set -o nounset -o noglob
+	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarConfig := `
-	tar -C %s -cpzf - . | ssh -F %s -a -T -x %s tar -C / --overwrite --no-same-owner -omxpzf -
+	set -o nounset -o noglob
+	tar -C %s %s -czf - . | ssh -F %s -a -T -x %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar lib.RunArg
@@ -450,19 +454,19 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 		if !(*o).teleport {
 			untar = lib.RunArg{
 				Exe:  (*o).interp,
-				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)},
+				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, cTARC, (*o).hostname, cTARX)},
 				Env:  tarenv,
 			}
 		} else {
 			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
-				fmt.Sprintf(untarTeleport, dir, (*o).hostname)},
+				fmt.Sprintf(untarTeleport, dir, cTARC, (*o).hostname), cTARX},
 				Env: tarenv,
 			}
 		}
 	} else {
 		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)},
+			fmt.Sprintf(untarConfig, dir, cTARC, (*o).config, (*o).hostname), cTARX},
 			Env: tarenv,
 		}
 	}
@@ -861,7 +865,7 @@ func main() {
                 LC_ALL=C
                 set -o errexit -o nounset -o noglob
                 unset IFS
-                tar -C %s -cpf - . | tar -C / --no-same-owner -ompxf -
+                tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
                 `
 		for _, d := range []string{
 			".files",
@@ -883,47 +887,21 @@ func main() {
 					Msg("copying")
 				rargs := lib.RunArg{
 					Exe:  interp,
-					Args: []string{"-c", fmt.Sprintf(untar, d)},
+					Args: []string{"-c", fmt.Sprintf(untar, d, cTARC, cTARX)},
 				}
-				ret, out := rargs.Run()
+				_, out := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-				if step := "copy"; !ret {
-					jsonLog.Error().
-						Str("app", "rr").
-						Str("id", id).
-						Str("stdout", b64so).
-						Str("stderr", b64se).
-						Str("error", out.Error).
-						Msg(step)
-					if plain {
-						stdWriter(out.Stdout, out.Stderr, out.Error)
-					} else if !console {
-						serrLog.Error().
-							Str("stdout", out.Stdout).
-							Str("stderr", out.Stderr).
-							Str("error", out.Error).
-							Msg(step)
-					} else {
-						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
-						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
-						hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
-						log.Printf("Failure copying files!")
-					}
-					os.Exit(1)
-				} else {
-					jsonLog.Debug().
-						Str("app", "rr").
-						Str("id", id).
-						Str("stdout", b64so).
-						Str("stderr", b64se).
-						Str("error", out.Error).
-						Msg(step)
-					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					if !plain {
-						log.Printf("Successfully copied files")
-					}
+				jsonLog.Debug().
+					Str("app", "rr").
+					Str("id", id).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", out.Error).
+					Msg("copy")
+				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg("copy")
+				if !plain {
+					log.Printf("Finished copying")
 				}
 			}
 		}
@@ -1002,9 +980,9 @@ func main() {
 				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				tarenv := []string{"LC_ALL=C"}
 				untar := `
-				tar -C %s -cf - . | tar -C %s --no-same-owner --overwrite -omxpf -
+				tar -C %s %s -cf - . | tar -C %s %s -xf -
 				`
-				rsargs := lib.RunArg{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, destination)}, Env: tarenv}
+				rsargs := lib.RunArg{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, cTARC, destination, cTARX)}, Env: tarenv}
 				ret, out := rsargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
@@ -1183,7 +1161,7 @@ func main() {
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-				if step := "copy"; !ret {
+				if step := "copy"; !ret && opt.sudo {
 					jsonLog.Error().
 						Str("app", "rr").
 						Str("id", id).
@@ -1211,9 +1189,9 @@ func main() {
 						Str("stderr", b64se).
 						Str("error", out.Error).
 						Msg(step)
-					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
+					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg(step)
 					if !plain {
-						log.Printf("Successfully copied files")
+						log.Printf("Finished copying")
 					}
 				}
 			}
