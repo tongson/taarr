@@ -1,0 +1,4 @@
+DIR="/chroot/rr"
+mkdir -p test/.ssh
+cp "$DIR"/home/foo/.ssh/key test/.ssh/foo
+cp "$DIR"/home/bar/.ssh/key test/.ssh/bar
