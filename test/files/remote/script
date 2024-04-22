@@ -1,0 +1,13 @@
+A="ok"
+test -d /tmp/__rr_XXX || A="failed"
+test -d /tmp/__rr_YYY || A="failed"
+test -f /tmp/__rr_ZZZ || A="failed"
+rmdir /tmp/__rr_XXX
+rmdir /tmp/__rr_YYY
+rm -f /tmp/__rr_ZZZ
+if [ "$A" = "ok" ]
+then
+	exit 0
+else
+	exit 1
+fi
