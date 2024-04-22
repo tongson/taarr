@@ -1,0 +1,4 @@
+Host chroot
+Hostname 127.0.0.1
+Port 10022
+IdentityFile .ssh/%r
