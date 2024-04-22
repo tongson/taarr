@@ -453,13 +453,13 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 		} else {
 			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
-				fmt.Sprintf(untarTeleport, dir, cTARC, (*o).hostname), cTARX},
+				fmt.Sprintf(untarTeleport, dir, cTARC, (*o).hostname, cTARX)},
 				Env: tarenv,
 			}
 		}
 	} else {
 		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(untarConfig, dir, cTARC, (*o).config, (*o).hostname), cTARX},
+			fmt.Sprintf(untarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
 			Env: tarenv,
 		}
 	}
