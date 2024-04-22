@@ -1144,47 +1144,24 @@ func main() {
 			if isDir(d) {
 				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				log.Printf("CONNECTION: copying %s to %s…", d, realhost)
-				var ret bool
 				var out lib.RunOut
 				if !opt.sudo {
-					ret, out = quickCopy(&opt, d)
+					_, out = quickCopy(&opt, d)
 				} else {
-					ret, out = sudoCopy(&opt, d)
+					_, out = sudoCopy(&opt, d)
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-				if step := "copy"; !ret && opt.sudo {
-					jsonLog.Error().
-						Str("app", "rr").
-						Str("id", id).
-						Str("stdout", b64so).
-						Str("stderr", b64se).
-						Str("error", out.Error).
-						Msg(step)
-					if plain {
-						stdWriter(out.Stdout, out.Stderr, out.Error)
-					} else if !console {
-						serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(step)
-					} else {
-						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
-						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
-						hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
-						log.Printf("Failure copying files!")
-					}
-					os.Exit(1)
-				} else {
-					jsonLog.Debug().
-						Str("app", "rr").
-						Str("id", id).
-						Str("stdout", b64so).
-						Str("stderr", b64se).
-						Str("error", out.Error).
-						Msg(step)
-					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg(step)
-					if !plain {
-						log.Printf("Finished copying")
-					}
+				jsonLog.Debug().
+					Str("app", "rr").
+					Str("id", id).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", out.Error).
+					Msg("copy")
+				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg("copy")
+				if !plain {
+					log.Printf("Finished copying")
 				}
 			}
 		}
