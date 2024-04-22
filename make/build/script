@@ -4,4 +4,5 @@ ln -sf rr bin/rrv
 ln -sf rr bin/rrl
 ln -sf rr bin/rrp
 ln -sf rr bin/rrd
-
+ln -sf rr bin/rrs
+ln -sf rr bin/rru
