@@ -1,0 +1,76 @@
+# systemd-nspawn -x -b -D
+DIR="/chroot/rr"
+DIST="bookworm"
+
+test -d "$DIR" || debootstrap "$DIST" "$DIR"
+
+systemd-nspawn -P -D "$DIR" -- dash -s <<-END_UPDATE;
+	apt-get update
+END_UPDATE
+
+test -f "$DIR"/usr/sbin/sshd || systemd-nspawn -P -D "$DIR" -- dash -s <<-END_SSHD;
+	env DEBIAN_FRONTEND=noninteractive apt-get install -y openssh-server
+END_SSHD
+
+test -f "$DIR"/usr/bin/sudo || systemd-nspawn -P -D "$DIR" -- dash -s <<-END_SUDO;
+	export DEBIAN_FRONTEND=noninteractive
+	apt-get install -y sudo
+	apt-get remove -y cron
+END_SUDO
+
+test -d "$DIR"/home/foo || systemd-nspawn -P -D "$DIR" -- dash -s <<-END_USERS;
+	useradd -d /home/foo -m -U foo
+	useradd -d /home/bar -m -U bar
+END_USERS
+
+test -f "$DIR"/home/foo/.ssh/authorized_keys || systemd-nspawn -P -D "$DIR" -- dash -s <<-END_FOOKEY;
+	mkdir -p /home/foo/.ssh
+	cd /home/foo/.ssh
+	ssh-keygen -t ed25519 -f key -N ''
+	mv key.pub authorized_keys
+	chown -R foo:foo /home/foo
+END_FOOKEY
+
+test -f "$DIR"/home/bar/.ssh/authorized_keys || systemd-nspawn -P -D "$DIR" -- dash -s <<-END_BARKEY;
+	mkdir -p /home/bar/.ssh
+	cd /home/bar/.ssh
+	ssh-keygen -t ed25519 -f key -N ''
+	mv key.pub authorized_keys
+	chown -R bar:bar /home/bar
+END_BARKEY
+
+systemd-nspawn -P -D "$DIR" -- dash -s -c 'cat - > /etc/sudoers' <<-END_SUDOERS;
+	Defaults        env_reset
+	Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+	root    ALL=(ALL:ALL) ALL
+	foo     ALL=(ALL:ALL) ALL
+	bar     ALL=(ALL:ALL) NOPASSWD:ALL
+END_SUDOERS
+
+systemd-nspawn -P -D "$DIR" -- dash -s -c 'cat - > /etc/ssh/sshd_config' <<-END_SSHDCONFIG;
+	Port 10022
+	PasswordAuthentication no
+	ChallengeResponseAuthentication no
+	PermitRootLogin no
+END_SSHDCONFIG
+
+systemd-nspawn -P -D "$DIR" -- chpasswd <<-END_FOOPASS;
+	foo:swordfish
+END_FOOPASS
+
+systemd-nspawn -P -D "$DIR" -- chpasswd <<-END_BARPASS;
+	bar:Duffel_Liver_Edging_Cresting
+END_BARPASS
+
+systemd-nspawn -P -D "$DIR" -- dash -s -c 'cat - > /etc/hostname' <<-END_HOSTNAME;
+	chroot
+END_HOSTNAME
+
+grep -q chroot "$DIR"/etc/hosts || sed -i 's|\slocalhost| localhost chroot|g' "$DIR"/etc/hosts
+
+systemd-nspawn -P -D "$DIR" -- dash -s <<-END_FINAL;
+	printf "foo\\n"
+	cat /home/foo/.ssh/key
+	printf "bar\\n"
+	cat /home/bar/.ssh/key
+END_FINAL
