@@ -212,7 +212,35 @@ func TestInterpreter(T *testing.T) {
 	})
 }
 
-func TestFiles(T *testing.T) {
+func TestSsh(T *testing.T) {
+	T.Parallel()
+	T.Run("simple", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"foo@chroot", "remote:simple"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("sudo+nopasswd", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "u", Args: []string{"bar@chroot", "remote:nopasswd"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("simple+fail", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"foo@chroot", "remote:simple-fail"}}
+		if ret, _ := rr.Run(); ret {
+			t.Error("wants `false`")
+		}
+	})
+	T.Run("sudo+nopasswd+fail", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "u", Args: []string{"bar@chroot", "remote:nopasswd-fail"}}
+		if ret, _ := rr.Run(); ret {
+			t.Error("wants `false`")
+		}
+	})
+}
+
+func TestLocalFiles(T *testing.T) {
 	T.Parallel()
 	T.Run("local", func(t *testing.T) {
 		x := "/tmp/__rr_XXX"
@@ -236,6 +264,21 @@ func TestFiles(T *testing.T) {
 			os.Remove(y)
 			os.Remove(z)
 		})
+	})
+}
 
+func TestSshFiles(T *testing.T) {
+	// Some overlapping files. Run serially.
+	T.Run("remote", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"foo@chroot", "files:remote"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("remote+sudo+nopasswd", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "u", Args: []string{"bar@chroot", "files:remote-nopasswd"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
 	})
 }

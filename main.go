@@ -154,7 +154,7 @@ func stdWriter(stdout string, stderr string, goerr string) {
 }
 
 func sshExec(o *optT, script string) (bool, lib.RunOut) {
-	tmps := fmt.Sprintf("./.__rr.scr.%s", (*o).id)
+	tmps := fmt.Sprintf("./.__rr.src.%s", (*o).id)
 	sshenv := []string{"LC_ALL=C"}
 	var ssha lib.RunArg
 	var sshb lib.RunArg
@@ -162,9 +162,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
 			args := []string{
-				"-a",
 				"-T",
-				"-x",
 				(*o).hostname,
 				fmt.Sprintf("cat - > %s", tmps),
 			}
@@ -182,14 +180,13 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		args := []string{
 			"-F",
 			(*o).config,
-			"-a",
 			"-T",
-			"-x",
 			(*o).hostname,
 			fmt.Sprintf("cat - > %s", tmps),
 		}
 		ssha = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
+	// ssh hostname 'cat - > src'
 	log.Printf("CONNECTION: copying script…")
 	if ret, out := ssha.Run(); !ret {
 		return ret, out
@@ -199,7 +196,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).sudo {
 			if !(*o).teleport {
-				args := []string{"-a", "-T", "-x", (*o).hostname, (*o).interp, tmps}
+				args := []string{"-T", (*o).hostname, (*o).interp, tmps}
 				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 			} else {
 				args := []string{"ssh", (*o).hostname, (*o).interp, tmps}
@@ -208,9 +205,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		} else {
 			if !(*o).teleport {
 				args := []string{
-					"-a",
 					"-T",
-					"-x",
 					(*o).hostname,
 					"sudo",
 					"-k",
@@ -238,15 +233,13 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		}
 	} else {
 		if !(*o).sudo {
-			args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, (*o).interp, tmps}
+			args := []string{"-F", (*o).config, "-T", (*o).hostname, (*o).interp, tmps}
 			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		} else {
 			args := []string{
 				"-F",
 				(*o).config,
-				"-a",
 				"-T",
-				"-x",
 				(*o).hostname,
 				"sudo",
 				"-k",
@@ -260,6 +253,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
 	}
+	// ssh hostname 'sh src'
 	log.Printf("CONNECTION: running script…")
 	ret, out = sshb.Run()
 	if !ret {
@@ -268,9 +262,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
 			args := []string{
-				"-a",
 				"-T",
-				"-x",
 				(*o).hostname,
 				fmt.Sprintf("rm -f %s", tmps),
 			}
@@ -280,9 +272,10 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 			sshc = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
 		}
 	} else {
-		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
+		args := []string{"-F", (*o).config, "-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
 		sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 	}
+	// ssh hostname 'rm -f src'
 	log.Printf("CONNECTION: cleaning up…")
 	if xret, xout := sshc.Run(); !xret {
 		return xret, xout
@@ -291,6 +284,12 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 }
 
 func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
+	// Four stage connection for ssh+sudo untar
+	// 1. ssh hostname 'cat - > untar.sh'
+	// 2. ssh hostname 'mkdir dir'
+	// 3. sh -c 'tar -czf - | ssh hostname 'tar -xf -'
+	// 4. ssh hostname 'sudo untar.sh'
+	// Why four connections? sudo STDIN is for the password
 	tmpd := fmt.Sprintf(".__rr.dir.%s", (*o).id)
 	tmpf := fmt.Sprintf("./.__rr.tar.%s", (*o).id)
 	tarcmd := `
@@ -309,9 +308,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 			untar1 = lib.RunArg{
 				Exe: "ssh",
 				Args: []string{
-					"-a",
 					"-T",
-					"-x",
 					(*o).hostname,
 					fmt.Sprintf("cat - > %s", tmpf),
 				},
@@ -328,7 +325,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 			}
 		}
 	} else {
-		args := []string{"-F", (*o).config, "-a", "-T", "-x", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}
+		args := []string{"-F", (*o).config, "-T", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}
 		untar1 = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(tarexec)}
 	}
 	if ret, out := untar1.Run(); !ret {
@@ -339,8 +336,8 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	RRSRC="%s"
 	RRDEST="%s"
 	RRSCRIPT="%s"
-	ssh -T -x "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" %s -czf - . | ssh -a -T -x "$RRHOST" tar -C "$RRDEST" %s -xzf -
+	ssh -T "$RRHOST" mkdir "$RRDEST"
+	tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar -C "$RRDEST" %s -xzf -
 	`
 	teleportDefault := `
 	RRHOST="%s"
@@ -356,8 +353,8 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	RRDEST="%s"
 	RRCONFIG="%s"
 	RRSCRIPT="%s"
-	ssh -F "$RRCONFIG" -T -x "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -a -T -x "$RRHOST" tar -C "$RRDEST" %s -xzf -
+	ssh -F "$RRCONFIG" -T "$RRHOST" mkdir "$RRDEST"
+	tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -T "$RRHOST" tar -C "$RRDEST" %s -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArg
@@ -392,9 +389,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
 			args := []string{
-				"-a",
 				"-T",
-				"-x",
 				(*o).hostname,
 				"sudo",
 				"-k",
@@ -418,9 +413,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	} else {
 		args := []string{"-F",
 			(*o).config,
-			"-a",
 			"-T",
-			"-x",
 			(*o).hostname,
 			"sudo",
 			"-k",
@@ -438,7 +431,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	untarDefault := `
 	set -o nounset -o noglob
-	tar -C %s %s -czf - . | ssh -a -T -x %s tar -C / %s --delay-directory-restore -xzf -
+	tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarTeleport := `
 	set -o nounset -o noglob
@@ -446,7 +439,7 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	`
 	untarConfig := `
 	set -o nounset -o noglob
-	tar -C %s %s -czf - . | ssh -F %s -a -T -x %s tar -C / %s --delay-directory-restore -xzf -
+	tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar lib.RunArg
@@ -460,13 +453,13 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 		} else {
 			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
-				fmt.Sprintf(untarTeleport, dir, cTARC, (*o).hostname), cTARX},
+				fmt.Sprintf(untarTeleport, dir, cTARC, (*o).hostname, cTARX)},
 				Env: tarenv,
 			}
 		}
 	} else {
 		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(untarConfig, dir, cTARC, (*o).config, (*o).hostname), cTARX},
+			fmt.Sprintf(untarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
 			Env: tarenv,
 		}
 	}
@@ -1085,7 +1078,7 @@ func main() {
 			var ssha lib.RunArg
 			if opt.config == "" || opt.teleport {
 				if !opt.teleport {
-					ssha = lib.RunArg{Exe: "ssh", Args: []string{"-T", "-x", opt.hostname, "uname -n"}, Env: sshenv}
+					ssha = lib.RunArg{Exe: "ssh", Args: []string{"-T", opt.hostname, "uname -n"}, Env: sshenv}
 				} else {
 					ssha = lib.RunArg{Exe: "tsh", Args: []string{"ssh", opt.hostname, "uname -n"}, Env: sshenv}
 				}
@@ -1094,7 +1087,6 @@ func main() {
 					"-F",
 					opt.config,
 					"-T",
-					"-x",
 					opt.hostname,
 					"uname -n",
 				}, Env: sshenv}
@@ -1152,47 +1144,24 @@ func main() {
 			if isDir(d) {
 				jsonLog.Debug().Str("app", "rr").Str("id", id).Str("directory", d).Msg("copying")
 				log.Printf("CONNECTION: copying %s to %s…", d, realhost)
-				var ret bool
 				var out lib.RunOut
 				if !opt.sudo {
-					ret, out = quickCopy(&opt, d)
+					_, out = quickCopy(&opt, d)
 				} else {
-					ret, out = sudoCopy(&opt, d)
+					_, out = sudoCopy(&opt, d)
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-				if step := "copy"; !ret && opt.sudo {
-					jsonLog.Error().
-						Str("app", "rr").
-						Str("id", id).
-						Str("stdout", b64so).
-						Str("stderr", b64se).
-						Str("error", out.Error).
-						Msg(step)
-					if plain {
-						stdWriter(out.Stdout, out.Stderr, out.Error)
-					} else if !console {
-						serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(step)
-					} else {
-						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
-						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
-						hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
-						log.Printf("Failure copying files!")
-					}
-					os.Exit(1)
-				} else {
-					jsonLog.Debug().
-						Str("app", "rr").
-						Str("id", id).
-						Str("stdout", b64so).
-						Str("stderr", b64se).
-						Str("error", out.Error).
-						Msg(step)
-					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg(step)
-					if !plain {
-						log.Printf("Finished copying")
-					}
+				jsonLog.Debug().
+					Str("app", "rr").
+					Str("id", id).
+					Str("stdout", b64so).
+					Str("stderr", b64se).
+					Str("error", out.Error).
+					Msg("copy")
+				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg("copy")
+				if !plain {
+					log.Printf("Finished copying")
 				}
 			}
 		}

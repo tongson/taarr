@@ -1,4 +1,5 @@
 /bin
+.ssh
 rr.json
 LOG
 rrd
