@@ -793,13 +793,13 @@ rrl = report`
 				str, err := getPassword("sudo password: ")
 				if err != nil {
 					if console {
-						_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
+						_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
 						os.Exit(2)
 					} else {
 						serrLog.Fatal().
 							Str("namespace", namespace).
 							Str("script", script).
-							Msg("Actual script is missing")
+							Msg("Unable to initialize STDIN or this is not a terminal.")
 						os.Exit(2)
 					}
 				}
