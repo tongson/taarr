@@ -477,40 +477,42 @@ func main() {
 	var report bool = false
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
-	} else if call[len(call)-3:] == "rrp" {
-		plain = true
-		log.SetOutput(io.Discard)
-	} else if call[len(call)-3:] == "rrv" {
-		console = true
-		log.SetOutput(new(logWriter))
-	} else if call[len(call)-3:] == "rrd" {
-		dump = true
-		log.SetOutput(io.Discard)
-	} else if call[len(call)-3:] == "rrl" {
-		report = true
-		log.SetOutput(io.Discard)
-	} else if call[len(call)-3:] == "rrs" {
-		opt.sudo = true
-	} else if call[len(call)-3:] == "rrt" {
-		opt.teleport = true
-	} else if call[len(call)-3:] == "rro" {
-		opt.sudo = true
-		opt.teleport = true
-	} else if call[len(call)-3:] == "rru" {
-		opt.sudo = true
-		opt.nopasswd = true
 	} else {
-		valid := `Valid modes:
-	rr  = local or ssh
-	rrs = ssh + sudo
-	rru = ssh + sudo + nopasswd
-	rrt = teleport
-	rro = teleport + sudo
-	rrd = dump
-	rrv = forced verbose
-	rrl = report`
-		fmt.Fprintf(os.Stderr, "Unsupported executable name.\n%s\n", valid)
-		os.Exit(1)
+		switch mode := call[len(call)-3:]; mode {
+		case "rrp":
+			plain = true
+			log.SetOutput(io.Discard)
+		case "rrv":
+			console = true
+			log.SetOutput(new(logWriter))
+		case "rrd":
+			dump = true
+			log.SetOutput(io.Discard)
+		case "rrl":
+			report = true
+			log.SetOutput(io.Discard)
+		case "rrs":
+			opt.sudo = true
+		case "rrt":
+			opt.teleport = true
+		case "rro":
+			opt.sudo = true
+			opt.teleport = true
+		case "rru":
+			opt.sudo = true
+			opt.nopasswd = true
+		default:
+			valid := `rr  = local or ssh
+rrs = ssh + sudo
+rru = ssh + sudo + nopasswd
+rrt = teleport
+rro = teleport + sudo
+rrd = dump
+rrv = forced verbose
+rrl = report`
+			fmt.Fprintf(os.Stderr, "Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
+			os.Exit(2)
+		}
 	}
 	if report {
 		hdrs := []string{
