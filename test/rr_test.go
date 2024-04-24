@@ -282,3 +282,17 @@ func TestSshFiles(T *testing.T) {
 		}
 	})
 }
+
+func TestFail(T *testing.T) {
+	T.Parallel()
+	T.Run("sudo_wo_stdin", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "s", Args: []string{"args:args1"}}
+		ret, out := rr.Run()
+		if ret {
+			t.Error("wants `false`")
+		}
+		if out.Stderr[0:1] != "{" {
+			t.Errorf("Unexpected output: %s\n", out.Stderr)
+		}
+	})
+}
