@@ -652,28 +652,24 @@ rrl = report`
 			return false, ""
 		}
 		printReadme := func(s string) {
-			ps := strings.Split(s, "/")
-			s1 := ps[0]
-			var s2 string
-			var s3 string
-			if len(ps) == 2 {
-				s2 = "*"
-				s3 = ps[1]
-			} else {
-				s2 = ps[1]
-				s3 = ps[2]
-			}
-			pps := fmt.Sprintf("rr %s:%s (%s)", s1, s2, s3)
-			sz := len(pps)
-			line := strings.Repeat("─", sz+2)
-			fmt.Printf("%s┐\n", line)
 			if console {
+				ps := strings.Split(s, "/")
+				s1 := ps[0]
+				var s2 string
+				var s3 string
+				if len(ps) == 2 {
+					s2 = "*"
+					s3 = ps[1]
+				} else {
+					s2 = ps[1]
+					s3 = ps[2]
+				}
+				pps := fmt.Sprintf("rr %s:%s (%s)", s1, s2, s3)
+				sz := len(pps)
+				line := strings.Repeat("─", sz+2)
+				fmt.Printf("%s┐\n", line)
 				fmt.Printf(" \033[37;1m%s\033[0m │\n", pps)
-			} else {
-				fmt.Printf(" %s │\n", pps)
-			}
-			fmt.Printf("%s┘\n", line)
-			if console {
+				fmt.Printf("%s┘\n", line)
 				for _, each := range lib.FileLines(s) {
 					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
 				}
