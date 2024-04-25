@@ -55,7 +55,6 @@ type optT struct {
 	nopasswd bool
 	teleport bool
 	hostname string
-	id       string
 	interp   string
 	config   string
 	password string
@@ -466,6 +465,12 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	return untar.Run()
 }
 
+func generateHashId() string {
+	h := new(maphash.Hash)
+	uid := fmt.Sprintf("%016X", h.Sum64())
+	return string([]rune(uid)[:8])
+}
+
 func main() {
 	runtime.MemProfileRate = 0
 
@@ -619,13 +624,7 @@ rrl = report`
 	isFile := lib.StatPath("file")
 	var offset int
 	var hostname string
-	var id string
-	{
-		h := new(maphash.Hash)
-		uid := fmt.Sprintf("%016X", h.Sum64())
-		id = string([]rune(uid)[:8])
-		opt.id = id
-	}
+	var id string = generateHashId()
 	if len(os.Args) < 2 {
 		switch oMode {
 		case oJson:
