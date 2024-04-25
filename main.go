@@ -468,28 +468,36 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 
 func main() {
 	runtime.MemProfileRate = 0
+
 	var opt optT
-	var plain bool = false
-	var console bool = false
+
+	const oJson int = 0
+	const oTerm int = 1
+	const oPlain int = 2
+
+	var oMode int = oJson
+
 	var failed bool = false
 	var result string = "ok"
-	var dump bool = false
-	var report bool = false
+
+	var mDump bool = false
+	var mReport bool = false
+
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
 	} else {
 		switch mode := call[len(call)-3:]; mode {
 		case "rrp":
-			plain = true
+			oMode = oPlain
 			log.SetOutput(io.Discard)
 		case "rrv":
-			console = true
+			oMode = oTerm
 			log.SetOutput(new(logWriter))
 		case "rrd":
-			dump = true
+			mDump = true
 			log.SetOutput(io.Discard)
 		case "rrl":
-			report = true
+			mReport = true
 			log.SetOutput(io.Discard)
 		case "rrs":
 			opt.sudo = true
@@ -514,7 +522,7 @@ rrl = report`
 			os.Exit(2)
 		}
 	}
-	if report {
+	if mReport {
 		hdrs := []string{
 			"ID",
 			"Target",
@@ -598,15 +606,14 @@ rrl = report`
 	log.SetFlags(0)
 	zerolog.TimeFieldFormat = time.RFC3339
 	var serrLog zerolog.Logger
-	if !dump && !plain {
+	if !mReport && !mDump && oMode != oPlain {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
-			console = true
+			oMode = oTerm
 			log.SetOutput(new(logWriter))
 			log.Printf("rr %s %s", versionNumber, codeName)
+		} else {
+			serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 		}
-	}
-	if !console {
-		serrLog = zerolog.New(os.Stderr).With().Timestamp().Logger()
 	}
 	isDir := lib.StatPath("directory")
 	isFile := lib.StatPath("file")
@@ -620,11 +627,12 @@ rrl = report`
 		opt.id = id
 	}
 	if len(os.Args) < 2 {
-		if console {
-			_, _ = fmt.Fprint(os.Stderr, "Missing arguments.")
-			os.Exit(2)
-		} else {
+		switch oMode {
+		case oJson:
 			serrLog.Fatal().Msg("Missing arguments")
+			os.Exit(2)
+		case oTerm, oPlain:
+			_, _ = fmt.Fprint(os.Stderr, "Missing arguments.")
 			os.Exit(2)
 		}
 	}
@@ -652,7 +660,8 @@ rrl = report`
 			return false, ""
 		}
 		printReadme := func(s string) {
-			if console {
+			switch oMode {
+			case oTerm:
 				ps := strings.Split(s, "/")
 				s1 := ps[0]
 				var s2 string
@@ -674,8 +683,11 @@ rrl = report`
 					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
 				}
 				fmt.Printf("\n")
-			} else {
+			case oPlain:
 				fmt.Print(lib.FileRead(s))
+			case oJson:
+				serrLog.Fatal().Msg("README output disabled in this mode.")
+				os.Exit(2)
 			}
 		}
 		if found1, readme1 := isReadme(os.Args[1]); found1 && readme1 != "" {
@@ -691,10 +703,11 @@ rrl = report`
 		}
 	}
 	if len(os.Args) < offset+1 {
-		if console {
+		switch oMode {
+		case oTerm, oPlain:
 			_, _ = fmt.Fprintf(os.Stderr, "`namespace:script` not specified.\n")
 			os.Exit(2)
-		} else {
+		case oJson:
 			serrLog.Fatal().Msg("namespace:script not specified")
 			os.Exit(2)
 		}
@@ -715,29 +728,32 @@ rrl = report`
 			s = strings.Split(os.Args[offset], ":")
 		}
 		if len(s) < 2 {
-			if console {
+			switch oMode {
+			case oTerm, oPlain:
 				_, _ = fmt.Fprint(os.Stderr, "`namespace:script` not specified.")
 				os.Exit(2)
-			} else {
+			case oJson:
 				serrLog.Fatal().Msg("namespace:script not specified")
 				os.Exit(2)
 			}
 		}
 		namespace, script = s[0], s[1]
 		if !isDir(namespace) {
-			if console {
+			switch oMode {
+			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s`(namespace) is not a directory.\n", namespace)
 				os.Exit(2)
-			} else {
+			case oJson:
 				serrLog.Fatal().Str("namespace", namespace).Msg("Namespace is not a directory")
 				os.Exit(2)
 			}
 		}
 		if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
-			if console {
+			switch oMode {
+			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory.\n", namespace, script)
 				os.Exit(2)
-			} else {
+			case oJson:
 				serrLog.Fatal().
 					Str("namespace", namespace).
 					Str("script", script).
@@ -746,10 +762,11 @@ rrl = report`
 			}
 		}
 		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
-			if console {
+			switch oMode {
+			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
 				os.Exit(2)
-			} else {
+			case oJson:
 				serrLog.Fatal().
 					Str("namespace", namespace).
 					Str("script", script).
@@ -788,10 +805,11 @@ rrl = report`
 			if !opt.nopasswd {
 				str, err := getPassword("sudo password: ")
 				if err != nil {
-					if console {
+					switch oMode {
+					case oTerm, oPlain:
 						_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
 						os.Exit(2)
-					} else {
+					case oJson:
 						serrLog.Fatal().
 							Str("namespace", namespace).
 							Str("script", script).
@@ -816,7 +834,7 @@ rrl = report`
 		sh.WriteString("\n" + code)
 	}
 	modscript := sh.String()
-	if dump {
+	if mDump {
 		fmt.Print(modscript)
 		os.Exit(0)
 	}
@@ -891,7 +909,7 @@ rrl = report`
 					Str("error", out.Error).
 					Msg("copy")
 				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg("copy")
-				if !plain {
+				if oMode == oTerm {
 					log.Printf("Finished copying")
 				}
 			}
@@ -926,15 +944,16 @@ rrl = report`
 				Str("stderr", b64se).
 				Str("error", out.Error).
 				Msg(op)
-			if plain {
+			switch oMode {
+			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
-			} else if !console {
+			case oJson:
 				serrLog.Error().
 					Str("stdout", out.Stdout).
 					Str("stderr", out.Stderr).
 					Str("error", out.Error).
 					Msg(op)
-			} else {
+			case oTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
@@ -953,10 +972,17 @@ rrl = report`
 				Str("error", out.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			if plain {
+			switch oMode {
+			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
-			} else if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-				log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+			case oTerm:
+				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
+					log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+				}
+			case oJson:
+				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
+					serrLog.Info().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
+				}
 			}
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
@@ -985,11 +1011,12 @@ rrl = report`
 						Str("stderr", b64se).
 						Str("error", out.Error).
 						Msg(step)
-					if plain {
+					switch oMode {
+					case oPlain:
 						stdWriter(out.Stdout, out.Stderr, out.Error)
-					} else if !console {
+					case oJson:
 						serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(step)
-					} else {
+					case oTerm:
 						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 						hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
@@ -1006,7 +1033,7 @@ rrl = report`
 						Str("error", out.Error).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					if !plain {
+					if oMode == oTerm {
 						log.Printf("Successfully copied files")
 					}
 				}
@@ -1032,11 +1059,12 @@ rrl = report`
 				Str("stderr", b64se).
 				Str("error", out.Error).
 				Msg(op)
-			if plain {
+			switch oMode {
+			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
-			} else if !console {
+			case oJson:
 				serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
-			} else {
+			case oTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 			}
 		} else {
@@ -1055,10 +1083,17 @@ rrl = report`
 				Str("error", out.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			if plain {
+			switch oMode {
+			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
-			} else if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+			case oTerm:
+				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
+					log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+				}
+			case oJson:
+				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
+					serrLog.Info().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
+				}
 			}
 		}
 	} else {
@@ -1100,16 +1135,17 @@ rrl = report`
 							Str("id", id).
 							Str("hostname", realhost).
 							Msg("Hostname does not match remote host")
-						if plain {
+						switch oMode {
+						case oPlain:
 							stdWriter("", "Hostname does not match remote host.", "")
-						} else if console {
+						case oTerm:
 							log.Printf("Hostname %s does not match remote host.", realhost)
-						} else {
+						case oJson:
 							serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
 						}
 						os.Exit(1)
 					} else {
-						if !plain {
+						if oMode == oTerm {
 							log.Printf("Remote host is %s\n", sshhost[0])
 						}
 					}
@@ -1120,12 +1156,13 @@ rrl = report`
 						Str("id", id).
 						Str("host", realhost).
 						Msg(hostErr)
-					if plain {
+					switch oMode {
+					case oPlain:
 						stdWriter("", hostErr, "")
-					} else if !console {
-						serrLog.Error().Str("host", realhost).Msg(hostErr)
-					} else {
+					case oTerm:
 						log.Printf("%s does not exist or unreachable. [%s]", realhost, out.Stderr)
+					case oJson:
+						serrLog.Error().Str("host", realhost).Msg(hostErr)
 					}
 					os.Exit(1)
 				}
@@ -1159,16 +1196,17 @@ rrl = report`
 						Str("stderr", b64se).
 						Str("error", out.Error).
 						Msg(step)
-					if plain {
+					switch oMode {
+					case oPlain:
 						stdWriter(out.Stdout, out.Stderr, out.Error)
-					} else if !console {
-						serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(step)
-					} else {
+					case oTerm:
 						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 						hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
+					case oJson:
+						serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(step)
 					}
 					os.Exit(1)
 				} else {
@@ -1180,13 +1218,13 @@ rrl = report`
 						Str("error", out.Error).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg(step)
-					if !plain {
+					if oMode == oTerm {
 						log.Printf("Finished copying")
 					}
 				}
 			}
 		}
-		if !plain {
+		if oMode == oTerm {
 			log.Printf("Running %s…", script)
 		}
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
@@ -1209,12 +1247,13 @@ rrl = report`
 				Str("stderr", b64se).
 				Str("error", out.Error).
 				Msg(op)
-			if plain {
+			switch oMode {
+			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
-			} else if !console {
-				serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
-			} else {
+			case oTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+			case oJson:
+				serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
 			}
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
@@ -1232,10 +1271,17 @@ rrl = report`
 				Str("error", out.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			if plain {
+			switch oMode {
+			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
-			} else if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-				log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+			case oTerm:
+				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
+					log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+				}
+			case oJson:
+				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
+					serrLog.Info().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
+				}
 			}
 		}
 	}
@@ -1255,7 +1301,7 @@ rrl = report`
 				Str("script", script).
 				Str("duration", tm).
 				Msg(result)
-			if !plain {
+			if oMode == oTerm {
 				log.Printf("Total run time: %s. All OK.", tm)
 			}
 			os.Exit(0)
@@ -1270,9 +1316,12 @@ rrl = report`
 				Str("script", script).
 				Str("duration", tm).
 				Msg("failed")
-			if console && !plain {
+			switch oMode {
+			case oPlain:
+				stdWriter("", "Something went wrong.", "")
+			case oTerm:
 				log.Printf("Total run time: %s. Something went wrong.", tm)
-			} else {
+			case oJson:
 				serrLog.Debug().Str("duration", tm).Msg("failed")
 			}
 			os.Exit(1)
