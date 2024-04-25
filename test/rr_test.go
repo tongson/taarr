@@ -164,31 +164,61 @@ func TestArgs(T *testing.T) {
 
 func TestReadme(T *testing.T) {
 	T.Parallel()
-	T.Run("readme1", func(t *testing.T) {
-		rr := RunArg{Exe: cEXE, Args: []string{"readme/check"}}
+	T.Run("readme1a", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"readme"}}
 		if x, o := rr.Run(); !x {
 			t.Error("wants `true`")
 		} else {
 			stdout := o.Stdout
-			if got := strings.Split(stdout, "\n")[3]; got != "TEST" {
+			if got := strings.Split(stdout, "\n")[0]; got != "TEST" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
-			if got := strings.Split(stdout, "\n")[4]; got != "README" {
+			if got := strings.Split(stdout, "\n")[1]; got != "README1" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
 		}
 
 	})
-	T.Run("readme2", func(t *testing.T) {
-		rr := RunArg{Exe: cEXE, Args: []string{"readme/check/"}}
+	T.Run("readme1b", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"readme/"}}
 		if x, o := rr.Run(); !x {
 			t.Error("wants `true`")
 		} else {
 			stdout := o.Stdout
-			if got := strings.Split(stdout, "\n")[3]; got != "TEST" {
+			if got := strings.Split(stdout, "\n")[0]; got != "TEST" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
-			if got := strings.Split(stdout, "\n")[4]; got != "README" {
+			if got := strings.Split(stdout, "\n")[1]; got != "README1" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+
+	})
+	T.Run("readme2a", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"readme/check"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			stdout := o.Stdout
+			if got := strings.Split(stdout, "\n")[0]; got != "TEST" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+			if got := strings.Split(stdout, "\n")[1]; got != "README2" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+
+	})
+	T.Run("readme2b", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"readme/check/"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			stdout := o.Stdout
+			if got := strings.Split(stdout, "\n")[0]; got != "TEST" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+			if got := strings.Split(stdout, "\n")[1]; got != "README2" {
 				t.Errorf("Unexpected STDOUT: `%s`\n", got)
 			}
 		}
