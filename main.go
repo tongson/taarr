@@ -142,8 +142,8 @@ func stdWriter(stdout string, stderr string, goerr string) {
 			os.Exit(255)
 		}
 	}
-        if stdout != "" {
-                _, err := wo.WriteString(stdout)
+	if stdout != "" {
+		_, err := wo.WriteString(stdout)
 		if err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDOUT at that time.")
 			os.Exit(255)
