@@ -55,6 +55,7 @@ type optT struct {
 	nopasswd bool
 	teleport bool
 	hostname string
+	id       string
 	interp   string
 	config   string
 	password string
@@ -625,6 +626,7 @@ rrl = report`
 	var offset int
 	var hostname string
 	var id string = generateHashId()
+	opt.id = id
 	if len(os.Args) < 2 {
 		switch oMode {
 		case oJson:
