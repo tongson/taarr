@@ -129,7 +129,8 @@ func stdWriter(stdout string, stderr string, goerr string) {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDERR at that time.")
 			os.Exit(255)
 		}
-	} else {
+	}
+	if stderr != "" {
 		_, err := we.WriteString(stderr)
 		if err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDERR at that time.")
@@ -140,7 +141,9 @@ func stdWriter(stdout string, stderr string, goerr string) {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDERR at that time.")
 			os.Exit(255)
 		}
-		_, err = wo.WriteString(stdout)
+	}
+        if stdout != "" {
+                _, err := wo.WriteString(stdout)
 		if err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDOUT at that time.")
 			os.Exit(255)
