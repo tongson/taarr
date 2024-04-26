@@ -9,7 +9,7 @@ import (
 	. "github.com/tongson/gl"
 )
 
-const cLIB = ".lib/999-test.sh"
+const cLIB = "VARS"
 const cEXE = "../bin/rr"
 
 func TestMain(m *testing.M) {

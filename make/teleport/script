@@ -1,0 +1,50 @@
+# systemd-nspawn -x -b -D
+DIR="/chroot/teleport"
+DIST="bookworm"
+
+test -d "$DIR" || debootstrap "$DIST" "$DIR"
+
+systemd-nspawn -P -D "$DIR" -- dash -s -c "cat - > /etc/apt/sources.list.d/teleport.list" <<-END_APTLIST;
+	deb [signed-by=/usr/share/keyrings/teleport-archive-keyring.asc] https://apt.releases.teleport.dev/debian bookworm stable/v15
+END_APTLIST
+
+systemd-nspawn -P -D "$DIR" -- dash -s <<-END_TELEPORT;
+	export DEBIAN_FRONTEND=noninteractive
+	apt-get install -y wget
+        wget -O /usr/share/keyrings/teleport-archive-keyring.asc https://apt.releases.teleport.dev/gpg
+	apt-get update
+        apt-get install -y teleport
+END_TELEPORT
+
+test -f "$DIR"/usr/bin/sudo || systemd-nspawn -P -D "$DIR" -- dash -s <<-END_SUDO;
+	export DEBIAN_FRONTEND=noninteractive
+	apt-get install sudo
+	apt-get remove cron
+END_SUDO
+
+test -d "$DIR"/home/foo || systemd-nspawn -P -D "$DIR" -- dash -s <<-END_USERS;
+	useradd -d /home/foo -m -U foo
+	useradd -d /home/bar -m -U bar
+END_USERS
+
+systemd-nspawn -P -D "$DIR" -- dash -s -c 'cat - > /etc/sudoers' <<-END_SUDOERS;
+	Defaults        env_reset
+	Defaults        secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+	root    ALL=(ALL:ALL) ALL
+	foo     ALL=(ALL:ALL) ALL
+	bar     ALL=(ALL:ALL) NOPASSWD:ALL
+END_SUDOERS
+
+systemd-nspawn -P -D "$DIR" -- chpasswd <<-END_FOOPASS;
+	foo:swordfish
+END_FOOPASS
+
+systemd-nspawn -P -D "$DIR" -- chpasswd <<-END_BARPASS;
+	bar:Duffel_Liver_Edging_Cresting
+END_BARPASS
+
+systemd-nspawn -P -D "$DIR" -- dash -s -c 'cat - > /etc/hostname' <<-END_HOSTNAME;
+	teleport
+END_HOSTNAME
+
+grep -q teleport "$DIR"/etc/hosts || sed -i 's|\slocalhost| localhost teleport|g' "$DIR"/etc/hosts
