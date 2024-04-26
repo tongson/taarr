@@ -527,7 +527,7 @@ rro = teleport + sudo
 rrd = dump
 rrv = forced verbose
 rrl = report`
-			fmt.Fprintf(os.Stderr, "Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
+			_, _ = fmt.Fprintf(os.Stderr, "Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
 			os.Exit(2)
 		}
 	}
