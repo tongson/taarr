@@ -55,6 +55,7 @@ type optT struct {
 	nopasswd bool
 	teleport bool
 	hostname string
+	id       string
 	interp   string
 	config   string
 	password string
@@ -128,7 +129,8 @@ func stdWriter(stdout string, stderr string, goerr string) {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDERR at that time.")
 			os.Exit(255)
 		}
-	} else {
+	}
+	if stderr != "" {
 		_, err := we.WriteString(stderr)
 		if err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDERR at that time.")
@@ -139,7 +141,9 @@ func stdWriter(stdout string, stderr string, goerr string) {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDERR at that time.")
 			os.Exit(255)
 		}
-		_, err = wo.WriteString(stdout)
+	}
+	if stdout != "" {
+		_, err := wo.WriteString(stdout)
 		if err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDOUT at that time.")
 			os.Exit(255)
@@ -523,7 +527,7 @@ rro = teleport + sudo
 rrd = dump
 rrv = forced verbose
 rrl = report`
-			fmt.Fprintf(os.Stderr, "Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
+			_, _ = fmt.Fprintf(os.Stderr, "Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
 			os.Exit(2)
 		}
 	}
@@ -540,7 +544,7 @@ rrl = report`
 		}
 		var data [][]string
 		rrl, err := os.Open(cLOG)
-		defer rrl.Close()
+		defer rrl.Close() //nolint:staticcheck // ok, to Close() twice
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` in the current directory.\n", cLOG)
 			os.Exit(1)
@@ -625,6 +629,7 @@ rrl = report`
 	var offset int
 	var hostname string
 	var id string = generateHashId()
+	opt.id = id // used for the random suffix in the temp filename
 	if len(os.Args) < 2 {
 		switch oMode {
 		case oJson:
