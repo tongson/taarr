@@ -544,7 +544,7 @@ rrl = report`
 		}
 		var data [][]string
 		rrl, err := os.Open(cLOG)
-		defer rrl.Close()
+		defer rrl.Close() //nolint:staticcheck // ok, to Close() twice
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` in the current directory.\n", cLOG)
 			os.Exit(1)
