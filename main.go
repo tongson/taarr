@@ -31,6 +31,7 @@ const codeName = "\"Revocable Marsh\""
 
 // constants
 const cOP = "OP"
+const cINC = "VARS"
 const cHOSTS = "HOSTS"
 const cLOG = "LOG"
 const cREPAIRED = "__REPAIRED__"
@@ -833,6 +834,9 @@ rrl = report`
 		if len(arguments) > 0 {
 			arguments = lib.InsertStr(arguments, "set --", 0)
 			sh.WriteString(strings.Join(arguments, " "))
+		}
+		if isFile(cINC) {
+			sh.WriteString("\n" + lib.FileRead(cINC))
 		}
 		code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
 		sh.WriteString("\n" + code)
