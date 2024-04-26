@@ -629,7 +629,7 @@ rrl = report`
 	var offset int
 	var hostname string
 	var id string = generateHashId()
-	opt.id = id
+	opt.id = id // used for the random suffix in the temp filename
 	if len(os.Args) < 2 {
 		switch oMode {
 		case oJson:
