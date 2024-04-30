@@ -1,8 +1,10 @@
 /bin
 .ssh
 rr.json
+HOSTS
 LOG
 rrd
 rr
 rrs
 rrv
+go.work

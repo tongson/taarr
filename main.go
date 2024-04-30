@@ -102,6 +102,13 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(" " + string(bytes))
 }
 
+func soOutput(h string) func(string) {
+	return func(so string) {
+		fmt.Printf(" %s │ ", h)
+		fmt.Print(so)
+	}
+}
+
 func conOutput(o string, h string, c string) (string, string, string) {
 	rh := ""
 	rb := ""
@@ -197,14 +204,15 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	}
 	var ret bool
 	var out lib.RunOut
+	soFn := soOutput((*o).hostname)
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).sudo {
 			if !(*o).teleport {
 				args := []string{"-T", (*o).hostname, (*o).interp, tmps}
-				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
+				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdout: soFn}
 			} else {
 				args := []string{"ssh", (*o).hostname, (*o).interp, tmps}
-				sshb = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
+				sshb = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdout: soFn}
 			}
 		} else {
 			if !(*o).teleport {
@@ -219,7 +227,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 					"--",
 					(*o).interp, tmps,
 				}
-				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
 			} else {
 				args := []string{
 					"ssh",
@@ -232,13 +240,13 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 					"--",
 					(*o).interp, tmps,
 				}
-				sshb = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+				sshb = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
 			}
 		}
 	} else {
 		if !(*o).sudo {
 			args := []string{"-F", (*o).config, "-T", (*o).hostname, (*o).interp, tmps}
-			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
 		} else {
 			args := []string{
 				"-F",
@@ -254,7 +262,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 				(*o).interp,
 				tmps,
 			}
-			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
+			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
 		}
 	}
 	// ssh hostname 'sh src'
@@ -934,9 +942,12 @@ rrl = report`
 			log.Printf("%s…", msgop)
 			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg(msgop)
 		}
-		rargs := lib.RunArg{Exe: interp, Stdin: []byte(modscript)}
+		soFn := soOutput(hostname)
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(modscript), Stdout: soFn}
 		ret, out := rargs.Run()
-		ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
+		//if out.Stdout != "" {
+		//    fmt.Printf(" %s%s\n", hostname, cFOOTER)
+		//}
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
@@ -962,7 +973,7 @@ rrl = report`
 					Str("error", out.Error).
 					Msg(op)
 			case oTerm:
-				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
@@ -984,8 +995,8 @@ rrl = report`
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oTerm:
-				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+				if out.Stderr != "" || out.Error != "" {
+					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 				}
 			case oJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
@@ -1049,9 +1060,9 @@ rrl = report`
 		}
 		log.Printf("Running %s…", script)
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
-		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}}
+		soFn := soOutput(hostname)
+		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}, Stdout: soFn}
 		ret, out := nsargs.Run()
-		ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
@@ -1073,7 +1084,7 @@ rrl = report`
 			case oJson:
 				serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
 			case oTerm:
-				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
@@ -1095,8 +1106,8 @@ rrl = report`
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oTerm:
-				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+				if out.Stderr != "" || out.Error != "" {
+					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 				}
 			case oJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
@@ -1239,7 +1250,6 @@ rrl = report`
 		var ret bool
 		var out lib.RunOut
 		ret, out = sshExec(&opt, modscript)
-		ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
@@ -1259,7 +1269,7 @@ rrl = report`
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oTerm:
-				log.Printf("Failure running script!\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
+				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			case oJson:
 				serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
 			}
@@ -1283,8 +1293,8 @@ rrl = report`
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oTerm:
-				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s", ho, bo, fo, he, be, fe)
+				if out.Stderr != "" || out.Error != "" {
+					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 				}
 			case oJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
