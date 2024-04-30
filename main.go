@@ -130,46 +130,12 @@ func conOutput(o string, h string, c string) (string, string, string) {
 	return rh, rb, rf
 }
 
-func stdWriter(stdout string, stderr string, goerr string) {
-	we := bufio.NewWriter(os.Stderr)
-	wo := bufio.NewWriter(os.Stdout)
-	defer we.Flush()
-	defer wo.Flush()
-	if goerr != "" {
-		_, err := we.WriteString(goerr)
-		if err != nil {
-			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDERR at that time.")
-			os.Exit(255)
-		}
-		err = we.Flush()
-		if err != nil {
-			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDERR at that time.")
-			os.Exit(255)
-		}
+func stdWriter(stdout string, stderr string) {
+	if stdout != "" {
+		_, _ = fmt.Fprint(os.Stdout, stdout)
 	}
 	if stderr != "" {
-		_, err := we.WriteString(stderr)
-		if err != nil {
-			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDERR at that time.")
-			os.Exit(255)
-		}
-		err = we.Flush()
-		if err != nil {
-			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDERR at that time.")
-			os.Exit(255)
-		}
-	}
-	if stdout != "" {
-		_, err := wo.WriteString(stdout)
-		if err != nil {
-			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to write to STDOUT at that time.")
-			os.Exit(255)
-		}
-		err = wo.Flush()
-		if err != nil {
-			_, _ = fmt.Fprint(os.Stderr, "Something's wrong. Unable to flush writes to STDOUT at that time.")
-			os.Exit(255)
-		}
+		_, _ = fmt.Fprint(os.Stderr, stderr + "\n")
 	}
 }
 
@@ -890,7 +856,7 @@ rrl = report`
 			msg := "Invoked sudo+ssh mode via local, ignored mode, just `sudo rr`."
 			switch opt.mode {
 			case oPlain:
-				stdWriter("", msg, "")
+				stdWriter("", msg)
 			case oTerm:
 				log.Printf(msg)
 			case oJson:
@@ -974,7 +940,7 @@ rrl = report`
 				Msg(op)
 			switch opt.mode {
 			case oPlain:
-				stdWriter(out.Stdout, out.Stderr, out.Error)
+				stdWriter(out.Stdout, out.Stderr)
 			case oJson:
 				serrLog.Error().
 					Str("stdout", out.Stdout).
@@ -1003,7 +969,7 @@ rrl = report`
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			switch opt.mode {
 			case oPlain:
-				stdWriter(out.Stdout, out.Stderr, out.Error)
+				stdWriter(out.Stdout, out.Stderr)
 			case oTerm:
 				if out.Stderr != "" || out.Error != "" {
 					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
@@ -1042,7 +1008,7 @@ rrl = report`
 						Msg(step)
 					switch opt.mode {
 					case oPlain:
-						stdWriter(out.Stdout, out.Stderr, out.Error)
+						stdWriter(out.Stdout, out.Stderr)
 					case oJson:
 						serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(step)
 					case oTerm:
@@ -1090,7 +1056,7 @@ rrl = report`
 				Msg(op)
 			switch opt.mode {
 			case oPlain:
-				stdWriter(out.Stdout, out.Stderr, out.Error)
+				stdWriter(out.Stdout, out.Stderr)
 			case oJson:
 				serrLog.Error().Str("stdout", out.Stdout).Str("stderr", out.Stderr).Str("error", out.Error).Msg(op)
 			case oTerm:
@@ -1114,7 +1080,7 @@ rrl = report`
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			switch opt.mode {
 			case oPlain:
-				stdWriter(out.Stdout, out.Stderr, out.Error)
+				stdWriter(out.Stdout, out.Stderr)
 			case oTerm:
 				if out.Stderr != "" || out.Error != "" {
 					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
@@ -1166,7 +1132,7 @@ rrl = report`
 							Msg("Hostname does not match remote host")
 						switch opt.mode {
 						case oPlain:
-							stdWriter("", "Hostname does not match remote host.", "")
+							stdWriter("", "Hostname does not match remote host.")
 						case oTerm:
 							log.Printf("Hostname %s does not match remote host.", realhost)
 						case oJson:
@@ -1187,7 +1153,7 @@ rrl = report`
 						Msg(hostErr)
 					switch opt.mode {
 					case oPlain:
-						stdWriter("", hostErr, "")
+						stdWriter("", hostErr)
 					case oTerm:
 						log.Printf("%s does not exist or unreachable. [%s]", realhost, out.Stderr)
 					case oJson:
@@ -1227,7 +1193,7 @@ rrl = report`
 						Msg(step)
 					switch opt.mode {
 					case oPlain:
-						stdWriter(out.Stdout, out.Stderr, out.Error)
+						stdWriter(out.Stdout, out.Stderr)
 					case oTerm:
 						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
@@ -1277,7 +1243,7 @@ rrl = report`
 				Msg(op)
 			switch opt.mode {
 			case oPlain:
-				stdWriter(out.Stdout, out.Stderr, out.Error)
+				stdWriter(out.Stdout, out.Stderr)
 			case oTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			case oJson:
@@ -1301,7 +1267,7 @@ rrl = report`
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
 			switch opt.mode {
 			case oPlain:
-				stdWriter(out.Stdout, out.Stderr, out.Error)
+				stdWriter(out.Stdout, out.Stderr)
 			case oTerm:
 				if out.Stderr != "" || out.Error != "" {
 					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
@@ -1346,7 +1312,7 @@ rrl = report`
 				Msg("failed")
 			switch opt.mode {
 			case oPlain:
-				stdWriter("", "Something went wrong.", "")
+				// Nothing to do
 			case oTerm:
 				log.Printf("Total run time: %s. Something went wrong.", tm)
 			case oJson:
