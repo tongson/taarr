@@ -135,7 +135,7 @@ func stdWriter(stdout string, stderr string) {
 		_, _ = fmt.Fprint(os.Stdout, stdout)
 	}
 	if stderr != "" {
-		_, _ = fmt.Fprint(os.Stderr, stderr + "\n")
+		_, _ = fmt.Fprint(os.Stderr, stderr+"\n")
 	}
 }
 
