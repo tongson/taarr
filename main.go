@@ -48,6 +48,10 @@ const cFOOTER = " └─"
 const cTARC = "--no-same-owner --no-same-permissions"
 const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acls --no-selinux --no-xattrs --touch"
 
+const oJson int = 0
+const oTerm int = 1
+const oPlain int = 2
+
 type logWriter struct {
 }
 
@@ -60,6 +64,7 @@ type optT struct {
 	interp   string
 	config   string
 	password string
+	mode     int
 }
 
 // https://gist.github.com/jlinoff/e8e26b4ffa38d379c7f1891fd174a6d0
@@ -102,10 +107,14 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 	return fmt.Print(" " + string(bytes))
 }
 
-func soOutput(h string) func(string) {
-	return func(so string) {
-		fmt.Printf(" %s │ ", h)
-		fmt.Print(so)
+func soOutput(h string, m int) func(string) {
+	if m == oTerm {
+		return func(so string) {
+			fmt.Printf(" %s │ %s", h, so)
+		}
+	} else {
+		return func(_ string) {
+		}
 	}
 }
 
@@ -204,7 +213,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	}
 	var ret bool
 	var out lib.RunOut
-	soFn := soOutput((*o).hostname)
+	soFn := soOutput((*o).hostname, (*o).mode)
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).sudo {
 			if !(*o).teleport {
@@ -489,12 +498,6 @@ func main() {
 
 	var opt optT
 
-	const oJson int = 0
-	const oTerm int = 1
-	const oPlain int = 2
-
-	var oMode int = oJson
-
 	var failed bool = false
 	var result string = "ok"
 
@@ -506,10 +509,10 @@ func main() {
 	} else {
 		switch mode := call[len(call)-3:]; mode {
 		case "rrp":
-			oMode = oPlain
+			opt.mode = oPlain
 			log.SetOutput(io.Discard)
 		case "rrv":
-			oMode = oTerm
+			opt.mode = oTerm
 			log.SetOutput(new(logWriter))
 		case "rrd":
 			mDump = true
@@ -624,9 +627,9 @@ rrl = report`
 	log.SetFlags(0)
 	zerolog.TimeFieldFormat = time.RFC3339
 	var serrLog zerolog.Logger
-	if !mReport && !mDump && oMode != oPlain {
+	if !mReport && !mDump && opt.mode != oPlain {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
-			oMode = oTerm
+			opt.mode = oTerm
 			log.SetOutput(new(logWriter))
 			log.Printf("rr %s %s", versionNumber, codeName)
 		} else {
@@ -640,7 +643,7 @@ rrl = report`
 	var id string = generateHashId()
 	opt.id = id // used for the random suffix in the temp filename
 	if len(os.Args) < 2 {
-		switch oMode {
+		switch opt.mode {
 		case oJson:
 			serrLog.Fatal().Msg("Missing arguments")
 			os.Exit(2)
@@ -673,7 +676,7 @@ rrl = report`
 			return false, ""
 		}
 		printReadme := func(s string) {
-			switch oMode {
+			switch opt.mode {
 			case oTerm:
 				ps := strings.Split(s, "/")
 				s1 := ps[0]
@@ -716,7 +719,7 @@ rrl = report`
 		}
 	}
 	if len(os.Args) < offset+1 {
-		switch oMode {
+		switch opt.mode {
 		case oTerm, oPlain:
 			_, _ = fmt.Fprintf(os.Stderr, "`namespace:script` not specified.\n")
 			os.Exit(2)
@@ -741,7 +744,7 @@ rrl = report`
 			s = strings.Split(os.Args[offset], ":")
 		}
 		if len(s) < 2 {
-			switch oMode {
+			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprint(os.Stderr, "`namespace:script` not specified.")
 				os.Exit(2)
@@ -752,7 +755,7 @@ rrl = report`
 		}
 		namespace, script = s[0], s[1]
 		if !isDir(namespace) {
-			switch oMode {
+			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s`(namespace) is not a directory.\n", namespace)
 				os.Exit(2)
@@ -762,7 +765,7 @@ rrl = report`
 			}
 		}
 		if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
-			switch oMode {
+			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory.\n", namespace, script)
 				os.Exit(2)
@@ -775,7 +778,7 @@ rrl = report`
 			}
 		}
 		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
-			switch oMode {
+			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
 				os.Exit(2)
@@ -818,7 +821,7 @@ rrl = report`
 			if !opt.nopasswd {
 				str, err := getPassword("sudo password: ")
 				if err != nil {
-					switch oMode {
+					switch opt.mode {
 					case oTerm, oPlain:
 						_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
 						os.Exit(2)
@@ -925,7 +928,7 @@ rrl = report`
 					Str("error", out.Error).
 					Msg("copy")
 				jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg("copy")
-				if oMode == oTerm {
+				if opt.mode == oTerm {
 					log.Printf("Finished copying")
 				}
 			}
@@ -942,12 +945,9 @@ rrl = report`
 			log.Printf("%s…", msgop)
 			jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg(msgop)
 		}
-		soFn := soOutput(hostname)
+		soFn := soOutput(hostname, opt.mode)
 		rargs := lib.RunArg{Exe: interp, Stdin: []byte(modscript), Stdout: soFn}
 		ret, out := rargs.Run()
-		//if out.Stdout != "" {
-		//    fmt.Printf(" %s%s\n", hostname, cFOOTER)
-		//}
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
@@ -963,7 +963,7 @@ rrl = report`
 				Str("stderr", b64se).
 				Str("error", out.Error).
 				Msg(op)
-			switch oMode {
+			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oJson:
@@ -977,8 +977,9 @@ rrl = report`
 			}
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner.Split(bufio.ScanWords)
 			for scanner.Scan() {
-				if scanner.Text() == cREPAIRED {
+				if strings.Contains(scanner.Text(), cREPAIRED) {
 					result = "repaired"
 				}
 			}
@@ -991,7 +992,7 @@ rrl = report`
 				Str("error", out.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			switch oMode {
+			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oTerm:
@@ -1030,7 +1031,7 @@ rrl = report`
 						Str("stderr", b64se).
 						Str("error", out.Error).
 						Msg(step)
-					switch oMode {
+					switch opt.mode {
 					case oPlain:
 						stdWriter(out.Stdout, out.Stderr, out.Error)
 					case oJson:
@@ -1052,7 +1053,7 @@ rrl = report`
 						Str("error", out.Error).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "success").Msg(step)
-					if oMode == oTerm {
+					if opt.mode == oTerm {
 						log.Printf("Successfully copied files")
 					}
 				}
@@ -1060,7 +1061,7 @@ rrl = report`
 		}
 		log.Printf("Running %s…", script)
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
-		soFn := soOutput(hostname)
+		soFn := soOutput(hostname, opt.mode)
 		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}, Stdout: soFn}
 		ret, out := nsargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
@@ -1078,7 +1079,7 @@ rrl = report`
 				Str("stderr", b64se).
 				Str("error", out.Error).
 				Msg(op)
-			switch oMode {
+			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oJson:
@@ -1102,7 +1103,7 @@ rrl = report`
 				Str("error", out.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			switch oMode {
+			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oTerm:
@@ -1154,7 +1155,7 @@ rrl = report`
 							Str("id", id).
 							Str("hostname", realhost).
 							Msg("Hostname does not match remote host")
-						switch oMode {
+						switch opt.mode {
 						case oPlain:
 							stdWriter("", "Hostname does not match remote host.", "")
 						case oTerm:
@@ -1164,7 +1165,7 @@ rrl = report`
 						}
 						os.Exit(1)
 					} else {
-						if oMode == oTerm {
+						if opt.mode == oTerm {
 							log.Printf("Remote host is %s\n", sshhost[0])
 						}
 					}
@@ -1175,7 +1176,7 @@ rrl = report`
 						Str("id", id).
 						Str("host", realhost).
 						Msg(hostErr)
-					switch oMode {
+					switch opt.mode {
 					case oPlain:
 						stdWriter("", hostErr, "")
 					case oTerm:
@@ -1215,7 +1216,7 @@ rrl = report`
 						Str("stderr", b64se).
 						Str("error", out.Error).
 						Msg(step)
-					switch oMode {
+					switch opt.mode {
 					case oPlain:
 						stdWriter(out.Stdout, out.Stderr, out.Error)
 					case oTerm:
@@ -1237,13 +1238,13 @@ rrl = report`
 						Str("error", out.Error).
 						Msg(step)
 					jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", "finished").Msg(step)
-					if oMode == oTerm {
+					if opt.mode == oTerm {
 						log.Printf("Finished copying")
 					}
 				}
 			}
 		}
-		if oMode == oTerm {
+		if opt.mode == oTerm {
 			log.Printf("Running %s…", script)
 		}
 		jsonLog.Debug().Str("app", "rr").Str("id", id).Str("script", script).Msg("running")
@@ -1265,7 +1266,7 @@ rrl = report`
 				Str("stderr", b64se).
 				Str("error", out.Error).
 				Msg(op)
-			switch oMode {
+			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oTerm:
@@ -1289,7 +1290,7 @@ rrl = report`
 				Str("error", out.Error).
 				Msg(op)
 			jsonLog.Info().Str("app", "rr").Str("id", id).Str("result", result).Msg(op)
-			switch oMode {
+			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr, out.Error)
 			case oTerm:
@@ -1319,7 +1320,7 @@ rrl = report`
 				Str("script", script).
 				Str("duration", tm).
 				Msg(result)
-			if oMode == oTerm {
+			if opt.mode == oTerm {
 				log.Printf("Total run time: %s. All OK.", tm)
 			}
 			os.Exit(0)
@@ -1334,7 +1335,7 @@ rrl = report`
 				Str("script", script).
 				Str("duration", tm).
 				Msg("failed")
-			switch oMode {
+			switch opt.mode {
 			case oPlain:
 				stdWriter("", "Something went wrong.", "")
 			case oTerm:
