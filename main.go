@@ -264,14 +264,14 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 }
 
 func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
-	// Four stage connection for ssh+sudo untar
+	// Three stage connection for ssh+sudo untar
 	// 1. ssh hostname 'cat - > untar.sh'
-	// 2. ssh hostname 'mkdir dir'
-	// 3. sh -c 'tar -czf - | ssh hostname 'tar -xf -'
-	// 4. ssh hostname 'sudo untar.sh'
-	// Why four connections? sudo STDIN is for the password
+	// 2. sh -c 'tar -czf - | ssh hostname 'tar -xf -'
+	// 3. ssh hostname 'sudo untar.sh'
+	// Why three connections? sudo STDIN is for the password
 	tmpd := fmt.Sprintf(".__rr.dir.%s", (*o).id)
 	tmpf := fmt.Sprintf("./.__rr.tar.%s", (*o).id)
+	// untar stage #3 script
 	tarcmd := `
 	set -efu
 	LC_ALL=C
@@ -311,21 +311,20 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	if ret, out := untar1.Run(); !ret {
 		return ret, out
 	}
+	// untar stage #3 script
 	untarDefault := `
 	RRHOST="%s"
 	RRSRC="%s"
 	RRDEST="%s"
 	RRSCRIPT="%s"
-	ssh -T "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar -C "$RRDEST" %s -xzf -
+	tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	teleportDefault := `
 	RRHOST="%s"
 	RRSRC="%s"
 	RRDEST="%s"
 	RRSCRIPT="%s"
-	tsh ssh "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar -C "$RRDEST" %s -xzf -
+	tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	untarConfig := `
 	RRHOST="%s"
@@ -333,8 +332,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	RRDEST="%s"
 	RRCONFIG="%s"
 	RRSCRIPT="%s"
-	ssh -F "$RRCONFIG" -T "$RRHOST" mkdir "$RRDEST"
-	tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -T "$RRHOST" tar -C "$RRDEST" %s -xzf -
+	tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArg
