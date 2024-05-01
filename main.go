@@ -1059,7 +1059,7 @@ rrl = report`
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
 			for scanner.Scan() {
-				if scanner.Text() == cREPAIRED {
+				if strings.Contains(scanner.Text(), cREPAIRED) {
 					result = "repaired"
 				}
 			}
@@ -1184,7 +1184,7 @@ rrl = report`
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
 			for scanner.Scan() {
-				if scanner.Text() == cREPAIRED {
+				if strings.Contains(scanner.Text(), cREPAIRED) {
 					result = "repaired"
 				}
 			}
