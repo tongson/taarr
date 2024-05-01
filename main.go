@@ -1095,68 +1095,6 @@ rrl = report`
 		} else {
 			realhost = rh[1]
 		}
-		{
-			sshenv := []string{"LC_ALL=C"}
-			var ssha lib.RunArg
-			if opt.config == "" || opt.teleport {
-				if !opt.teleport {
-					ssha = lib.RunArg{Exe: "ssh", Args: []string{"-T", opt.hostname, "uname -n"}, Env: sshenv}
-				} else {
-					ssha = lib.RunArg{Exe: "tsh", Args: []string{"ssh", opt.hostname, "uname -n"}, Env: sshenv}
-				}
-			} else {
-				ssha = lib.RunArg{Exe: "ssh", Args: []string{
-					"-F",
-					opt.config,
-					"-T",
-					opt.hostname,
-					"uname -n",
-				}, Env: sshenv}
-			}
-			{
-				log.Printf("CONNECTION: checking for hostname match…")
-				ret, out := ssha.Run()
-				if ret {
-					sshhost := strings.Split(out.Stdout, "\n")
-					if realhost != sshhost[0] {
-						jsonLog.Error().
-							Str("app", "rr").
-							Str("id", id).
-							Str("hostname", realhost).
-							Msg("Hostname does not match remote host")
-						switch opt.mode {
-						case oPlain:
-							stdWriter("", "Hostname does not match remote host.")
-						case oTerm:
-							log.Printf("Hostname %s does not match remote host.", realhost)
-						case oJson:
-							serrLog.Error().Str("hostname", realhost).Msg("Hostname does not match remote host")
-						}
-						os.Exit(1)
-					} else {
-						if opt.mode == oTerm {
-							log.Printf("Remote host is %s\n", sshhost[0])
-						}
-					}
-				} else {
-					hostErr := fmt.Sprintf("Host does not exist or unreachable. [%s]", out.Stderr)
-					jsonLog.Error().
-						Str("app", "rr").
-						Str("id", id).
-						Str("host", realhost).
-						Msg(hostErr)
-					switch opt.mode {
-					case oPlain:
-						stdWriter("", hostErr)
-					case oTerm:
-						log.Printf("%s does not exist or unreachable. [%s]", realhost, out.Stderr)
-					case oJson:
-						serrLog.Error().Str("host", realhost).Msg(hostErr)
-					}
-					os.Exit(1)
-				}
-			}
-		}
 		for _, d := range []string{
 			".files",
 			".files-" + realhost,
