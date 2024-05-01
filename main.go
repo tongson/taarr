@@ -853,7 +853,7 @@ rrl = report`
 			case oPlain:
 				stdWriter("", msg)
 			case oTerm:
-				log.Printf(msg)
+				log.Print(msg)
 			case oJson:
 				serrLog.Error().Msg(msg)
 			}
