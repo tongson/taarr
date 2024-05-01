@@ -75,7 +75,7 @@ func init() {
 	var err error
 	initTermState, err = terminal.GetState(syscall.Stdin)
 	if err != nil {
-			return
+		return
 	}
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
