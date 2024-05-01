@@ -1058,6 +1058,7 @@ rrl = report`
 			}
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner.Split(bufio.ScanWords)
 			for scanner.Scan() {
 				if strings.Contains(scanner.Text(), cREPAIRED) {
 					result = "repaired"
@@ -1183,6 +1184,7 @@ rrl = report`
 			}
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner.Split(bufio.ScanWords)
 			for scanner.Scan() {
 				if strings.Contains(scanner.Text(), cREPAIRED) {
 					result = "repaired"
