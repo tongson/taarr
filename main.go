@@ -103,11 +103,12 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 }
 
 func soOutput(h string, m int) func(string) {
-	if m == oTerm {
+	switch m {
+	case oTerm:
 		return func(so string) {
 			fmt.Printf(" %s │ %s", h, so)
 		}
-	} else {
+	default:
 		return func(_ string) {
 		}
 	}
