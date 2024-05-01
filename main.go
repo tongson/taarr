@@ -115,9 +115,7 @@ func soOutput(h string, m int) func(string) {
 }
 
 func conOutput(o string, h string, c string) (string, string, string) {
-	rh := ""
-	rb := ""
-	rf := ""
+	rh, rb, rf := "", "", ""
 	if o != "" {
 		rh = fmt.Sprintf(" %s%s\n", h, c)
 		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o))
