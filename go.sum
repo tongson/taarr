@@ -18,8 +18,8 @@ github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUc
 github.com/rs/xid v1.5.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
 github.com/rs/zerolog v1.32.0 h1:keLypqrlIjaFsbmJOBdB/qvyF8KEtCWHwobLp5l/mQ0=
 github.com/rs/zerolog v1.32.0/go.mod h1:/7mN4D5sKwJLZQ2b/znpjC3/GQWY/xaDXUM0kKWRHss=
-github.com/tongson/gl v0.0.0-20240430071437-849aee064acc h1:as1Ur2S9vzhiVWk1lZHhsneg78bStB3odsBe3vp+7eQ=
-github.com/tongson/gl v0.0.0-20240430071437-849aee064acc/go.mod h1:fU6I0Ftr9DkKCYHb2TQmMmEGowPXcOqHUrikGo8CUrM=
+github.com/tongson/gl v0.0.0-20240430144142-ab44fe9dd066 h1:V1v0rembj1/hL3iVebcIa0zIdAD4sRhDJ9seknmDT7I=
+github.com/tongson/gl v0.0.0-20240430144142-ab44fe9dd066/go.mod h1:fU6I0Ftr9DkKCYHb2TQmMmEGowPXcOqHUrikGo8CUrM=
 golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.12.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

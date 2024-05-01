@@ -8,7 +8,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/rs/zerolog v1.32.0
-	github.com/tongson/gl v0.0.0-20240430071437-849aee064acc
+	github.com/tongson/gl v0.0.0-20240430144142-ab44fe9dd066
 	golang.org/x/term v0.19.0
 )
 
