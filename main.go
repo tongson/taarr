@@ -67,10 +67,10 @@ type optT struct {
 	mode     int
 }
 
-var initTermState *terminal.State
-
 // CITATION: Konstantin Shaposhnikov - https://groups.google.com/forum/#!topic/golang-nuts/kTVAbtee9UA
 // REFERENCE: https://gist.github.com/jlinoff/e8e26b4ffa38d379c7f1891fd174a6d0
+var initTermState *terminal.State
+
 func init() {
 	var err error
 	initTermState, err = terminal.GetState(syscall.Stdin)
