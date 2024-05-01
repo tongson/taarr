@@ -1,3 +1,4 @@
+ls -la /home
 sleep 1
 ls /
 sleep 1
