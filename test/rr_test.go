@@ -15,6 +15,13 @@ const cEXE = "../bin/rr"
 func TestMain(m *testing.M) {
 	code := m.Run()
 	os.Remove("LOG")
+	nsenter := `
+	sudo ../bin/rr $(pgrep sshd) remote:simple
+	sudo ../bin/rr $(pgrep sshd) files:remote
+!!!!
+	`
+	print("!!!!\nConsider nsenter tests:\n")
+	print(nsenter)
 	os.Exit(code)
 }
 
