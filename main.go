@@ -29,7 +29,6 @@ var start = time.Now()
 const versionNumber = "1.0.4"
 const codeName = "\"Revocable Marsh\""
 
-// constants
 const cOP = "OP"
 const cINC = "VARS"
 const cHOSTS = "HOSTS"
