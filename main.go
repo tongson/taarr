@@ -264,7 +264,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 }
 
 func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
-	// Three stage connection for ssh+sudo untar
+	// Three stage connection for ssh+sudo+passwd untar
 	// 1. ssh hostname 'cat - > untar.sh'
 	// 2. sh -c 'tar -czf - | ssh hostname 'tar -xf -'
 	// 3. ssh hostname 'sudo untar.sh'
@@ -404,6 +404,35 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 		untar3 = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 	}
 	return untar3.Run()
+}
+
+func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
+	untarDefault := `tar -C %s -czf - . | ssh -T %s sudo -k -- tar -C / -xzf -`
+	untarTeleport := `tar -C %s -czf - . | tsh ssh %s sudo -k -- tar -C / -xzf -`
+	untarConfig := `tar -C %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / -xzf -`
+	tarenv := []string{"LC_ALL=C"}
+	var untar lib.RunArg
+	if (*o).config == "" || (*o).teleport {
+		if !(*o).teleport {
+			untar = lib.RunArg{
+				Exe:  (*o).interp,
+				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)},
+				Env:  tarenv,
+			}
+		} else {
+			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
+				"-c",
+				fmt.Sprintf(untarTeleport, dir, (*o).hostname)},
+				Env: tarenv,
+			}
+		}
+	} else {
+		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
+			fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)},
+			Env: tarenv,
+		}
+	}
+	return untar.Run()
 }
 
 func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
@@ -1106,10 +1135,15 @@ rrl = report`
 				log.Printf("CONNECTION: copying %s to %s…", d, realhost)
 				var ret bool
 				var out lib.RunOut
-				if !opt.sudo {
+				switch opt.sudo {
+				case false:
 					ret, out = quickCopy(&opt, d)
-				} else {
+				case true && opt.nopasswd:
+					ret, out = sudoCopyNopasswd(&opt, d)
+				case true && !opt.nopasswd:
 					ret, out = sudoCopy(&opt, d)
+				default:
+					panic("BUG[001]: unhandled condition!")
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
