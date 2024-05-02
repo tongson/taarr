@@ -275,7 +275,6 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tarcmd := `
 	set -efu
 	LC_ALL=C
-	unset IFS
 	tar -C %s %s -cf - . | tar -C / %s -xf -
 	rm -rf %s
 	rm -f %s
@@ -313,6 +312,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	}
 	// untar stage #3 script
 	untarDefault := `
+	set -efu
 	RRHOST="%s"
 	RRSRC="%s"
 	RRDEST="%s"
@@ -320,6 +320,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	teleportDefault := `
+	set -efu
 	RRHOST="%s"
 	RRSRC="%s"
 	RRDEST="%s"
@@ -327,6 +328,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	untarConfig := `
+	set -efu
 	RRHOST="%s"
 	RRSRC="%s"
 	RRDEST="%s"
@@ -407,9 +409,18 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 }
 
 func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
-	untarDefault := `tar -C %s -czf - . | ssh -T %s sudo -k -- tar -C / -xzf -`
-	untarTeleport := `tar -C %s -czf - . | tsh ssh %s sudo -k -- tar -C / -xzf -`
-	untarConfig := `tar -C %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / -xzf -`
+	untarDefault := `
+	set -efu
+	tar -C %s -czf - . | ssh -T %s sudo -k -- tar -C / -xzf -
+	`
+	untarTeleport := `
+	set -efu
+	tar -C %s -czf - . | tsh ssh %s sudo -k -- tar -C / -xzf -
+	`
+	untarConfig := `
+	set -efu
+	tar -C %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / -xzf -
+	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar lib.RunArg
 	if (*o).config == "" || (*o).teleport {
@@ -437,15 +448,15 @@ func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 
 func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	untarDefault := `
-	set -o nounset -o noglob
+	set -efu
 	tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarTeleport := `
-	set -o nounset -o noglob
+	set -efu
 	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarConfig := `
-	set -o nounset -o noglob
+	set -efu
 	tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
@@ -886,8 +897,7 @@ rrl = report`
 		}
 		untar := `
                 LC_ALL=C
-                set -o errexit -o nounset -o noglob
-                unset IFS
+				set -efu
                 tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
                 `
 		for _, d := range []string{
