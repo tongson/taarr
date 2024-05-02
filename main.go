@@ -15,10 +15,10 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"text/tabwriter"
 	"time"
 
 	isatty "github.com/mattn/go-isatty"
-	tablewriter "github.com/olekukonko/tablewriter"
 	zerolog "github.com/rs/zerolog"
 	lib "github.com/tongson/gl"
 	terminal "golang.org/x/term"
@@ -541,17 +541,10 @@ rrl = report`
 		}
 	}
 	if mReport {
-		hdrs := []string{
-			"ID",
-			"Target",
-			"Started",
-			"Namespace",
-			"Script",
-			"Task",
-			"Duration",
-			"Result",
-		}
-		var data [][]string
+		w := new(tabwriter.Writer)
+		w.Init(os.Stdout, 0, 8, 1, '\t', 0)
+		hdrs := "ID\tTarget\tStarted\tNamespace\tScript\tTask\tDuration\tResult\t"
+		_, _ = fmt.Fprintln(w, hdrs)
 		rrl, err := os.Open(cLOG)
 		defer rrl.Close() //nolint:staticcheck // ok, to Close() twice
 		if err != nil {
@@ -576,48 +569,18 @@ rrl = report`
 				os.Exit(1)
 			}
 			if log["duration"] != "" {
-				data = append(data, []string{log["id"],
-					log["target"],
-					log["start"],
-					log["namespace"],
-					log["script"],
-					log["task"],
-					log["duration"],
-					log["message"]})
+				_, _ = fmt.Fprintln(w, log["id"]+"\t"+
+					log["target"]+"\t"+
+					log["start"]+"\t"+
+					log["namespace"]+"\t"+
+					log["script"]+"\t"+
+					log["task"]+"\t"+
+					log["duration"]+"\t"+
+					log["message"]+"\t")
 			}
 		}
-		table := tablewriter.NewWriter(os.Stdout)
-		table.SetRowLine(true) // Enable row line
-		table.SetCenterSeparator("⋅")
-		table.SetColumnSeparator("│")
-		table.SetRowSeparator("─")
-		table.SetAlignment(tablewriter.ALIGN_LEFT)
-		table.SetHeader(hdrs)
-		table.SetFooter(hdrs)
-		table.SetBorder(true)
-		table.SetRowLine(true)
-		table.SetHeaderColor(
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-		)
-		table.SetFooterColor(
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-			tablewriter.Colors{tablewriter.Bold},
-		)
-		table.AppendBulk(data)
-		table.Render()
+		_, _ = fmt.Fprintln(w, hdrs)
+		_ = w.Flush()
 		_ = rrl.Close()
 		os.Exit(0)
 	}
