@@ -264,18 +264,17 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 }
 
 func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
-	// Three stage connection for ssh+sudo untar
+	// Three stage connection for ssh+sudo+passwd untar
 	// 1. ssh hostname 'cat - > untar.sh'
 	// 2. sh -c 'tar -czf - | ssh hostname 'tar -xf -'
 	// 3. ssh hostname 'sudo untar.sh'
 	// Why three connections? sudo STDIN is for the password
 	tmpd := fmt.Sprintf(".__rr.dir.%s", (*o).id)
-	tmpf := fmt.Sprintf("./.__rr.tar.%s", (*o).id)
+	tmpf := fmt.Sprintf(".__rr.tar.%s", (*o).id)
 	// untar stage #3 script
 	tarcmd := `
 	set -efu
 	LC_ALL=C
-	unset IFS
 	tar -C %s %s -cf - . | tar -C / %s -xf -
 	rm -rf %s
 	rm -f %s
@@ -313,6 +312,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	}
 	// untar stage #3 script
 	untarDefault := `
+	set -efu
 	RRHOST="%s"
 	RRSRC="%s"
 	RRDEST="%s"
@@ -320,6 +320,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	teleportDefault := `
+	set -efu
 	RRHOST="%s"
 	RRSRC="%s"
 	RRDEST="%s"
@@ -327,6 +328,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	untarConfig := `
+	set -efu
 	RRHOST="%s"
 	RRSRC="%s"
 	RRDEST="%s"
@@ -406,17 +408,55 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	return untar3.Run()
 }
 
+func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
+	untarDefault := `
+	set -efu
+	tar -C %s -czf - . | ssh -T %s sudo -k -- tar -C / -xzf -
+	`
+	untarTeleport := `
+	set -efu
+	tar -C %s -czf - . | tsh ssh %s sudo -k -- tar -C / -xzf -
+	`
+	untarConfig := `
+	set -efu
+	tar -C %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / -xzf -
+	`
+	tarenv := []string{"LC_ALL=C"}
+	var untar lib.RunArg
+	if (*o).config == "" || (*o).teleport {
+		if !(*o).teleport {
+			untar = lib.RunArg{
+				Exe:  (*o).interp,
+				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)},
+				Env:  tarenv,
+			}
+		} else {
+			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
+				"-c",
+				fmt.Sprintf(untarTeleport, dir, (*o).hostname)},
+				Env: tarenv,
+			}
+		}
+	} else {
+		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
+			fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)},
+			Env: tarenv,
+		}
+	}
+	return untar.Run()
+}
+
 func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	untarDefault := `
-	set -o nounset -o noglob
+	set -efu
 	tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarTeleport := `
-	set -o nounset -o noglob
+	set -efu
 	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	untarConfig := `
-	set -o nounset -o noglob
+	set -efu
 	tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
@@ -857,8 +897,7 @@ rrl = report`
 		}
 		untar := `
                 LC_ALL=C
-                set -o errexit -o nounset -o noglob
-                unset IFS
+				set -efu
                 tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
                 `
 		for _, d := range []string{
@@ -1106,10 +1145,15 @@ rrl = report`
 				log.Printf("CONNECTION: copying %s to %s…", d, realhost)
 				var ret bool
 				var out lib.RunOut
-				if !opt.sudo {
+				switch opt.sudo {
+				case false:
 					ret, out = quickCopy(&opt, d)
-				} else {
+				case true && opt.nopasswd:
+					ret, out = sudoCopyNopasswd(&opt, d)
+				case true && !opt.nopasswd:
 					ret, out = sudoCopy(&opt, d)
+				default:
+					panic("BUG[001]: unhandled condition!")
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
