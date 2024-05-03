@@ -76,7 +76,7 @@ func TestRepaired(T *testing.T) {
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
-		if got := strings.Contains(FileRead("LOG"), "\"message\":\"repaired\""); !got {
+		if got := strings.Contains(FileRead("LOG"), "\"msg\":\"repaired\""); !got {
 			t.Error("wants `true`")
 		}
 	})
@@ -85,7 +85,7 @@ func TestRepaired(T *testing.T) {
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
-		if got := strings.Contains(FileRead("LOG"), "\"message\":\"repaired\""); !got {
+		if got := strings.Contains(FileRead("LOG"), "\"msg\":\"repaired\""); !got {
 			t.Error("wants `true`")
 		}
 	})
