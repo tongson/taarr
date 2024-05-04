@@ -411,15 +411,15 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 	tarDefault := `
 	set -efu
-	tar -C %s -czf - . | ssh -T %s sudo -k -- tar -C / -xzf -
+	tar -C %s %s -czf - . | ssh -T %s sudo -k -- tar -C / %s -xzf -
 	`
 	tarTeleport := `
 	set -efu
-	tar -C %s -czf - . | tsh ssh %s sudo -k -- tar -C / -xzf -
+	tar -C %s %s -czf - . | tsh ssh %s sudo -k -- tar -C / %s -xzf -
 	`
 	tarConfig := `
 	set -efu
-	tar -C %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / -xzf -
+	tar -C %s %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / %s -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var tar lib.RunArg
@@ -427,19 +427,19 @@ func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 		if !(*o).teleport {
 			tar = lib.RunArg{
 				Exe:  (*o).interp,
-				Args: []string{"-c", fmt.Sprintf(tarDefault, dir, (*o).hostname)},
+				Args: []string{"-c", fmt.Sprintf(tarDefault, dir, cTARC, (*o).hostname, cTARX)},
 				Env:  tarenv,
 			}
 		} else {
 			tar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
-				fmt.Sprintf(tarTeleport, dir, (*o).hostname)},
+				fmt.Sprintf(tarTeleport, dir, cTARC, (*o).hostname, cTARX)},
 				Env: tarenv,
 			}
 		}
 	} else {
 		tar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(tarConfig, dir, (*o).config, (*o).hostname)},
+			fmt.Sprintf(tarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
 			Env: tarenv,
 		}
 	}
