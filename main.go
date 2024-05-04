@@ -842,10 +842,9 @@ rrl = report`
 			os.Exit(2)
 		}
 		untar := `
-                LC_ALL=C
-				set -efu
-                tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
-                `
+			set -efu
+			tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
+		`
 		for _, d := range []string{
 			".files",
 			".files-local",
@@ -860,9 +859,11 @@ rrl = report`
 			if lib.IsDir(d) {
 				log.Printf("Copying %s…", d)
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
+				untarenv := []string{"LC_ALL=C"}
 				rargs := lib.RunArg{
 					Exe:  interp,
 					Args: []string{"-c", fmt.Sprintf(untar, d, cTARC, cTARX)},
+					Env:  untarenv,
 				}
 				_, out := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
