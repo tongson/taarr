@@ -595,8 +595,6 @@ rrl = report`
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		}
 	}
-	isDir := lib.StatPath("directory")
-	isFile := lib.StatPath("file")
 	var offset int
 	var hostname string
 	var id string = generateHashId()
@@ -628,7 +626,7 @@ rrl = report`
 			s = strings.TrimSuffix(s, ":")
 			match, _ := lib.FileGlob(fmt.Sprintf("%s/%s*", s, cDOC))
 			for _, m := range match {
-				if isFile(m) {
+				if lib.IsFile(m) {
 					return true, m
 				}
 			}
@@ -714,7 +712,7 @@ rrl = report`
 			}
 		}
 		namespace, script = s[0], s[1]
-		if !isDir(namespace) {
+		if !lib.IsDir(namespace) {
 			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s`(namespace) is not a directory.\n", namespace)
@@ -724,7 +722,7 @@ rrl = report`
 				os.Exit(2)
 			}
 		}
-		if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
+		if !lib.IsDir(fmt.Sprintf("%s/%s", namespace, script)) {
 			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory.\n", namespace, script)
@@ -734,7 +732,7 @@ rrl = report`
 				os.Exit(2)
 			}
 		}
-		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
+		if !lib.IsFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
 			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
@@ -753,19 +751,19 @@ rrl = report`
 			arguments = os.Args[offset+1:]
 		}
 		fnWalkDir := lib.PathWalker(&sh)
-		if isDir(".lib") {
+		if lib.IsDir(".lib") {
 			if err := filepath.WalkDir(".lib", fnWalkDir); err != nil {
 				_, _ = fmt.Fprint(os.Stderr, "Problem accessing .lib")
 				os.Exit(255)
 			}
 		}
-		if isDir(namespace + "/.lib") {
+		if lib.IsDir(namespace + "/.lib") {
 			if err := filepath.WalkDir(namespace+"/.lib", fnWalkDir); err != nil {
 				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/.lib\n", namespace)
 				os.Exit(255)
 			}
 		}
-		if isDir(namespace + "/" + script + "/.lib") {
+		if lib.IsDir(namespace + "/" + script + "/.lib") {
 			if err := filepath.WalkDir(namespace+"/"+script+"/.lib", fnWalkDir); err != nil {
 				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/%s/.lib\n", namespace, script)
 				os.Exit(255)
@@ -797,7 +795,7 @@ rrl = report`
 			arguments = lib.InsertStr(arguments, "set --", 0)
 			sh.WriteString(strings.Join(arguments, " "))
 		}
-		if isFile(cINC) {
+		if lib.IsFile(cINC) {
 			sh.WriteString("\n" + lib.FileRead(cINC))
 		}
 		code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
@@ -859,7 +857,7 @@ rrl = report`
 			namespace + "/" + script + "/.files-local",
 			namespace + "/" + script + "/.files-localhost",
 		} {
-			if isDir(d) {
+			if lib.IsDir(d) {
 				log.Printf("Copying %s…", d)
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
 				rargs := lib.RunArg{
@@ -933,7 +931,7 @@ rrl = report`
 			namespace + "/.files/",
 			namespace + "/" + script + "/.files/",
 		} {
-			if isDir(d) {
+			if lib.IsDir(d) {
 				log.Printf("Copying %s…", d)
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
 				tarenv := []string{"LC_ALL=C"}
@@ -1030,7 +1028,7 @@ rrl = report`
 			namespace + "/" + script + "/.files",
 			namespace + "/" + script + "/.files-" + realhost,
 		} {
-			if isDir(d) {
+			if lib.IsDir(d) {
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
 				log.Printf("CONNECTION: copying %s to %s…", d, realhost)
 				var ret bool
