@@ -1,11 +1,11 @@
 A="ok"
-test -d /tmp/__rr_XXX || A="failed"
+test -d /tmp/__rr_FFF || A="failed"
 test -d /tmp/__rr_YYY || A="failed"
 test -d /root/__rr_AAA || A="failed"
 test -f /root/__rr_BBB || A="failed"
-rmdir /tmp/__rr_XXX
-rmdir /tmp/__rr_YYY
-rmdir /root/__rr_AAA
+rm -rf /tmp/__rr_FFF
+rm -rf /tmp/__rr_YYY
+rm -rf /root/__rr_AAA
 rm -f /root/__rr_BBB
 if [ "$A" = "ok" ]
 then
