@@ -841,7 +841,7 @@ rrl = report`
 			}
 			os.Exit(2)
 		}
-		untar := `
+		tar := `
 			set -efu
 			tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
 		`
@@ -859,11 +859,11 @@ rrl = report`
 			if lib.IsDir(d) {
 				log.Printf("Copying %s…", d)
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
-				untarenv := []string{"LC_ALL=C"}
+				tarenv := []string{"LC_ALL=C"}
 				rargs := lib.RunArg{
 					Exe:  interp,
-					Args: []string{"-c", fmt.Sprintf(untar, d, cTARC, cTARX)},
-					Env:  untarenv,
+					Args: []string{"-c", fmt.Sprintf(tar, d, cTARC, cTARX)},
+					Env:  tarenv,
 				}
 				_, out := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
@@ -936,10 +936,15 @@ rrl = report`
 				log.Printf("Copying %s…", d)
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
 				tarenv := []string{"LC_ALL=C"}
-				untar := `
-				tar -C %s %s -cf - . | tar -C %s %s -xf -
+				tar := `
+					set -efu
+					tar -C %s %s -cf - . | tar -C %s %s -xf -
 				`
-				rsargs := lib.RunArg{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, cTARC, destination, cTARX)}, Env: tarenv}
+				rsargs := lib.RunArg{
+					Exe:  interp,
+					Args: []string{"-c", fmt.Sprintf(tar, d, cTARC, destination, cTARX)},
+					Env:  tarenv,
+				}
 				ret, out := rsargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
