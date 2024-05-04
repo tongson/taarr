@@ -1,9 +1,9 @@
 A="ok"
-test -d /tmp/__rr_XXX || A="failed"
+test -d /tmp/__rr_FFF || A="failed"
 test -d /tmp/__rr_YYY || A="failed"
 test -f /tmp/__rr_ZZZ || A="failed"
-rmdir /tmp/__rr_XXX
-rmdir /tmp/__rr_YYY
+rm -rf /tmp/__rr_FFF
+rm -rf /tmp/__rr_YYY
 rm -f /tmp/__rr_ZZZ
 if [ "$A" = "ok" ]
 then

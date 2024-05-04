@@ -160,7 +160,7 @@ func TestArgs(T *testing.T) {
 			os.Remove(vee)
 		})
 	})
-	// XXX: Might remove support for calls like this.
+	// XXX Might remove support for calls like this.
 	T.Run("args4a", func(t *testing.T) {
 		rr := RunArg{Exe: cEXE, Args: []string{"args:args4:1"}}
 		if ret, _ := rr.Run(); !ret {
@@ -292,7 +292,7 @@ func TestSsh(T *testing.T) {
 func TestLocalFiles(T *testing.T) {
 	T.Parallel()
 	T.Run("local", func(t *testing.T) {
-		x := "/tmp/__rr_XXX"
+		x := "/tmp/__rr_FFF"
 		y := "/tmp/__rr_YYY"
 		z := "/tmp/__rr_ZZZ"
 		rr := RunArg{Exe: cEXE, Args: []string{"files:local"}}
