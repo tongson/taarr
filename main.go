@@ -542,8 +542,8 @@ rrl = report`
 	}
 	if mReport {
 		w := new(tabwriter.Writer)
-		w.Init(os.Stdout, 0, 8, 1, '\t', 0)
-		hdrs := "ID\tTarget\tStarted\tNamespace\tScript\tTask\tDuration\tResult\t"
+		w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+		hdrs := "ID \tTarget\tStarted\tNamespace\tScript\tTask\tLength\tResult\t"
 		_, _ = fmt.Fprintln(w, hdrs)
 		rrl, err := os.Open(cLOG)
 		defer rrl.Close() //nolint:staticcheck // ok, to Close() twice
@@ -569,7 +569,7 @@ rrl = report`
 				os.Exit(1)
 			}
 			if log["duration"] != "" {
-				_, _ = fmt.Fprintln(w, log["id"]+"\t"+
+				_, _ = fmt.Fprintln(w, log["id"]+" \t"+
 					log["target"]+"\t"+
 					log["start"]+"\t"+
 					log["namespace"]+"\t"+
