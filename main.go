@@ -409,79 +409,79 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 }
 
 func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
-	untarDefault := `
+	tarDefault := `
 	set -efu
 	tar -C %s -czf - . | ssh -T %s sudo -k -- tar -C / -xzf -
 	`
-	untarTeleport := `
+	tarTeleport := `
 	set -efu
 	tar -C %s -czf - . | tsh ssh %s sudo -k -- tar -C / -xzf -
 	`
-	untarConfig := `
+	tarConfig := `
 	set -efu
 	tar -C %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / -xzf -
 	`
-	untarenv := []string{"LC_ALL=C"}
-	var untar lib.RunArg
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).teleport {
-			untar = lib.RunArg{
-				Exe:  (*o).interp,
-				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)},
-				Env:  untarenv,
-			}
-		} else {
-			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
-				"-c",
-				fmt.Sprintf(untarTeleport, dir, (*o).hostname)},
-				Env: ,
-			}
-		}
-	} else {
-		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)},
-			Env: untarenv,
-		}
-	}
-	return untar.Run()
-}
-
-func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
-	untarDefault := `
-	set -efu
-	tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
-	`
-	untarTeleport := `
-	set -efu
-	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
-	`
-	untarConfig := `
-	set -efu
-	tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
-	`
 	tarenv := []string{"LC_ALL=C"}
-	var untar lib.RunArg
+	var tar lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
-			untar = lib.RunArg{
+			tar = lib.RunArg{
 				Exe:  (*o).interp,
-				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, cTARC, (*o).hostname, cTARX)},
+				Args: []string{"-c", fmt.Sprintf(tarDefault, dir, (*o).hostname)},
 				Env:  tarenv,
 			}
 		} else {
-			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
+			tar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
-				fmt.Sprintf(untarTeleport, dir, cTARC, (*o).hostname, cTARX)},
+				fmt.Sprintf(tarTeleport, dir, (*o).hostname)},
 				Env: tarenv,
 			}
 		}
 	} else {
-		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(untarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
+		tar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
+			fmt.Sprintf(tarConfig, dir, (*o).config, (*o).hostname)},
 			Env: tarenv,
 		}
 	}
-	return untar.Run()
+	return tar.Run()
+}
+
+func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
+	tarDefault := `
+	set -efu
+	tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
+	`
+	tarTeleport := `
+	set -efu
+	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
+	`
+	tarConfig := `
+	set -efu
+	tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
+	`
+	tarenv := []string{"LC_ALL=C"}
+	var tar lib.RunArg
+	if (*o).config == "" || (*o).teleport {
+		if !(*o).teleport {
+			tar = lib.RunArg{
+				Exe:  (*o).interp,
+				Args: []string{"-c", fmt.Sprintf(tarDefault, dir, cTARC, (*o).hostname, cTARX)},
+				Env:  tarenv,
+			}
+		} else {
+			tar = lib.RunArg{Exe: (*o).interp, Args: []string{
+				"-c",
+				fmt.Sprintf(tarTeleport, dir, cTARC, (*o).hostname, cTARX)},
+				Env: tarenv,
+			}
+		}
+	} else {
+		tar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
+			fmt.Sprintf(tarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
+			Env: tarenv,
+		}
+	}
+	return tar.Run()
 }
 
 func generateHashId() string {
