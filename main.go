@@ -275,11 +275,11 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tarcmd := `
 	set -efu
 	export LC_ALL=C
-	tar -C %s -cf - . | tar -C / -xf -
+	tar -C %s %s -cf - . | tar -C / %s -xf -
 	rm -rf %s
 	rm -f %s
 	`
-	tarexec := fmt.Sprintf(tarcmd, tmpd, tmpd, tmpf)
+	tarexec := fmt.Sprintf(tarcmd, tmpd, cTARC, cTARX, tmpd, tmpf)
 	sshenv := []string{"LC_ALL=C"}
 	var untar1 lib.RunArg
 	if (*o).config == "" || (*o).teleport {
@@ -940,7 +940,6 @@ rrl = report`
 					set -efu
 					tar -C %s %s -cf - . | tar -C %s %s -xf -
 				`
-				// add cTARC and cTARX for user namespaces
 				rsargs := lib.RunArg{
 					Exe:  interp,
 					Args: []string{"-c", fmt.Sprintf(tar, d, cTARC, destination, cTARX)},
