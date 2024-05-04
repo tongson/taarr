@@ -421,26 +421,26 @@ func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 	set -efu
 	tar -C %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / -xzf -
 	`
-	tarenv := []string{"LC_ALL=C"}
+	untarenv := []string{"LC_ALL=C"}
 	var untar lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
 			untar = lib.RunArg{
 				Exe:  (*o).interp,
 				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)},
-				Env:  tarenv,
+				Env:  untarenv,
 			}
 		} else {
 			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
 				fmt.Sprintf(untarTeleport, dir, (*o).hostname)},
-				Env: tarenv,
+				Env: ,
 			}
 		}
 	} else {
 		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
 			fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)},
-			Env: tarenv,
+			Env: untarenv,
 		}
 	}
 	return untar.Run()
