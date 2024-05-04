@@ -274,7 +274,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	// untar stage #3 script
 	tarcmd := `
 	set -efu
-	LC_ALL=C
+	export LC_ALL=C
 	tar -C %s %s -cf - . | tar -C / %s -xf -
 	rm -rf %s
 	rm -f %s
