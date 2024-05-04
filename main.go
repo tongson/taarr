@@ -546,11 +546,11 @@ rrl = report`
 		hdrs := "ID \tTarget\tStarted\tNamespace\tScript\tTask\tLength\tResult\t"
 		_, _ = fmt.Fprintln(w, hdrs)
 		rrl, err := os.Open(cLOG)
-		defer rrl.Close() //nolint:staticcheck // ok, to Close() twice
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` in the current directory.\n", cLOG)
 			os.Exit(1)
 		}
+		defer rrl.Close()
 		var maxSz int
 		scanner := bufio.NewScanner(rrl)
 		rrlInfo, err := rrl.Stat()
