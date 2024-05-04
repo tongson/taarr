@@ -41,6 +41,18 @@ func TestRun(T *testing.T) {
 	})
 }
 
+func TestEnv(t *testing.T) {
+	testenv := []string{"rr_LOOKFORTHIS=FOO"}
+	rr := RunArg{Exe: cEXE, Env: testenv, Args: []string{"env:test"}}
+	ret, out := rr.Run()
+	if !ret {
+		t.Error("wants `true`")
+	}
+	if got := strings.Contains(out.Stderr, "LOOKFORTHIS=FOO"); !got {
+		t.Error("wants `true`")
+	}
+}
+
 func TestOp(T *testing.T) {
 	T.Parallel()
 	msg := "Somebody set up us the bomb"
