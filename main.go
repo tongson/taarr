@@ -273,11 +273,11 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tmpf := fmt.Sprintf(".__rr.tar.%s", (*o).id)
 	// untar stage #3 script
 	tarcmd := `
-	set -efu
-	export LC_ALL=C
-	tar -C %s %s -cf - . | tar -C / %s -xf -
-	rm -rf %s
-	rm -f %s
+		set -efu
+		export LC_ALL=C
+		tar -C %s %s -cf - . | tar -C / %s -xf -
+		rm -rf %s
+		rm -f %s
 	`
 	tarexec := fmt.Sprintf(tarcmd, tmpd, cTARC, cTARX, tmpd, tmpf)
 	sshenv := []string{"LC_ALL=C"}
@@ -312,29 +312,29 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	}
 	// untar stage #3 script
 	untarDefault := `
-	set -efu
-	RRHOST="%s"
-	RRSRC="%s"
-	RRDEST="%s"
-	RRSCRIPT="%s"
-	tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
+		set -efu
+		RRHOST="%s"
+		RRSRC="%s"
+		RRDEST="%s"
+		RRSCRIPT="%s"
+		tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	teleportDefault := `
-	set -efu
-	RRHOST="%s"
-	RRSRC="%s"
-	RRDEST="%s"
-	RRSCRIPT="%s"
-	tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
+		set -efu
+		RRHOST="%s"
+		RRSRC="%s"
+		RRDEST="%s"
+		RRSCRIPT="%s"
+		tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	untarConfig := `
-	set -efu
-	RRHOST="%s"
-	RRSRC="%s"
-	RRDEST="%s"
-	RRCONFIG="%s"
-	RRSCRIPT="%s"
-	tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
+		set -efu
+		RRHOST="%s"
+		RRSRC="%s"
+		RRDEST="%s"
+		RRCONFIG="%s"
+		RRSCRIPT="%s"
+		tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArg
@@ -410,16 +410,16 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 
 func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 	tarDefault := `
-	set -efu
-	tar -C %s %s -czf - . | ssh -T %s sudo -k -- tar -C / %s -xzf -
+		set -efu
+		tar -C %s %s -czf - . | ssh -T %s sudo -k -- tar -C / %s -xzf -
 	`
 	tarTeleport := `
-	set -efu
-	tar -C %s %s -czf - . | tsh ssh %s sudo -k -- tar -C / %s -xzf -
+		set -efu
+		tar -C %s %s -czf - . | tsh ssh %s sudo -k -- tar -C / %s -xzf -
 	`
 	tarConfig := `
-	set -efu
-	tar -C %s %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / %s -xzf -
+		set -efu
+		tar -C %s %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / %s -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var tar lib.RunArg
@@ -448,16 +448,16 @@ func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 
 func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tarDefault := `
-	set -efu
-	tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
+		set -efu
+		tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarTeleport := `
-	set -efu
-	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
+		set -efu
+		tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarConfig := `
-	set -efu
-	tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
+		set -efu
+		tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var tar lib.RunArg
