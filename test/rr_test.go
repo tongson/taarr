@@ -261,6 +261,19 @@ func TestInterpreter(T *testing.T) {
 	})
 }
 
+func TestPlain(T *testing.T) {
+	T.Run("plain mode", func(t *testing.T) {
+		rr := RunArg{Exe: "sh", Args: []string{"-c", "../bin/rrp plain:main $(../bin/rrp plain:arg)"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			if got := o.Stdout; got != "one\n" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+	})
+}
+
 func TestSsh(T *testing.T) {
 	T.Parallel()
 	T.Run("simple", func(t *testing.T) {
