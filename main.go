@@ -796,15 +796,19 @@ rrl = report`
 			sh.WriteString(strings.Join(arguments, " "))
 			sh.WriteString("\n")
 		}
-		if lib.IsFile(cINC) {
-			sh.WriteString(lib.FileRead(cINC) + "\n")
+		if c := lib.FileRead(namespace + "/" + script + "/" + cRUN); lib.IsFile(cINC) {
+			inc := lib.FileRead(cINC) + "\n"
+			code = inc + c
+		} else {
+			code = c
 		}
-		code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
 		sh.WriteString(code)
 	}
+	// $modscript is the actual script to execute
+	// $code is the sanitized script without rr__ variables
 	modscript := sh.String()
 	if mDump {
-		fmt.Print(modscript)
+		fmt.Print(code)
 		os.Exit(0)
 	}
 	interp = lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
