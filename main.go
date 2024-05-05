@@ -804,9 +804,9 @@ rrl = report`
 		}
 		sh.WriteString(code)
 	}
-	// $modscript is the actual script to execute
+	// $nsScript is the actual script to execute
 	// $code is the sanitized script without rr__ variables
-	modscript := sh.String()
+	nsScript := sh.String()
 	if mDump {
 		fmt.Print(code)
 		os.Exit(0)
@@ -889,7 +889,7 @@ rrl = report`
 			jsonLog.Debug(msgop, "app", "rr", "id", id, "script", script)
 		}
 		soFn := soOutput(hostname, opt.mode)
-		rargs := lib.RunArg{Exe: interp, Stdin: []byte(modscript), Stdout: soFn}
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(nsScript), Stdout: soFn}
 		ret, out := rargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
@@ -980,7 +980,7 @@ rrl = report`
 		log.Printf("Running %s…", script)
 		jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
 		soFn := soOutput(hostname, opt.mode)
-		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}, Stdout: soFn}
+		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", nsScript}, Stdout: soFn}
 		ret, out := nsargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
@@ -1086,7 +1086,7 @@ rrl = report`
 		jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
 		var ret bool
 		var out lib.RunOut
-		ret, out = sshExec(&opt, modscript)
+		ret, out = sshExec(&opt, nsScript)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
