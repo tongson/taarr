@@ -26,8 +26,8 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "1.0.4"
-const codeName = "\"Revocable Marsh\""
+const versionNumber = "2.0.0"
+const codeName = "\"Groggy Pauper\""
 
 const cOP = "OP"
 const cINC = "VARS"
@@ -97,7 +97,7 @@ func getPassword(prompt string) (string, error) {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	fmt.Printf("\n\033[1A\033[K\033[38;2;85;85;85m%s\033[0m", time.Now().Format(time.RFC1123Z))
+	fmt.Printf("\n\033[1A\033[K\033[38;2;85;85;85m%s\033[0m", time.Now().Format(time.RFC822Z))
 	return fmt.Print(" " + string(bytes))
 }
 
@@ -273,11 +273,11 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tmpf := fmt.Sprintf(".__rr.tar.%s", (*o).id)
 	// untar stage #3 script
 	tarcmd := `
-	set -efu
-	LC_ALL=C
-	tar -C %s %s -cf - . | tar -C / %s -xf -
-	rm -rf %s
-	rm -f %s
+		set -efu
+		export LC_ALL=C
+		tar -C %s %s -cf - . | tar -C / %s -xf -
+		rm -rf %s
+		rm -f %s
 	`
 	tarexec := fmt.Sprintf(tarcmd, tmpd, cTARC, cTARX, tmpd, tmpf)
 	sshenv := []string{"LC_ALL=C"}
@@ -312,29 +312,29 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	}
 	// untar stage #3 script
 	untarDefault := `
-	set -efu
-	RRHOST="%s"
-	RRSRC="%s"
-	RRDEST="%s"
-	RRSCRIPT="%s"
-	tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
+		set -efu
+		RRHOST="%s"
+		RRSRC="%s"
+		RRDEST="%s"
+		RRSCRIPT="%s"
+		tar -C "$RRSRC" %s -czf - . | ssh -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	teleportDefault := `
-	set -efu
-	RRHOST="%s"
-	RRSRC="%s"
-	RRDEST="%s"
-	RRSCRIPT="%s"
-	tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
+		set -efu
+		RRHOST="%s"
+		RRSRC="%s"
+		RRDEST="%s"
+		RRSCRIPT="%s"
+		tar -C "$RRSRC" %s -czf - . | tsh ssh "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	untarConfig := `
-	set -efu
-	RRHOST="%s"
-	RRSRC="%s"
-	RRDEST="%s"
-	RRCONFIG="%s"
-	RRSCRIPT="%s"
-	tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
+		set -efu
+		RRHOST="%s"
+		RRSRC="%s"
+		RRDEST="%s"
+		RRCONFIG="%s"
+		RRSCRIPT="%s"
+		tar -C "$RRSRC" %s -czf - . | ssh -F "$RRCONFIG" -T "$RRHOST" tar --one-top-level="$RRDEST" -xzf - %s
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArg
@@ -409,79 +409,79 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 }
 
 func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
-	untarDefault := `
-	set -efu
-	tar -C %s -czf - . | ssh -T %s sudo -k -- tar -C / -xzf -
+	tarDefault := `
+		set -efu
+		tar -C %s %s -czf - . | ssh -T %s sudo -k -- tar -C / %s -xzf -
 	`
-	untarTeleport := `
-	set -efu
-	tar -C %s -czf - . | tsh ssh %s sudo -k -- tar -C / -xzf -
+	tarTeleport := `
+		set -efu
+		tar -C %s %s -czf - . | tsh ssh %s sudo -k -- tar -C / %s -xzf -
 	`
-	untarConfig := `
-	set -efu
-	tar -C %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / -xzf -
+	tarConfig := `
+		set -efu
+		tar -C %s %s -czf - . | ssh -F %s -T %s sudo -k -- tar -C / %s -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
-	var untar lib.RunArg
+	var tar lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
-			untar = lib.RunArg{
+			tar = lib.RunArg{
 				Exe:  (*o).interp,
-				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, (*o).hostname)},
+				Args: []string{"-c", fmt.Sprintf(tarDefault, dir, cTARC, (*o).hostname, cTARX)},
 				Env:  tarenv,
 			}
 		} else {
-			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
+			tar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
-				fmt.Sprintf(untarTeleport, dir, (*o).hostname)},
+				fmt.Sprintf(tarTeleport, dir, cTARC, (*o).hostname, cTARX)},
 				Env: tarenv,
 			}
 		}
 	} else {
-		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(untarConfig, dir, (*o).config, (*o).hostname)},
+		tar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
+			fmt.Sprintf(tarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
 			Env: tarenv,
 		}
 	}
-	return untar.Run()
+	return tar.Run()
 }
 
 func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
-	untarDefault := `
-	set -efu
-	tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
+	tarDefault := `
+		set -efu
+		tar -C %s %s -czf - . | ssh -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
-	untarTeleport := `
-	set -efu
-	tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
+	tarTeleport := `
+		set -efu
+		tar -C %s %s -czf - . | tsh ssh %s tar -C / %s --delay-directory-restore -xzf -
 	`
-	untarConfig := `
-	set -efu
-	tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
+	tarConfig := `
+		set -efu
+		tar -C %s %s -czf - . | ssh -F %s -T %s tar -C / %s --delay-directory-restore -xzf -
 	`
 	tarenv := []string{"LC_ALL=C"}
-	var untar lib.RunArg
+	var tar lib.RunArg
 	if (*o).config == "" || (*o).teleport {
 		if !(*o).teleport {
-			untar = lib.RunArg{
+			tar = lib.RunArg{
 				Exe:  (*o).interp,
-				Args: []string{"-c", fmt.Sprintf(untarDefault, dir, cTARC, (*o).hostname, cTARX)},
+				Args: []string{"-c", fmt.Sprintf(tarDefault, dir, cTARC, (*o).hostname, cTARX)},
 				Env:  tarenv,
 			}
 		} else {
-			untar = lib.RunArg{Exe: (*o).interp, Args: []string{
+			tar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
-				fmt.Sprintf(untarTeleport, dir, cTARC, (*o).hostname, cTARX)},
+				fmt.Sprintf(tarTeleport, dir, cTARC, (*o).hostname, cTARX)},
 				Env: tarenv,
 			}
 		}
 	} else {
-		untar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(untarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
+		tar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
+			fmt.Sprintf(tarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
 			Env: tarenv,
 		}
 	}
-	return untar.Run()
+	return tar.Run()
 }
 
 func generateHashId() string {
@@ -542,15 +542,15 @@ rrl = report`
 	}
 	if mReport {
 		w := new(tabwriter.Writer)
-		w.Init(os.Stdout, 0, 8, 1, '\t', 0)
-		hdrs := "ID\tTarget\tStarted\tNamespace\tScript\tTask\tDuration\tResult\t"
+		w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+		hdrs := "ID \tTarget\tStarted\tNS\tScript\tOp\tLen\tResult\t"
 		_, _ = fmt.Fprintln(w, hdrs)
 		rrl, err := os.Open(cLOG)
-		defer rrl.Close() //nolint:staticcheck // ok, to Close() twice
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` in the current directory.\n", cLOG)
 			os.Exit(1)
 		}
+		defer rrl.Close()
 		var maxSz int
 		scanner := bufio.NewScanner(rrl)
 		rrlInfo, err := rrl.Stat()
@@ -569,7 +569,7 @@ rrl = report`
 				os.Exit(1)
 			}
 			if log["duration"] != "" {
-				_, _ = fmt.Fprintln(w, log["id"]+"\t"+
+				_, _ = fmt.Fprintln(w, log["id"]+" \t"+
 					log["target"]+"\t"+
 					log["start"]+"\t"+
 					log["namespace"]+"\t"+
@@ -595,8 +595,6 @@ rrl = report`
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		}
 	}
-	isDir := lib.StatPath("directory")
-	isFile := lib.StatPath("file")
 	var offset int
 	var hostname string
 	var id string = generateHashId()
@@ -628,7 +626,7 @@ rrl = report`
 			s = strings.TrimSuffix(s, ":")
 			match, _ := lib.FileGlob(fmt.Sprintf("%s/%s*", s, cDOC))
 			for _, m := range match {
-				if isFile(m) {
+				if lib.IsFile(m) {
 					return true, m
 				}
 			}
@@ -690,6 +688,7 @@ rrl = report`
 	var sh strings.Builder
 	var namespace string
 	var script string
+	var nsScript string
 	var code string
 	var interp string
 	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
@@ -714,7 +713,7 @@ rrl = report`
 			}
 		}
 		namespace, script = s[0], s[1]
-		if !isDir(namespace) {
+		if !lib.IsDir(namespace) {
 			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s`(namespace) is not a directory.\n", namespace)
@@ -724,7 +723,7 @@ rrl = report`
 				os.Exit(2)
 			}
 		}
-		if !isDir(fmt.Sprintf("%s/%s", namespace, script)) {
+		if !lib.IsDir(fmt.Sprintf("%s/%s", namespace, script)) {
 			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory.\n", namespace, script)
@@ -734,7 +733,7 @@ rrl = report`
 				os.Exit(2)
 			}
 		}
-		if !isFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
+		if !lib.IsFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
 			switch opt.mode {
 			case oTerm, oPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
@@ -753,19 +752,19 @@ rrl = report`
 			arguments = os.Args[offset+1:]
 		}
 		fnWalkDir := lib.PathWalker(&sh)
-		if isDir(".lib") {
+		if lib.IsDir(".lib") {
 			if err := filepath.WalkDir(".lib", fnWalkDir); err != nil {
 				_, _ = fmt.Fprint(os.Stderr, "Problem accessing .lib")
 				os.Exit(255)
 			}
 		}
-		if isDir(namespace + "/.lib") {
+		if lib.IsDir(namespace + "/.lib") {
 			if err := filepath.WalkDir(namespace+"/.lib", fnWalkDir); err != nil {
 				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/.lib\n", namespace)
 				os.Exit(255)
 			}
 		}
-		if isDir(namespace + "/" + script + "/.lib") {
+		if lib.IsDir(namespace + "/" + script + "/.lib") {
 			if err := filepath.WalkDir(namespace+"/"+script+"/.lib", fnWalkDir); err != nil {
 				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/%s/.lib\n", namespace, script)
 				os.Exit(255)
@@ -796,18 +795,28 @@ rrl = report`
 		if len(arguments) > 0 {
 			arguments = lib.InsertStr(arguments, "set --", 0)
 			sh.WriteString(strings.Join(arguments, " "))
+			sh.WriteString("\n")
 		}
-		if isFile(cINC) {
-			sh.WriteString("\n" + lib.FileRead(cINC))
+		if c := lib.FileRead(namespace + "/" + script + "/" + cRUN); lib.IsFile(cINC) {
+			inc := lib.FileRead(cINC) + "\n"
+			code = inc + c
+		} else {
+			code = c
 		}
-		code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
-		sh.WriteString("\n" + code)
+		sh.WriteString(code)
 	}
-	modscript := sh.String()
+	// $nsScript is the actual script to execute
+	// $code is the sanitized script without rr__ variables
+
+	// rrd mode
 	if mDump {
-		fmt.Print(modscript)
+		fmt.Print(code)
 		os.Exit(0)
 	}
+
+	nsScript = sh.String()
+
+	// Start execution routine
 	interp = lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
 	interp = strings.TrimSuffix(interp, "\n")
 	if interp == "" {
@@ -843,11 +852,10 @@ rrl = report`
 			}
 			os.Exit(2)
 		}
-		untar := `
-                LC_ALL=C
-				set -efu
-                tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
-                `
+		tar := `
+			set -efu
+			tar -C %s %s -cf - . | tar -C / %s --delay-directory-restore -xf -
+		`
 		for _, d := range []string{
 			".files",
 			".files-local",
@@ -859,12 +867,14 @@ rrl = report`
 			namespace + "/" + script + "/.files-local",
 			namespace + "/" + script + "/.files-localhost",
 		} {
-			if isDir(d) {
+			if lib.IsDir(d) {
 				log.Printf("Copying %s…", d)
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
+				tarenv := []string{"LC_ALL=C"}
 				rargs := lib.RunArg{
 					Exe:  interp,
-					Args: []string{"-c", fmt.Sprintf(untar, d, cTARC, cTARX)},
+					Args: []string{"-c", fmt.Sprintf(tar, d, cTARC, cTARX)},
+					Env:  tarenv,
 				}
 				_, out := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
@@ -885,7 +895,7 @@ rrl = report`
 			jsonLog.Debug(msgop, "app", "rr", "id", id, "script", script)
 		}
 		soFn := soOutput(hostname, opt.mode)
-		rargs := lib.RunArg{Exe: interp, Stdin: []byte(modscript), Stdout: soFn}
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(nsScript), Stdout: soFn}
 		ret, out := rargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
@@ -933,14 +943,19 @@ rrl = report`
 			namespace + "/.files/",
 			namespace + "/" + script + "/.files/",
 		} {
-			if isDir(d) {
+			if lib.IsDir(d) {
 				log.Printf("Copying %s…", d)
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
 				tarenv := []string{"LC_ALL=C"}
-				untar := `
-				tar -C %s %s -cf - . | tar -C %s %s -xf -
+				tar := `
+					set -efu
+					tar -C %s %s -cf - . | tar -C %s %s -xf -
 				`
-				rsargs := lib.RunArg{Exe: interp, Args: []string{"-c", fmt.Sprintf(untar, d, cTARC, destination, cTARX)}, Env: tarenv}
+				rsargs := lib.RunArg{
+					Exe:  interp,
+					Args: []string{"-c", fmt.Sprintf(tar, d, cTARC, destination, cTARX)},
+					Env:  tarenv,
+				}
 				ret, out := rsargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
@@ -971,7 +986,7 @@ rrl = report`
 		log.Printf("Running %s…", script)
 		jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
 		soFn := soOutput(hostname, opt.mode)
-		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", modscript}, Stdout: soFn}
+		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", nsScript}, Stdout: soFn}
 		ret, out := nsargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
@@ -1030,7 +1045,7 @@ rrl = report`
 			namespace + "/" + script + "/.files",
 			namespace + "/" + script + "/.files-" + realhost,
 		} {
-			if isDir(d) {
+			if lib.IsDir(d) {
 				jsonLog.Debug("copying", "app", "rr", "id", id, "directory", d)
 				log.Printf("CONNECTION: copying %s to %s…", d, realhost)
 				var ret bool
@@ -1077,7 +1092,7 @@ rrl = report`
 		jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
 		var ret bool
 		var out lib.RunOut
-		ret, out = sshExec(&opt, modscript)
+		ret, out = sshExec(&opt, nsScript)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))

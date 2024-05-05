@@ -6,7 +6,7 @@ toolchain go1.22rc1
 
 require (
 	github.com/mattn/go-isatty v0.0.20
-	github.com/tongson/gl v0.0.0-20240430144142-ab44fe9dd066
+	github.com/tongson/gl v0.0.0-20240501023708-b3aa8de9b853
 	golang.org/x/term v0.19.0
 )
 
