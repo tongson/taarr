@@ -799,7 +799,8 @@ rrl = report`
 		if lib.IsFile(cINC) {
 			sh.WriteString(lib.FileRead(cINC) + "\n")
 		}
-		sh.WriteString(lib.FileRead(namespace + "/" + script + "/" + cRUN))
+		code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
+		sh.WriteString(code)
 	}
 	modscript := sh.String()
 	if mDump {
