@@ -688,6 +688,7 @@ rrl = report`
 	var sh strings.Builder
 	var namespace string
 	var script string
+	var nsScript string
 	var code string
 	var interp string
 	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
@@ -806,7 +807,7 @@ rrl = report`
 	}
 	// $nsScript is the actual script to execute
 	// $code is the sanitized script without rr__ variables
-	nsScript := sh.String()
+	nsScript = sh.String()
 	if mDump {
 		fmt.Print(code)
 		os.Exit(0)
