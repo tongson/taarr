@@ -794,12 +794,13 @@ rrl = report`
 		if len(arguments) > 0 {
 			arguments = lib.InsertStr(arguments, "set --", 0)
 			sh.WriteString(strings.Join(arguments, " "))
+			sh.WriteString("\n")
 		}
 		if lib.IsFile(cINC) {
-			sh.WriteString("\n" + lib.FileRead(cINC))
+			sh.WriteString(lib.FileRead(cINC) + "\n")
 		}
 		code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
-		sh.WriteString("\n" + code)
+		sh.WriteString(code)
 	}
 	modscript := sh.String()
 	if mDump {
