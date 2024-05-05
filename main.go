@@ -805,13 +805,18 @@ rrl = report`
 		}
 		sh.WriteString(code)
 	}
-	// $nsScript is the actual script to execute
-	// $code is the sanitized script without rr__ variables
-	nsScript = sh.String()
+
+	// rrd mode
 	if mDump {
 		fmt.Print(code)
 		os.Exit(0)
 	}
+
+	// $nsScript is the actual script to execute
+	// $code is the sanitized script without rr__ variables
+	nsScript = sh.String()
+
+	// Start execution routine
 	interp = lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
 	interp = strings.TrimSuffix(interp, "\n")
 	if interp == "" {
