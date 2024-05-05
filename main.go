@@ -805,6 +805,8 @@ rrl = report`
 		}
 		sh.WriteString(code)
 	}
+	// $nsScript is the actual script to execute
+	// $code is the sanitized script without rr__ variables
 
 	// rrd mode
 	if mDump {
@@ -812,8 +814,6 @@ rrl = report`
 		os.Exit(0)
 	}
 
-	// $nsScript is the actual script to execute
-	// $code is the sanitized script without rr__ variables
 	nsScript = sh.String()
 
 	// Start execution routine
