@@ -691,7 +691,7 @@ rrl = report`
 	var nsScript string
 	var code string
 	var interp string
-	jsonFile, _ := os.OpenFile(cLOG, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0600)
+	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer jsonFile.Close()
 	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	{
@@ -876,13 +876,14 @@ rrl = report`
 					Args: []string{"-c", fmt.Sprintf(tar, d, cTARC, cTARX)},
 					Env:  tarenv,
 				}
+				// Error ignored because tar may fail
 				_, out := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
 				jsonLog.Debug("copy", "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
 				jsonLog.Info("copy", "app", "rr", "id", id, "result", "finished")
 				if opt.mode == oTerm {
-					log.Printf("Finished copying")
+					log.Printf("Finished copying files")
 				}
 			}
 		}
@@ -976,9 +977,9 @@ rrl = report`
 					os.Exit(1)
 				} else {
 					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
-					jsonLog.Info(step, "app", "rr", "id", id, "result", "success")
+					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
 					if opt.mode == oTerm {
-						log.Printf("Successfully copied files")
+						log.Printf("Finished copying files")
 					}
 				}
 			}
@@ -1052,7 +1053,9 @@ rrl = report`
 				var out lib.RunOut
 				switch opt.sudo {
 				case false:
-					ret, out = quickCopy(&opt, d)
+					// Error ignored because tar may fail
+					_, out = quickCopy(&opt, d)
+					ret = true
 				case true && opt.nopasswd:
 					ret, out = sudoCopyNopasswd(&opt, d)
 				case true && !opt.nopasswd:
@@ -1079,9 +1082,9 @@ rrl = report`
 					os.Exit(1)
 				} else {
 					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
-					jsonLog.Info(step, "app", "rr", "id", id, "result", "finished")
+					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
 					if opt.mode == oTerm {
-						log.Printf("Finished copying")
+						log.Printf("Finished copying files")
 					}
 				}
 			}
