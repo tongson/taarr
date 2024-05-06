@@ -3,6 +3,7 @@ package rr
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -42,13 +43,21 @@ func TestRun(T *testing.T) {
 }
 
 func TestEnv(t *testing.T) {
-	testenv := []string{"rr_LOOKFORTHIS=FOO"}
-	rr := RunArg{Exe: cEXE, Env: testenv, Args: []string{"env:test"}}
+	testenv := []string{"rr__LOOKFORTHIS=FOO"}
+	rr := RunArg{Exe: cEXE + "p", Env: testenv, Args: []string{"env:test"}}
 	ret, out := rr.Run()
 	if !ret {
 		t.Error("wants `true`")
 	}
-	if got := strings.Contains(out.Stderr, "LOOKFORTHIS=FOO"); !got {
+	re := regexp.MustCompile("(?m)^LOOKFORTHIS.*$")
+	match := re.FindAllString(out.Stdout, -1)
+	var ok bool
+	for _, s := range match {
+		if s == "LOOKFORTHIS=FOO" {
+			ok = true
+		}
+	}
+	if !ok {
 		t.Error("wants `true`")
 	}
 }
