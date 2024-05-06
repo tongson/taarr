@@ -882,7 +882,7 @@ rrl = report`
 				jsonLog.Debug("copy", "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
 				jsonLog.Info("copy", "app", "rr", "id", id, "result", "finished")
 				if opt.mode == oTerm {
-					log.Printf("Finished copying")
+					log.Printf("Finished copying files")
 				}
 			}
 		}
@@ -976,9 +976,9 @@ rrl = report`
 					os.Exit(1)
 				} else {
 					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
-					jsonLog.Info(step, "app", "rr", "id", id, "result", "success")
+					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
 					if opt.mode == oTerm {
-						log.Printf("Successfully copied files")
+						log.Printf("Finished copying files")
 					}
 				}
 			}
@@ -1079,9 +1079,9 @@ rrl = report`
 					os.Exit(1)
 				} else {
 					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
-					jsonLog.Info(step, "app", "rr", "id", id, "result", "finished")
+					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
 					if opt.mode == oTerm {
-						log.Printf("Finished copying")
+						log.Printf("Finished copying files")
 					}
 				}
 			}
