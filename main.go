@@ -876,6 +876,7 @@ rrl = report`
 					Args: []string{"-c", fmt.Sprintf(tar, d, cTARC, cTARX)},
 					Env:  tarenv,
 				}
+				// Error ignored because tar may fail
 				_, out := rargs.Run()
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
@@ -1052,7 +1053,9 @@ rrl = report`
 				var out lib.RunOut
 				switch opt.sudo {
 				case false:
-					ret, out = quickCopy(&opt, d)
+					// Error ignored because tar may fail
+					_, out = quickCopy(&opt, d)
+					ret = true
 				case true && opt.nopasswd:
 					ret, out = sudoCopyNopasswd(&opt, d)
 				case true && !opt.nopasswd:
