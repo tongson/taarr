@@ -915,7 +915,7 @@ rrl = report`
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner.Split(bufio.ScanWords)
 			for scanner.Scan() {
 				if strings.Contains(scanner.Text(), cREPAIRED) {
@@ -1006,7 +1006,7 @@ rrl = report`
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner.Split(bufio.ScanWords)
 			for scanner.Scan() {
 				if strings.Contains(scanner.Text(), cREPAIRED) {
@@ -1113,7 +1113,7 @@ rrl = report`
 				serrLog.Error(op, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 			}
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner.Split(bufio.ScanWords)
 			for scanner.Scan() {
 				if strings.Contains(scanner.Text(), cREPAIRED) {
