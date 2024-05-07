@@ -1,3 +1,21 @@
+#### 2.0.0
+
+Groggy Pauper
+
+* Removed some external dependencies to slash around 500KiB from the executable size
+* New extensive testing suite
+* New VARS file for includes and variables
+* Changed SSH config from `rr.hosts` to `HOSTS`
+* Changed log filename from `rr.json` to `LOG`
+* Changed `rrl` mode output headers and log format
+* Changed string for "repaired" result/status detection to `__REPAIRED__`
+* Changed `__REPAIRED__` output detection from STDOUT to STDERR
+* Quicker copying over SSH because of one less SSH connection
+* Quicker remote runs, removed SSH hostname matching
+* More compact `rrl` mode output
+* STDOUT now streamed in terminal mode
+* Several code improvements and dependency upgrades
+
 #### 1.0.4
 
 * Update dependencies
