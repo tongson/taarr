@@ -9,6 +9,7 @@ Groggy Pauper
 * Changed log filename from `rr.json` to `LOG`
 * Changed `rrl` mode output headers and log format
 * Changed string for "repaired" result/status detection to `__REPAIRED__`
+* Changed `__REPAIRED__` output detection from STDOUT to STDERR
 * Quicker copying over SSH because of one less SSH connection
 * Quicker remote runs, removed SSH hostname matching
 * More compact `rrl` mode output
