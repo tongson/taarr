@@ -1,2 +1,2 @@
 printf "ok\\n"
-printf "__REPAIRED__"
+>&2 printf "__REPAIRED__"
