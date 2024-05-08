@@ -3,6 +3,7 @@ sleep 1
 ls /
 sleep 1
 ls -la /etc/passwd
+printf "stdout last"
 >&2 printf "stderr\\n"
 >&2 printf "next\\n"
 >&2 printf "last"
