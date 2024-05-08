@@ -105,7 +105,11 @@ func soOutput(h string, m int) func(string) {
 	switch m {
 	case oTerm:
 		return func(so string) {
-			fmt.Printf(" %s │ %s", h, so)
+			if strings.Contains(so, "\n") {
+				fmt.Printf(" %s │ %s", h, so)
+			} else {
+				fmt.Printf(" %s │ %s\n", h, so)
+			}
 		}
 	default:
 		return func(_ string) {
