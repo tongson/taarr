@@ -1,9 +1,9 @@
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/tongson/gl v0.0.0-20240501023708-b3aa8de9b853 h1:N8I5xOwy+7E0DCJbVp96D2WW6x1eu6ntHT4LFrQ5WSg=
-github.com/tongson/gl v0.0.0-20240501023708-b3aa8de9b853/go.mod h1:fU6I0Ftr9DkKCYHb2TQmMmEGowPXcOqHUrikGo8CUrM=
+github.com/tongson/gl v0.0.0-20240508154845-d8f4b3b2979b h1:vtkczRK2RtzEryIDuCIAPpbarsyZZTQVzmO9+X/2wGg=
+github.com/tongson/gl v0.0.0-20240508154845-d8f4b3b2979b/go.mod h1:fU6I0Ftr9DkKCYHb2TQmMmEGowPXcOqHUrikGo8CUrM=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.19.0 h1:q5f1RH2jigJ1MoAWp2KTp3gm5zAGFUTarQZ5U386+4o=
-golang.org/x/sys v0.19.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
-golang.org/x/term v0.19.0 h1:+ThwsDv+tYfnJFhF4L8jITxu1tdTWRTZpdsWgEgjL6Q=
-golang.org/x/term v0.19.0/go.mod h1:2CuTdWZ7KHSQwUzKva0cbMg6q2DMI3Mmxp+gKJbskEk=
+golang.org/x/sys v0.20.0 h1:Od9JTbYCk261bKm4M/mw7AklTlFYIa0bIp9BgSm1S8Y=
+golang.org/x/sys v0.20.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+golang.org/x/term v0.20.0 h1:VnkxpohqXaOBYJtBmEppKUG6mXpi+4O6purfc2+sMhw=
+golang.org/x/term v0.20.0/go.mod h1:8UkIAJTvZgivsXaD6/pH6U9ecQzZ45awqEOzuCvwpFY=
