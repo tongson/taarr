@@ -111,7 +111,7 @@ func soOutput(h string, m int) func(string) {
 		return func(so string) {
 			if strings.Contains(so, "\n") {
 				fmt.Printf(" %s │ %s", h, so)
-			} else {
+			} else if so != "" {
 				fmt.Printf(" %s │ %s\n", h, so)
 			}
 		}
