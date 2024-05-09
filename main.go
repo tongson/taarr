@@ -69,6 +69,9 @@ type optT struct {
 // CITATION: Konstantin Shaposhnikov - https://groups.google.com/forum/#!topic/golang-nuts/kTVAbtee9UA
 // REFERENCE: https://gist.github.com/jlinoff/e8e26b4ffa38d379c7f1891fd174a6d0
 var initTermState *terminal.State
+var cleanUpFn func(string) = func(a string) {
+	_, _ = fmt.Fprintf(os.Stderr, "%s.", a)
+}
 
 func init() {
 	var err error
@@ -80,6 +83,7 @@ func init() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
+		cleanUpFn("Caught signal. Exiting.\n")
 		_ = terminal.Restore(syscall.Stdin, initTermState)
 		os.Exit(2)
 	}()
@@ -239,31 +243,37 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	}
 	// ssh hostname 'sh src'
 	log.Printf("CONNECTION: running script…")
-	ret, out = sshb.Run()
-	if !ret {
-		return ret, out
-	}
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).teleport {
-			args := []string{
-				"-T",
-				(*o).hostname,
-				fmt.Sprintf("rm -f %s", tmps),
+	sshCleanUpFn := func(x bool) func(string) {
+		if (*o).config == "" || (*o).teleport {
+			if !(*o).teleport {
+				args := []string{
+					"-T",
+					(*o).hostname,
+					fmt.Sprintf("rm -f %s", tmps),
+				}
+				sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
+			} else {
+				args := []string{"ssh", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
+				sshc = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
 			}
-			sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 		} else {
-			args := []string{"ssh", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
-			sshc = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
+			args := []string{"-F", (*o).config, "-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
+			sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 		}
-	} else {
-		args := []string{"-F", (*o).config, "-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
-		sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
+		return func(a string) {
+			if x {
+				_, _ = sshc.Run()
+			}
+			if a != "" {
+				_, _ = fmt.Fprintf(os.Stderr, "%s.", a)
+			}
+		}
 	}
+	cleanUpFn = sshCleanUpFn(true)
+	ret, out = sshb.Run()
 	// ssh hostname 'rm -f src'
 	log.Printf("CONNECTION: cleaning up…")
-	if xret, xout := sshc.Run(); !xret {
-		return xret, xout
-	}
+	cleanUpFn("")
 	return ret, out
 }
 
