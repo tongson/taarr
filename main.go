@@ -111,7 +111,7 @@ func soOutput(h string, m int) func(string) {
 		return func(so string) {
 			if strings.Contains(so, "\n") {
 				fmt.Printf(" %s │ %s", h, so)
-			} else {
+			} else if so != "" {
 				fmt.Printf(" %s │ %s\n", h, so)
 			}
 		}
@@ -241,8 +241,6 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
 		}
 	}
-	// ssh hostname 'sh src'
-	log.Printf("CONNECTION: running script…")
 	sshCleanUpFn := func(x bool) func(string) {
 		if (*o).config == "" || (*o).teleport {
 			if !(*o).teleport {
@@ -270,6 +268,8 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		}
 	}
 	cleanUpFn = sshCleanUpFn(true)
+	// ssh hostname 'sh src'
+	log.Printf("CONNECTION: running script…")
 	ret, out = sshb.Run()
 	// ssh hostname 'rm -f src'
 	log.Printf("CONNECTION: cleaning up…")
