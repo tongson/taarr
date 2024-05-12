@@ -26,8 +26,8 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "2.0.0"
-const codeName = "\"Groggy Pauper\""
+const versionNumber = "2.0.1"
+const codeName = "\"Hyponic Antannae\""
 
 const cOP = "OP"
 const cINC = "VARS"
