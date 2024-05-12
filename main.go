@@ -27,7 +27,7 @@ import (
 var start = time.Now()
 
 const versionNumber = "2.0.1"
-const codeName = "\"Hypnotic Antannae\""
+const codeName = "\"Hypnotic Antennae\""
 
 const cOP = "OP"
 const cINC = "VARS"
