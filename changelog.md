@@ -1,3 +1,11 @@
+#### 2.0.1
+
+Hypnotic Antennae
+
+* Fix output in terminal mode
+* Fix signal handling over SSH
+* Update dependencies
+
 #### 2.0.0
 
 Groggy Pauper
