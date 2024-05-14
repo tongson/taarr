@@ -76,7 +76,7 @@ func getPassword(prompt string) (string, error) {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	fmt.Printf("\n\033[1A\033[K\033[38;2;85;85;85m%s\033[0m", time.Now().Format(time.RFC822Z))
+	fmt.Printf(cANSI, time.Now().Format(time.RFC822Z))
 	return fmt.Print(" " + string(bytes))
 }
 
