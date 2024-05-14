@@ -1,7 +1,7 @@
 package main
 
-const versionNumber = "2.0.1"
-const codeName = "\"Hypnotic Antennae\""
+const cVERSION = "2.0.1"
+const cCODE = "\"Hypnotic Antennae\""
 
 const cOP = "OP"
 const cINC = "VARS"
