@@ -26,31 +26,6 @@ import (
 
 var start = time.Now()
 
-const versionNumber = "2.0.1"
-const codeName = "\"Hypnotic Antennae\""
-
-const cOP = "OP"
-const cINC = "VARS"
-const cHOSTS = "HOSTS"
-const cLOG = "LOG"
-const cREPAIRED = "__REPAIRED__"
-const cRUN = "script"
-const cINTERP = "shell"
-const cDOC = "readme"
-const cTIME = "02 Jan 06 15:04"
-
-const cSTDOUT = " ┌─ stdout"
-const cSTDERR = " ┌─ stderr"
-const cSTDDBG = " ┌─ debug"
-const cFOOTER = " └─"
-
-const cTARC = "--no-same-owner --no-same-permissions"
-const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acls --no-selinux --no-xattrs --touch"
-
-const oJson int = 0
-const oTerm int = 1
-const oPlain int = 2
-
 type logWriter struct {
 }
 
@@ -101,7 +76,7 @@ func getPassword(prompt string) (string, error) {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	fmt.Printf("\n\033[1A\033[K\033[38;2;85;85;85m%s\033[0m", time.Now().Format(time.RFC822Z))
+	fmt.Printf(cANSI, time.Now().Format(time.RFC822Z))
 	return fmt.Print(" " + string(bytes))
 }
 
@@ -604,7 +579,7 @@ rrl = report`
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			opt.mode = oTerm
 			log.SetOutput(new(logWriter))
-			log.Printf("rr %s %s", versionNumber, codeName)
+			log.Printf("rr %s %s", cVERSION, cCODE)
 		} else {
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		}
