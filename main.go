@@ -532,7 +532,7 @@ rrl = report`
 	if mReport {
 		w := new(tabwriter.Writer)
 		w.Init(os.Stdout, 0, 8, 0, '\t', 0)
-		hdrs := "ID \tTarget\tStarted\tNS\tScript\tOp\tLen\tResult\t"
+		hdrs := "ID \tTarget\tInitiated\tNS\tScript\tLog\tLen\tResult\t"
 		_, _ = fmt.Fprintln(w, hdrs)
 		rrl, err := os.Open(cLOG)
 		if err != nil {
