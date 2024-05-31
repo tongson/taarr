@@ -3,7 +3,7 @@ package main
 const cVERSION = "2.0.1"
 const cCODE = "\"Hypnotic Antennae\""
 
-const cOP = "OP"
+const cOP = "LOG"
 const cINC = "VARS"
 const cHOSTS = "HOSTS"
 const cLOG = "LOG"
