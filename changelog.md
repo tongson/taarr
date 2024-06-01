@@ -2,13 +2,12 @@
 
 Degraded Mastiff
 
-* Colorized rrl output
-* Changed rrl headers
-* Changed OP to LOG environment variable
-* Removed reading from OP file feature
+* Colorized `rrl` output
+* Changed `rrl` headers
+* Changed `OP` to `LOG` environment variable
+* Removed reading from `OP` file feature
 * Added `.ssh/config` and `ssh_config` as valid hosts files
 * Various code fixes and improvements
-
 
 #### 2.0.1
 
