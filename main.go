@@ -555,7 +555,7 @@ rrl = report`
 			serrLog.Error("Missing arguments")
 			os.Exit(2)
 		case oTerm, oPlain:
-			_, _ = fmt.Fprint(os.Stderr, "Missing arguments.")
+			_, _ = fmt.Fprintln(os.Stderr, "Missing arguments.")
 			os.Exit(2)
 		}
 	}
