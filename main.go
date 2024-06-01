@@ -776,16 +776,10 @@ rrl = report`
 		opt.interp = interp
 	}
 	var op string
-	{
-		var ok bool
-		op, ok = os.LookupEnv(cOP)
-		if !ok {
-			op = lib.FileRead(cOP)
-			op = strings.Split(op, "\n")[0]
-			if op == "" {
-				op = "UNDEFINED"
-			}
-		}
+	if eop, ok := os.LookupEnv(cOP); !ok {
+		op = "UNDEFINED"
+	} else {
+		op = eop
 	}
 	jsonLog.Info(op, "app", "rr", "id", id, "namespace", namespace, "script", script, "target", hostname)
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
