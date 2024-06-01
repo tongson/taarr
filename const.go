@@ -1,6 +1,6 @@
 package main
 
-const cVERSION = "2.0.2"
+const cVERSION = "2.1.0"
 const cCODE = "\"Degraded Mastiff\""
 
 const cOP = "LOG"
