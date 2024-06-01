@@ -973,8 +973,15 @@ rrl = report`
 			}
 		}
 	} else {
-		if lib.IsFile(cHOSTS) && !opt.teleport {
-			opt.config = cHOSTS
+		if !opt.teleport {
+			switch {
+			case lib.IsFile(cHOSTS1):
+				opt.config = cHOSTS1
+			case lib.IsFile(cHOSTS2):
+				opt.config = cHOSTS2
+			default:
+				opt.config = cHOSTS0
+			}
 		}
 		var realhost string
 		if rh := strings.Split(hostname, "@"); len(rh) == 1 {
