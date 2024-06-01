@@ -1,7 +1,7 @@
 package main
 
-const cVERSION = "2.0.1"
-const cCODE = "\"Hypnotic Antennae\""
+const cVERSION = "2.0.2"
+const cCODE = "\"Degraded Mastiff\""
 
 const cOP = "LOG"
 const cINC = "VARS"
