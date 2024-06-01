@@ -536,7 +536,7 @@ rrl = report`
 
 	log.SetFlags(0)
 	var serrLog *slog.Logger
-	if !mReport && !mDump && opt.mode != oPlain {
+	if !mReport && opt.mode != oPlain {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			opt.mode = oTerm
 			log.SetOutput(new(logWriter))
