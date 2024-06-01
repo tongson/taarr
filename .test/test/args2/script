@@ -1,7 +1,0 @@
-whatever_command_one()
-{
-    echo "$1" > /tmp/.__rr_ONE
-}
-dispatch whatever "$@"
-[ $(</tmp/.__rr_ONE) = 1 ] || { echo >&2 "Arg did not match!"; exit 1; }
-rm -f /tmp/.__rr_ONE

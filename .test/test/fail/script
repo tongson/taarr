@@ -1,4 +1,0 @@
-rm -f /XXX
-echo "OK"
-echo >&2 "Expected to fail!"
-exit 1

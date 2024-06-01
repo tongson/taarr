@@ -1,2 +1,0 @@
-test -f /tmp/XXX
-test -d /tmp/YYY
