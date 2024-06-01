@@ -540,7 +540,7 @@ rrl = report`
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			opt.mode = oTerm
 			log.SetOutput(new(logWriter))
-			log.Printf("rr %s \"%s\"", cVERSION, cCODE)
+			log.Printf("rr %s “%s”", cVERSION, cCODE)
 		} else {
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		}
