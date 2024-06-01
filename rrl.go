@@ -95,7 +95,7 @@ func rrlMain() {
 				log["start"],
 				log["namespace"],
 				log["script"],
-				log["task"],
+				"“"+log["task"]+"”",
 				log["duration"],
 				log["msg"],
 			}))
