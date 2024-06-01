@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"hash/maphash"
 	"io"
@@ -16,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-	"text/tabwriter"
 	"time"
 
 	isatty "github.com/mattn/go-isatty"
@@ -529,50 +527,13 @@ rrl = report`
 			os.Exit(2)
 		}
 	}
+
+	// rrl mode
 	if mReport {
-		w := new(tabwriter.Writer)
-		w.Init(os.Stdout, 0, 8, 0, '\t', 0)
-		hdrs := "ID \tTarget\tStarted\tNS\tScript\tOp\tLen\tResult\t"
-		_, _ = fmt.Fprintln(w, hdrs)
-		rrl, err := os.Open(cLOG)
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` in the current directory.\n", cLOG)
-			os.Exit(1)
-		}
-		defer rrl.Close()
-		var maxSz int
-		scanner := bufio.NewScanner(rrl)
-		rrlInfo, err := rrl.Stat()
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Unable to open `%s`.\n", cLOG)
-			os.Exit(1)
-		}
-		maxSz = int(rrlInfo.Size())
-		buf := make([]byte, 0, maxSz)
-		scanner.Buffer(buf, maxSz)
-		for scanner.Scan() {
-			log := make(map[string]string)
-			err := json.Unmarshal(scanner.Bytes(), &log)
-			if err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Unable to decode `%s`.\n", cLOG)
-				os.Exit(1)
-			}
-			if log["duration"] != "" {
-				_, _ = fmt.Fprintln(w, log["id"]+" \t"+
-					log["target"]+"\t"+
-					log["start"]+"\t"+
-					log["namespace"]+"\t"+
-					log["script"]+"\t"+
-					log["task"]+"\t"+
-					log["duration"]+"\t"+
-					log["msg"]+"\t")
-			}
-		}
-		_, _ = fmt.Fprintln(w, hdrs)
-		_ = w.Flush()
-		_ = rrl.Close()
+		rrlMain()
 		os.Exit(0)
 	}
+
 	log.SetFlags(0)
 	var serrLog *slog.Logger
 	if !mReport && !mDump && opt.mode != oPlain {
