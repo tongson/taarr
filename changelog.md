@@ -7,6 +7,7 @@ Degraded Mastiff
 * Changed `OP` to `LOG` environment variable
 * Removed reading from `OP` file feature
 * Added `.ssh/config` and `ssh_config` as valid hosts files
+* Changed terminal log line color to cyan
 * Various code fixes and improvements
 
 #### 2.0.1
