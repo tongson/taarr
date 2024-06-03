@@ -523,7 +523,7 @@ rro = teleport + sudo
 rrd = dump
 rrv = forced verbose
 rrl = report`
-			_, _ = fmt.Fprintf(os.Stderr, "Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
+	_, _ = fmt.Fprintf(os.Stderr, "ERROR: Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
 			os.Exit(2)
 		}
 	}
@@ -552,10 +552,10 @@ rrl = report`
 	if len(os.Args) < 2 {
 		switch opt.mode {
 		case oJson:
-			serrLog.Error("Missing arguments")
+			serrLog.Error(eUNSPECIFIED)
 			os.Exit(2)
 		case oTerm, oPlain:
-			_, _ = fmt.Fprintln(os.Stderr, "Missing arguments.")
+			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
 			os.Exit(2)
 		}
 	}
@@ -628,10 +628,10 @@ rrl = report`
 	if len(os.Args) < offset+1 {
 		switch opt.mode {
 		case oTerm, oPlain:
-			_, _ = fmt.Fprintf(os.Stderr, "`namespace:script` not specified.\n")
+			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
 			os.Exit(2)
 		case oJson:
-			serrLog.Error("namespace:script not specified")
+			serrLog.Error(eUNSPECIFIED)
 			os.Exit(2)
 		}
 	}
@@ -655,7 +655,7 @@ rrl = report`
 		if len(s) < 2 {
 			switch opt.mode {
 			case oTerm, oPlain:
-				_, _ = fmt.Fprint(os.Stderr, "`namespace:script` not specified.")
+				_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
 				os.Exit(2)
 			case oJson:
 				serrLog.Error("namespace:script not specified")

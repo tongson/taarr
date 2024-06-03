@@ -28,3 +28,5 @@ const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acl
 const oJson int = 0
 const oTerm int = 1
 const oPlain int = 2
+
+const eUNSPECIFIED = "You must specify the `namespace:script`."
