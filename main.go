@@ -523,7 +523,7 @@ rro = teleport + sudo
 rrd = dump
 rrv = forced verbose
 rrl = report`
-			_, _ = fmt.Fprintf(os.Stderr, "Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
+			_, _ = fmt.Fprintf(os.Stderr, "ERROR: Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
 			os.Exit(2)
 		}
 	}
@@ -536,11 +536,11 @@ rrl = report`
 
 	log.SetFlags(0)
 	var serrLog *slog.Logger
-	if !mReport && !mDump && opt.mode != oPlain {
+	if opt.mode != oPlain {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			opt.mode = oTerm
 			log.SetOutput(new(logWriter))
-			log.Printf("rr %s %s", cVERSION, cCODE)
+			log.Printf("rr %s “%s”", cVERSION, cCODE)
 		} else {
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		}
@@ -552,10 +552,10 @@ rrl = report`
 	if len(os.Args) < 2 {
 		switch opt.mode {
 		case oJson:
-			serrLog.Error("Missing arguments")
+			serrLog.Error(eUNSPECIFIED)
 			os.Exit(2)
 		case oTerm, oPlain:
-			_, _ = fmt.Fprint(os.Stderr, "Missing arguments.")
+			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
 			os.Exit(2)
 		}
 	}
@@ -628,10 +628,10 @@ rrl = report`
 	if len(os.Args) < offset+1 {
 		switch opt.mode {
 		case oTerm, oPlain:
-			_, _ = fmt.Fprintf(os.Stderr, "`namespace:script` not specified.\n")
+			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
 			os.Exit(2)
 		case oJson:
-			serrLog.Error("namespace:script not specified")
+			serrLog.Error(eUNSPECIFIED)
 			os.Exit(2)
 		}
 	}
@@ -655,7 +655,7 @@ rrl = report`
 		if len(s) < 2 {
 			switch opt.mode {
 			case oTerm, oPlain:
-				_, _ = fmt.Fprint(os.Stderr, "`namespace:script` not specified.")
+				_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
 				os.Exit(2)
 			case oJson:
 				serrLog.Error("namespace:script not specified")
@@ -666,7 +666,7 @@ rrl = report`
 		if !lib.IsDir(namespace) {
 			switch opt.mode {
 			case oTerm, oPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "`%s`(namespace) is not a directory.\n", namespace)
+				_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", namespace)
 				os.Exit(2)
 			case oJson:
 				serrLog.Error("Namespace is not a directory", "namespace", namespace)
@@ -676,7 +676,7 @@ rrl = report`
 		if !lib.IsDir(fmt.Sprintf("%s/%s", namespace, script)) {
 			switch opt.mode {
 			case oTerm, oPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory.\n", namespace, script)
+				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", namespace, script)
 				os.Exit(2)
 			case oJson:
 				serrLog.Error("namespace/script is not a directory", "namespace", namespace, "script", script)
@@ -686,10 +686,10 @@ rrl = report`
 		if !lib.IsFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
 			switch opt.mode {
 			case oTerm, oPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
+				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", namespace, script, cRUN)
 				os.Exit(2)
 			case oJson:
-				serrLog.Error("Actual script is missing", "namespace", namespace, "script", script)
+				serrLog.Error("Script not found", "namespace", namespace, "script", script)
 				os.Exit(2)
 			}
 		}
@@ -776,16 +776,10 @@ rrl = report`
 		opt.interp = interp
 	}
 	var op string
-	{
-		var ok bool
-		op, ok = os.LookupEnv(cOP)
-		if !ok {
-			op = lib.FileRead(cOP)
-			op = strings.Split(op, "\n")[0]
-			if op == "" {
-				op = "UNDEFINED"
-			}
-		}
+	if eop, ok := os.LookupEnv(cOP); !ok {
+		op = "UNDEFINED"
+	} else {
+		op = eop
 	}
 	jsonLog.Info(op, "app", "rr", "id", id, "namespace", namespace, "script", script, "target", hostname)
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
@@ -979,8 +973,15 @@ rrl = report`
 			}
 		}
 	} else {
-		if lib.IsFile(cHOSTS) && !opt.teleport {
-			opt.config = cHOSTS
+		if !opt.teleport {
+			switch {
+			case lib.IsFile(cHOSTS1):
+				opt.config = cHOSTS1
+			case lib.IsFile(cHOSTS2):
+				opt.config = cHOSTS2
+			default:
+				opt.config = cHOSTS0
+			}
 		}
 		var realhost string
 		if rh := strings.Split(hostname, "@"); len(rh) == 1 {

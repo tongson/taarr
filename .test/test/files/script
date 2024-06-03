@@ -1,3 +1,0 @@
-test -f /tmp/XXX || { printf >&2 'test:top_level_files failed!\n'; exit 1; }
-test -d /tmp/YYY || { printf >&2 'test:module_level_files failed!\n'; exit 1; }
-rm -rf /tmp/YYY

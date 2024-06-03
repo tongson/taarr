@@ -66,7 +66,7 @@ func TestOp(T *testing.T) {
 	T.Parallel()
 	msg := "Somebody set up us the bomb"
 	T.Run("environment", func(t *testing.T) {
-		env := []string{fmt.Sprintf("OP=%s", msg)}
+		env := []string{fmt.Sprintf("LOG=%s", msg)}
 		rr := RunArg{Exe: cEXE, Args: []string{"op:env"}, Env: env}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
@@ -74,19 +74,6 @@ func TestOp(T *testing.T) {
 		if got := strings.Contains(FileRead("LOG"), msg); !got {
 			t.Error("wants `true`")
 		}
-	})
-	T.Run("file", func(t *testing.T) {
-		StringToFile("OP", msg)
-		rr := RunArg{Exe: cEXE, Args: []string{"op:file"}}
-		if ret, _ := rr.Run(); !ret {
-			t.Error("wants `true`")
-		}
-		if got := strings.Contains(FileRead("LOG"), msg); !got {
-			t.Error("wants `true`")
-		}
-		t.Cleanup(func() {
-			os.Remove("OP")
-		})
 	})
 }
 

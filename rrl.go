@@ -79,12 +79,14 @@ func rrlMain() {
 			_, _ = fmt.Fprintf(os.Stderr, "Unable to decode `%s`.\n", cLOG)
 			os.Exit(1)
 		}
-		colors := []rrlColor{rrlCyan, rrlGreen, rrlMagenta, rrlCyan, rrlGreen, rrlBlue, rrlMagenta, rrlWhite}
-		if log["msg"] == "failed" {
+		var colors []rrlColor
+		switch {
+		case log["msg"] == "failed":
 			colors = []rrlColor{rrlRed, rrlRed, rrlRed, rrlRed, rrlRed, rrlRed, rrlRed, rrlRed}
-		}
-		if log["msg"] == "repaired" {
+		case log["msg"] == "repaired":
 			colors = []rrlColor{rrlCyan, rrlGreen, rrlMagenta, rrlCyan, rrlGreen, rrlBlue, rrlMagenta, rrlYellow}
+		default:
+			colors = []rrlColor{rrlCyan, rrlGreen, rrlMagenta, rrlCyan, rrlGreen, rrlBlue, rrlMagenta, rrlWhite}
 		}
 		if log["duration"] != "" {
 			rrlPrint(w, rrlPaintRow(colors, []string{
@@ -93,7 +95,7 @@ func rrlMain() {
 				log["start"],
 				log["namespace"],
 				log["script"],
-				log["task"],
+				"“" + log["task"] + "”",
 				log["duration"],
 				log["msg"],
 			}))
