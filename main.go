@@ -523,7 +523,7 @@ rro = teleport + sudo
 rrd = dump
 rrv = forced verbose
 rrl = report`
-	_, _ = fmt.Fprintf(os.Stderr, "ERROR: Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
+			_, _ = fmt.Fprintf(os.Stderr, "ERROR: Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
 			os.Exit(2)
 		}
 	}
@@ -666,7 +666,7 @@ rrl = report`
 		if !lib.IsDir(namespace) {
 			switch opt.mode {
 			case oTerm, oPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "`%s`(namespace) is not a directory.\n", namespace)
+				_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", namespace)
 				os.Exit(2)
 			case oJson:
 				serrLog.Error("Namespace is not a directory", "namespace", namespace)
@@ -676,7 +676,7 @@ rrl = report`
 		if !lib.IsDir(fmt.Sprintf("%s/%s", namespace, script)) {
 			switch opt.mode {
 			case oTerm, oPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory.\n", namespace, script)
+				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", namespace, script)
 				os.Exit(2)
 			case oJson:
 				serrLog.Error("namespace/script is not a directory", "namespace", namespace, "script", script)
@@ -686,10 +686,10 @@ rrl = report`
 		if !lib.IsFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
 			switch opt.mode {
 			case oTerm, oPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found.\n", namespace, script, cRUN)
+				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", namespace, script, cRUN)
 				os.Exit(2)
 			case oJson:
-				serrLog.Error("Actual script is missing", "namespace", namespace, "script", script)
+				serrLog.Error("Script not found", "namespace", namespace, "script", script)
 				os.Exit(2)
 			}
 		}
