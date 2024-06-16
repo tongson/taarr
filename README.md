@@ -15,3 +15,4 @@ Your shell script multi-tool. For:
 1. Builds
 1. Configuration management
 1. C2
+1. Hooks
