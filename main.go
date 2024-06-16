@@ -641,6 +641,7 @@ rrl = report`
 	var nsScript string
 	var code string
 	var interp string
+	var opLog string
 	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer jsonFile.Close()
 	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
@@ -700,6 +701,16 @@ rrl = report`
 			arguments = append(arguments, os.Args[offset+1:]...)
 		} else {
 			arguments = os.Args[offset+1:]
+		}
+		// Set LOG field
+		if eop, ok := os.LookupEnv(cOP); !ok {
+			if len(arguments) == 0 {
+				opLog = "UNDEFINED"
+			} else {
+				opLog = strings.Join(arguments, " ")
+			}
+		} else {
+			opLog = eop
 		}
 		fnWalkDir := lib.PathWalker(&sh)
 		if lib.IsDir(".lib") {
@@ -774,12 +785,6 @@ rrl = report`
 		interp = "sh"
 	} else {
 		opt.interp = interp
-	}
-	var opLog string
-	if eop, ok := os.LookupEnv(cOP); !ok {
-		opLog = "UNDEFINED"
-	} else {
-		opLog = eop
 	}
 	jsonLog.Info(opLog, "app", "rr", "id", id, "namespace", namespace, "script", script, "target", hostname)
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
