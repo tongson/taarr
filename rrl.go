@@ -56,7 +56,7 @@ func rrlMain() {
 	w.Init(os.Stdout, 0, 8, 1, ' ', 0)
 	rrl, err := os.Open(cLOG)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` in the current directory.\n", cLOG)
+		_, _ = fmt.Fprintf(os.Stderr, "Missing `%s` file in the current directory.\n", cLOG)
 		os.Exit(1)
 	}
 	defer rrl.Close()
