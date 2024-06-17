@@ -75,6 +75,15 @@ func TestOp(T *testing.T) {
 			t.Error("wants `true`")
 		}
 	})
+	T.Run("argument", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"op:env", "__argument__"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), "__argument__"); !got {
+			t.Error("wants `true`")
+		}
+	})
 }
 
 func TestRepaired(T *testing.T) {

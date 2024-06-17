@@ -1,3 +1,10 @@
+#### 2.1.1
+
+Buggy Oven
+
+* Use arguments for the LOG field
+* Update dependencies
+
 #### 2.1.0
 
 Degraded Mastiff

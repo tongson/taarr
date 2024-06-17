@@ -641,6 +641,7 @@ rrl = report`
 	var nsScript string
 	var code string
 	var interp string
+	var opLog string
 	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer jsonFile.Close()
 	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
@@ -700,6 +701,16 @@ rrl = report`
 			arguments = append(arguments, os.Args[offset+1:]...)
 		} else {
 			arguments = os.Args[offset+1:]
+		}
+		// Set LOG field
+		if eop, ok := os.LookupEnv(cOP); !ok {
+			if len(arguments) == 0 {
+				opLog = "UNDEFINED"
+			} else {
+				opLog = strings.Join(arguments, " ")
+			}
+		} else {
+			opLog = eop
 		}
 		fnWalkDir := lib.PathWalker(&sh)
 		if lib.IsDir(".lib") {
@@ -775,13 +786,7 @@ rrl = report`
 	} else {
 		opt.interp = interp
 	}
-	var op string
-	if eop, ok := os.LookupEnv(cOP); !ok {
-		op = "UNDEFINED"
-	} else {
-		op = eop
-	}
-	jsonLog.Info(op, "app", "rr", "id", id, "namespace", namespace, "script", script, "target", hostname)
+	jsonLog.Info(opLog, "app", "rr", "id", id, "namespace", namespace, "script", script, "target", hostname)
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		if opt.sudo {
@@ -831,11 +836,11 @@ rrl = report`
 				}
 			}
 		}
-		if op == "UNDEFINED" {
+		if opLog == "UNDEFINED" {
 			log.Printf("Running %s…", script)
 			jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
 		} else {
-			msgop := strings.TrimSuffix(op, "\n")
+			msgop := strings.TrimSuffix(opLog, "\n")
 			log.Printf("%s…", msgop)
 			jsonLog.Debug(msgop, "app", "rr", "id", id, "script", script)
 		}
@@ -849,12 +854,12 @@ rrl = report`
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
-			jsonLog.Error(op, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr)
 			case oJson:
-				serrLog.Error(op, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 			case oTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
@@ -866,8 +871,8 @@ rrl = report`
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(op, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
-			jsonLog.Info(op, "app", "rr", "id", id, "result", result)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr)
@@ -877,7 +882,7 @@ rrl = report`
 				}
 			case oJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					serrLog.Info(op, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 				}
 			}
 		}
@@ -940,12 +945,12 @@ rrl = report`
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
-			jsonLog.Error(op, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr)
 			case oJson:
-				serrLog.Error(op, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 			case oTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
@@ -957,8 +962,8 @@ rrl = report`
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(op, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
-			jsonLog.Info(op, "app", "rr", "id", id, "result", result)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr)
@@ -968,7 +973,7 @@ rrl = report`
 				}
 			case oJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					serrLog.Info(op, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 				}
 			}
 		}
@@ -1054,14 +1059,14 @@ rrl = report`
 		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
 		if !ret {
 			failed = true
-			jsonLog.Debug(op, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr)
 			case oTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			case oJson:
-				serrLog.Error(op, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 			}
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
@@ -1071,8 +1076,8 @@ rrl = report`
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(op, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
-			jsonLog.Info(op, "app", "rr", "id", id, "result", result)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
 			case oPlain:
 				stdWriter(out.Stdout, out.Stderr)
@@ -1082,7 +1087,7 @@ rrl = report`
 				}
 			case oJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					serrLog.Info(op, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 				}
 			}
 		}
@@ -1093,14 +1098,14 @@ rrl = report`
 			tm = "<1s"
 		}
 		if !failed {
-			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", op, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
+			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
 			if opt.mode == oTerm {
 				log.Printf("Total run time: %s. All OK.", tm)
 			}
 			_ = jsonFile.Close()
 			os.Exit(0)
 		} else {
-			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", op, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
+			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
 			switch opt.mode {
 			case oPlain:
 				// Nothing to do
