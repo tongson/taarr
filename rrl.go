@@ -81,7 +81,7 @@ func rrlMain() {
 		}
 		var colors []rrlColor
 		switch {
-		case log["msg"] == "failed":
+		case log["msg"] == "failed" || log["msg"] == "sigint":
 			colors = []rrlColor{rrlRed, rrlRed, rrlRed, rrlRed, rrlRed, rrlRed, rrlRed, rrlRed}
 		case log["msg"] == "repaired":
 			colors = []rrlColor{rrlCyan, rrlGreen, rrlMagenta, rrlCyan, rrlGreen, rrlBlue, rrlMagenta, rrlYellow}

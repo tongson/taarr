@@ -39,6 +39,18 @@ type optT struct {
 	mode     int
 }
 
+func logInt() {
+	tm := time.Since(start).Truncate(time.Second).String()
+	if tm == "0s" {
+		tm = "<1s"
+	}
+	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	defer jsonFile.Close()
+	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	jsonLog.Debug("sigint", "app", "rr", "id", "???", "start", start.Format(cTIME), "task", "INTERRUPTED", "target", "???", "namespace", "???", "script", "???", "duration", tm)
+	_ = jsonFile.Close()
+}
+
 // CITATION: Konstantin Shaposhnikov - https://groups.google.com/forum/#!topic/golang-nuts/kTVAbtee9UA
 // REFERENCE: https://gist.github.com/jlinoff/e8e26b4ffa38d379c7f1891fd174a6d0
 var initTermState *terminal.State
@@ -56,6 +68,7 @@ func init() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
+		logInt()
 		cleanUpFn("Caught signal. Exiting.\n")
 		_ = terminal.Restore(syscall.Stdin, initTermState)
 		os.Exit(2)
