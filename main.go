@@ -56,6 +56,15 @@ func init() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
+		tm := time.Since(start).Truncate(time.Second).String()
+		if tm == "0s" {
+			tm = "<1s"
+		}
+		jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+		defer jsonFile.Close()
+		jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
+		jsonLog.Debug("sigint", "app", "rr", "id", "NA", "start", start.Format(cTIME), "task", "INTERRUPTED", "target", "NA", "namespace", "NA", "script", "NA", "duration", tm)
+		_ = jsonFile.Close()
 		cleanUpFn("Caught signal. Exiting.\n")
 		_ = terminal.Restore(syscall.Stdin, initTermState)
 		os.Exit(2)
