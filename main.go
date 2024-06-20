@@ -60,7 +60,7 @@ var cleanUpFn func(string) = func(a string) {
 
 func init() {
 	var err error
-	initTermState, err = terminal.GetState(syscall.Stdin)
+	initTermState, err = terminal.GetState(int(os.Stdin.Fd()))
 	if err != nil {
 		return
 	}
@@ -70,7 +70,7 @@ func init() {
 		<-c
 		logInt()
 		cleanUpFn("Caught signal. Exiting.\n")
-		_ = terminal.Restore(syscall.Stdin, initTermState)
+		_ = terminal.Restore(int(os.Stdin.Fd()), initTermState)
 		os.Exit(2)
 	}()
 }
@@ -78,7 +78,7 @@ func init() {
 func getPassword(prompt string) (string, error) {
 	var err error
 	fmt.Print(prompt)
-	p, err := terminal.ReadPassword(syscall.Stdin)
+	p, err := terminal.ReadPassword(int(os.Stdin.Fd()))
 	fmt.Println("")
 	if err != nil {
 		return "", err

@@ -1,3 +1,11 @@
+#### 2.2.0
+
+Craving Detonator
+
+* Log SIGINT
+* Initial support for Windows
+* Update dependencies
+
 #### 2.1.1
 
 Buggy Oven
