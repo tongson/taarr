@@ -3,4 +3,5 @@ rr make:linux-arm64
 rr make:linux-i386
 rr make:macos-intel
 rr make:macos-m1
+rr make:windows-amd64
 rr make:sha256
