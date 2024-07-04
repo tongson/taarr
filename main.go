@@ -87,8 +87,7 @@ func getPassword(prompt string) (string, error) {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	fmt.Printf(cANSI, time.Now().Format(time.RFC822Z))
-	return fmt.Print(" " + string(bytes))
+	return fmt.Printf(cANSI, time.Now().Format(time.RFC822Z), string(bytes))
 }
 
 func soOutput(h string, m int) func(string) {
@@ -553,7 +552,7 @@ rrl = report`
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			opt.mode = oTerm
 			log.SetOutput(new(logWriter))
-			log.Printf("rr %s “%s”", cVERSION, cCODE)
+			log.Printf("taarr %s “%s”", cVERSION, cCODE)
 		} else {
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		}
@@ -563,6 +562,34 @@ rrl = report`
 	var id string = generateHashId()
 	opt.id = id // used for the random suffix in the temp filename
 	if len(os.Args) < 2 {
+		isReadme := func() (bool, string) {
+			match, _ := lib.FileGlob("README*")
+			for _, m := range match {
+				if lib.IsFile(m) {
+					return true, m
+				}
+			}
+			return false, ""
+		}
+		printReadme := func(s string) {
+			switch opt.mode {
+			case oTerm:
+				for _, each := range lib.FileLines(s) {
+					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
+				}
+				fmt.Printf("\n")
+			case oPlain:
+				fmt.Print(lib.FileRead(s))
+			case oJson:
+				serrLog.Error("README output disabled in this mode.")
+				os.Exit(2)
+			}
+		}
+		if found1, readme1 := isReadme(); found1 && readme1 != "" {
+			log.Printf("Showing %s…", readme1)
+			printReadme(readme1)
+			os.Exit(0)
+		}
 		switch opt.mode {
 		case oJson:
 			serrLog.Error(eUNSPECIFIED)
@@ -652,6 +679,7 @@ rrl = report`
 	var namespace string
 	var script string
 	var nsScript string
+	var dumpLib string
 	var code string
 	var interp string
 	var opLog string
@@ -665,16 +693,6 @@ rrl = report`
 		// s := strings.Split(os.Args[offset], "/")
 		if len(s) < 2 {
 			s = strings.Split(os.Args[offset], ":")
-		}
-		if len(s) < 2 {
-			switch opt.mode {
-			case oTerm, oPlain:
-				_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
-				os.Exit(2)
-			case oJson:
-				serrLog.Error("namespace:script not specified")
-				os.Exit(2)
-			}
 		}
 		namespace, script = s[0], s[1]
 		if !lib.IsDir(namespace) {
@@ -744,6 +762,7 @@ rrl = report`
 				os.Exit(255)
 			}
 		}
+		dumpLib = sh.String()
 		if opt.sudo {
 			if !opt.nopasswd {
 				str, err := getPassword("sudo password: ")
@@ -784,6 +803,7 @@ rrl = report`
 
 	// rrd mode
 	if mDump {
+		fmt.Print(dumpLib)
 		fmt.Print(code)
 		os.Exit(0)
 	}

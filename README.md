@@ -1,4 +1,4 @@
-# rr
+# taarr
 
 Check out the documentation at [taarr.com](https://taarr.com)
 
