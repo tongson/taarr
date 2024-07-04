@@ -1,7 +1,7 @@
 package main
 
-const cVERSION = "2.2.0"
-const cCODE = "Craving Detonator"
+const cVERSION = "2.2.1"
+const cCODE = "Unsafe Cupcake"
 
 const cOP = "LOG"
 const cINC = "VARS"
