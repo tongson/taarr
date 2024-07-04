@@ -87,8 +87,7 @@ func getPassword(prompt string) (string, error) {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-	fmt.Printf(cANSI, time.Now().Format(time.RFC822Z))
-	return fmt.Print(" " + string(bytes))
+	return fmt.Printf(cANSI, time.Now().Format(time.RFC822Z), string(bytes))
 }
 
 func soOutput(h string, m int) func(string) {
