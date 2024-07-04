@@ -562,6 +562,34 @@ rrl = report`
 	var id string = generateHashId()
 	opt.id = id // used for the random suffix in the temp filename
 	if len(os.Args) < 2 {
+		isReadme := func() (bool, string) {
+			match, _ := lib.FileGlob("README*")
+			for _, m := range match {
+				if lib.IsFile(m) {
+					return true, m
+				}
+			}
+			return false, ""
+		}
+		printReadme := func(s string) {
+			switch opt.mode {
+			case oTerm:
+				for _, each := range lib.FileLines(s) {
+					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
+				}
+				fmt.Printf("\n")
+			case oPlain:
+				fmt.Print(lib.FileRead(s))
+			case oJson:
+				serrLog.Error("README output disabled in this mode.")
+				os.Exit(2)
+			}
+		}
+		if found1, readme1 := isReadme(); found1 && readme1 != "" {
+			log.Printf("Showing %s…", readme1)
+			printReadme(readme1)
+			os.Exit(0)
+		}
 		switch opt.mode {
 		case oJson:
 			serrLog.Error(eUNSPECIFIED)
