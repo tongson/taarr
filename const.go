@@ -20,7 +20,7 @@ const cSTDERR = " ┌─ stderr"
 const cSTDDBG = " ┌─ debug"
 const cFOOTER = " └─"
 
-const cANSI = "\x1b[0036m%s\x1b[0000m"
+const cANSI = "\x1b[1G\x1b[0036m%s\x1b[0000m %s"
 
 const cTARC = "--no-same-owner --no-same-permissions"
 const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acls --no-selinux --no-xattrs --touch"
