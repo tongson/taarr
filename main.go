@@ -694,16 +694,6 @@ rrl = report`
 		if len(s) < 2 {
 			s = strings.Split(os.Args[offset], ":")
 		}
-		if len(s) < 2 {
-			switch opt.mode {
-			case oTerm, oPlain:
-				_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
-				os.Exit(2)
-			case oJson:
-				serrLog.Error("namespace:script not specified")
-				os.Exit(2)
-			}
-		}
 		namespace, script = s[0], s[1]
 		if !lib.IsDir(namespace) {
 			switch opt.mode {
