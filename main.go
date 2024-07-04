@@ -679,6 +679,7 @@ rrl = report`
 	var namespace string
 	var script string
 	var nsScript string
+	var dumpLib string
 	var code string
 	var interp string
 	var opLog string
@@ -771,6 +772,7 @@ rrl = report`
 				os.Exit(255)
 			}
 		}
+		dumpLib = sh.String()
 		if opt.sudo {
 			if !opt.nopasswd {
 				str, err := getPassword("sudo password: ")
@@ -811,6 +813,7 @@ rrl = report`
 
 	// rrd mode
 	if mDump {
+		fmt.Print(dumpLib)
 		fmt.Print(code)
 		os.Exit(0)
 	}
