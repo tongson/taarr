@@ -4,7 +4,7 @@ Unsafe Cupcake
 
 * Fix output during parallel runs
 * Print README* file when no `namespace:script` specified
-* Include `.lib` includes in `rrd` (dump) mode
+* Include `.lib` in `rrd` (dump) mode
 
 #### 2.2.0
 
