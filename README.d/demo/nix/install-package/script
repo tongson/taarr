@@ -1,1 +1,1 @@
-nix-env -i "$1"
+nix-env --install --prebuilt-only --attr "$1"
