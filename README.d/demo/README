@@ -1,0 +1,9 @@
+# nix scripts
+
+## nix:install-package
+
+Install package
+
+## nix:remove-package
+
+Uninstall package
