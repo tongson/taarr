@@ -1,7 +1,7 @@
 package main
 
-const cVERSION = "2.2.1"
-const cCODE = "Unsafe Cupcake"
+const cVERSION = "2.3.0"
+const cCODE = "Compacted Monastery"
 
 const cOP = "LOG"
 const cINC = "VARS"
