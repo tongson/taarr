@@ -1288,7 +1288,7 @@ rrl = report`
 		}
 	}
 	tm := since(start)
-	if opt.mode == oTerm {
+	if opt.mode == oTerm && (0 != len(preludeScript) || 0 != len(epilogueScript)) {
 		log.Printf("Total run time: %s. All OK.", tm)
 	}
 	_ = jsonFile.Close()
