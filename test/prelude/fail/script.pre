@@ -1,0 +1,2 @@
+echo "$what"
+exit 1
