@@ -75,6 +75,14 @@ func init() {
 	}()
 }
 
+func since(s time.Time) string {
+	tm := time.Since(s).Truncate(time.Second).String()
+	if tm == "0s" {
+		tm = "<1s"
+	}
+	return tm
+}
+
 func getPassword(prompt string) (string, error) {
 	var err error
 	fmt.Print(prompt)
@@ -679,6 +687,8 @@ rrl = report`
 	var namespace string
 	var script string
 	var nsScript string
+	var preludeScript string
+	var epilogueScript string
 	var dumpLib string
 	var code string
 	var interp string
@@ -790,6 +800,22 @@ rrl = report`
 			sh.WriteString(strings.Join(arguments, " "))
 			sh.WriteString("\n")
 		}
+		if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
+			if c := lib.FileRead(namespace + "/" + script + "/" + cPRE); lib.IsFile(cINC) {
+				inc := lib.FileRead(cINC) + "\n"
+				preludeScript = sh.String() + inc + c
+			} else {
+				preludeScript = sh.String() + c
+			}
+		}
+		if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
+			if c := lib.FileRead(namespace + "/" + script + "/" + cPOST); lib.IsFile(cINC) {
+				inc := lib.FileRead(cINC) + "\n"
+				epilogueScript = sh.String() + inc + c
+			} else {
+				epilogueScript = sh.String() + c
+			}
+		}
 		if c := lib.FileRead(namespace + "/" + script + "/" + cRUN); lib.IsFile(cINC) {
 			inc := lib.FileRead(cINC) + "\n"
 			code = inc + c
@@ -820,6 +846,65 @@ rrl = report`
 		opt.interp = interp
 	}
 	jsonLog.Info(opLog, "app", "rr", "id", id, "namespace", namespace, "script", script, "target", hostname)
+	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
+		preStart := time.Now()
+		log.Printf("Found prelude script for %s:%s. Running locally…", namespace, script)
+		jsonLog.Debug("prelude", "app", "rr", "id", id, "script", script)
+		soFn := soOutput("prelude", opt.mode)
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(preludeScript), Stdout: soFn}
+		ret, out := rargs.Run()
+		he, be, fe := conOutput(out.Stderr, "prelude", cSTDERR)
+		hd, bd, fd := conOutput(out.Error, "prelude", cSTDDBG)
+		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
+		b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
+		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
+		if !ret {
+			failed = true
+			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			switch opt.mode {
+			case oPlain:
+				stdWriter(out.Stdout, out.Stderr)
+			case oJson:
+				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+			case oTerm:
+				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
+			}
+		} else {
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
+			switch opt.mode {
+			case oPlain:
+				stdWriter(out.Stdout, out.Stderr)
+			case oTerm:
+				if out.Stderr != "" || out.Error != "" {
+					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
+				}
+			case oJson:
+				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
+					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+				}
+			}
+		}
+		if tm := since(preStart); !failed {
+			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "prelude", "namespace", namespace, "script", script, "duration", tm)
+			if opt.mode == oTerm {
+				log.Printf("Prelude run time: %s. Ok.", tm)
+			}
+		} else {
+			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "prelude", "namespace", namespace, "script", script, "duration", tm)
+			switch opt.mode {
+			case oPlain:
+				// Nothing to do
+			case oTerm:
+				log.Printf("Prelude run time: %s. Something went wrong.", tm)
+			case oJson:
+				serrLog.Debug("failed", "duration", tm)
+			}
+			_ = jsonFile.Close()
+			os.Exit(1)
+		}
+	}
+	mainStart := time.Now()
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
 		if opt.sudo {
@@ -1125,25 +1210,76 @@ rrl = report`
 			}
 		}
 	}
-	{
-		tm := time.Since(start).Truncate(time.Second).String()
-		if tm == "0s" {
-			tm = "<1s"
+	if tm := since(mainStart); !failed {
+		jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
+		if opt.mode == oTerm {
+			log.Printf("Run time: %s. Ok.", tm)
 		}
-		if !failed {
-			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
-			if opt.mode == oTerm {
-				log.Printf("Total run time: %s. All OK.", tm)
+	} else {
+		jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
+		switch opt.mode {
+		case oPlain:
+			// Nothing to do
+		case oTerm:
+			log.Printf("Run time: %s. Something went wrong.", tm)
+		case oJson:
+			serrLog.Debug("failed", "duration", tm)
+		}
+		_ = jsonFile.Close()
+		os.Exit(1)
+	}
+	if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
+		postStart := time.Now()
+		log.Printf("Found epilogue script for %s:%s. Running locally…", namespace, script)
+		jsonLog.Debug("epilogue", "app", "rr", "id", id, "script", script)
+		soFn := soOutput("epilogue", opt.mode)
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(epilogueScript), Stdout: soFn}
+		ret, out := rargs.Run()
+		he, be, fe := conOutput(out.Stderr, "epilogue", cSTDERR)
+		hd, bd, fd := conOutput(out.Error, "epilogue", cSTDDBG)
+		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
+		b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
+		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
+		if !ret {
+			failed = true
+			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			switch opt.mode {
+			case oPlain:
+				stdWriter(out.Stdout, out.Stderr)
+			case oJson:
+				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+			case oTerm:
+				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
-			_ = jsonFile.Close()
-			os.Exit(0)
 		} else {
-			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
+			switch opt.mode {
+			case oPlain:
+				stdWriter(out.Stdout, out.Stderr)
+			case oTerm:
+				if out.Stderr != "" || out.Error != "" {
+					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
+				}
+			case oJson:
+				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
+					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
+				}
+			}
+		}
+		tm := since(postStart)
+		if !failed {
+			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "epilogue", "namespace", namespace, "script", script, "duration", tm)
+			if opt.mode == oTerm {
+				log.Printf("Epilogue run time: %s. Ok.", tm)
+			}
+		} else {
+			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "epilogue", "namespace", namespace, "script", script, "duration", tm)
 			switch opt.mode {
 			case oPlain:
 				// Nothing to do
 			case oTerm:
-				log.Printf("Total run time: %s. Something went wrong.", tm)
+				log.Printf("Epilogue run time: %s. Something went wrong.", tm)
 			case oJson:
 				serrLog.Debug("failed", "duration", tm)
 			}
@@ -1151,4 +1287,10 @@ rrl = report`
 			os.Exit(1)
 		}
 	}
+	tm := since(start)
+	if opt.mode == oTerm {
+		log.Printf("Total run time: %s. All OK.", tm)
+	}
+	_ = jsonFile.Close()
+	os.Exit(0)
 }

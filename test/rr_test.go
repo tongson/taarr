@@ -266,6 +266,64 @@ func TestInterpreter(T *testing.T) {
 	})
 }
 
+func TestPrelude(T *testing.T) {
+	T.Parallel()
+	T.Run("prelude ok", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"prelude:ok"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			if got := o.Stdout; got != "prelude\nscript\n" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+	})
+	T.Run("prelude fail", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"prelude:fail"}}
+		if x, o := rr.Run(); x {
+			t.Error("wants `false`")
+		} else {
+			if got := o.Stdout; got != "prelude\n" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+	})
+}
+
+func TestEpilogue(T *testing.T) {
+	T.Parallel()
+	T.Run("epilogue ok", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"epilogue:ok"}}
+		if x, o := rr.Run(); !x {
+			t.Error("wants `true`")
+		} else {
+			if got := o.Stdout; got != "script\nepilogue\n" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+	})
+	T.Run("epilogue fail", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"epilogue:fail"}}
+		if x, o := rr.Run(); x {
+			t.Error("wants `false`")
+		} else {
+			if got := o.Stdout; got != "script\nepilogue\n" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+	})
+	T.Run("epilogue main fail", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"epilogue:main_fail"}}
+		if x, o := rr.Run(); x {
+			t.Error("wants `false`")
+		} else {
+			if got := o.Stdout; got != "script\n" {
+				t.Errorf("Unexpected STDOUT: `%s`\n", got)
+			}
+		}
+	})
+}
+
 func TestPlain(T *testing.T) {
 	T.Run("plain mode", func(t *testing.T) {
 		rr := RunArg{Exe: "sh", Args: []string{"-c", "../bin/rrp plain:main $(../bin/rrp plain:arg)"}}
