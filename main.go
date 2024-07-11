@@ -28,15 +28,15 @@ type logWriter struct {
 }
 
 type optT struct {
-	sudo     bool
-	nopasswd bool
-	teleport bool
 	hostname string
 	id       string
 	interp   string
 	config   string
 	password string
 	mode     int
+	call     int
+	sudo     int
+	sudopwd  int
 }
 
 func logInt() {
@@ -100,7 +100,7 @@ func (writer logWriter) Write(bytes []byte) (int, error) {
 
 func soOutput(h string, m int) func(string) {
 	switch m {
-	case oTerm:
+	case cTerm:
 		return func(so string) {
 			if strings.Contains(so, "\n") {
 				fmt.Printf(" %s │ %s", h, so)
@@ -139,8 +139,9 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	var ssha lib.RunArg
 	var sshb lib.RunArg
 	var sshc lib.RunArg
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).teleport {
+	if (*o).config == "" || (*o).call == cTeleport {
+		switch (*o).call {
+		default:
 			args := []string{
 				"-T",
 				(*o).hostname,
@@ -152,7 +153,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 				Env:   sshenv,
 				Stdin: []byte(script),
 			}
-		} else {
+		case cTeleport:
 			args := []string{"ssh", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
 			ssha = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte(script)}
 		}
@@ -174,17 +175,20 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	var ret bool
 	var out lib.RunOut
 	soFn := soOutput((*o).hostname, (*o).mode)
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).sudo {
-			if !(*o).teleport {
+	if (*o).config == "" || (*o).call == cTeleport {
+		switch (*o).sudo {
+		default:
+			switch (*o).call {
+			default:
 				args := []string{"-T", (*o).hostname, (*o).interp, tmps}
 				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdout: soFn}
-			} else {
+			case cTeleport:
 				args := []string{"ssh", (*o).hostname, (*o).interp, tmps}
 				sshb = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdout: soFn}
 			}
-		} else {
-			if !(*o).teleport {
+		case cSudo:
+			switch (*o).call {
+			default:
 				args := []string{
 					"-T",
 					(*o).hostname,
@@ -197,7 +201,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 					(*o).interp, tmps,
 				}
 				sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
-			} else {
+			case cTeleport:
 				args := []string{
 					"ssh",
 					(*o).hostname,
@@ -213,10 +217,11 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 			}
 		}
 	} else {
-		if !(*o).sudo {
+		switch (*o).sudo {
+		default:
 			args := []string{"-F", (*o).config, "-T", (*o).hostname, (*o).interp, tmps}
 			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
-		} else {
+		case cSudo:
 			args := []string{
 				"-F",
 				(*o).config,
@@ -235,15 +240,16 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		}
 	}
 	sshCleanUpFn := func(x bool) func(string) {
-		if (*o).config == "" || (*o).teleport {
-			if !(*o).teleport {
+		if (*o).config == "" || (*o).call == cTeleport {
+			switch (*o).call {
+			default:
 				args := []string{
 					"-T",
 					(*o).hostname,
 					fmt.Sprintf("rm -f %s", tmps),
 				}
 				sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
-			} else {
+			case cTeleport:
 				args := []string{"ssh", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
 				sshc = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
 			}
@@ -289,8 +295,9 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tarexec := fmt.Sprintf(tarcmd, tmpd, cTARC, cTARX, tmpd, tmpf)
 	sshenv := []string{"LC_ALL=C"}
 	var untar1 lib.RunArg
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).teleport {
+	if (*o).config == "" || (*o).call == cTeleport {
+		switch (*o).call {
+		default:
 			untar1 = lib.RunArg{
 				Exe: "ssh",
 				Args: []string{
@@ -301,7 +308,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Env:   sshenv,
 				Stdin: []byte(tarexec),
 			}
-		} else {
+		case cTeleport:
 			untar1 = lib.RunArg{Exe: "tsh", Args: []string{
 				"ssh",
 				(*o).hostname,
@@ -345,8 +352,9 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArg
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).teleport {
+	if (*o).config == "" || (*o).call == cTeleport {
+		switch (*o).call {
+		default:
 			untar2 = lib.RunArg{
 				Exe: (*o).interp,
 				Args: []string{
@@ -355,7 +363,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				},
 				Env: tarenv,
 			}
-		} else {
+		case cTeleport:
 			untar2 = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
 				fmt.Sprintf(teleportDefault, (*o).hostname, dir, tmpd, tmpf, cTARC, cTARX)},
@@ -373,8 +381,9 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 		return ret, out
 	}
 	var untar3 lib.RunArg
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).teleport {
+	if (*o).config == "" || (*o).call == cTeleport {
+		switch (*o).call {
+		default:
 			args := []string{
 				"-T",
 				(*o).hostname,
@@ -393,7 +402,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Env:   sshenv,
 				Stdin: []byte((*o).password),
 			}
-		} else {
+		case cTeleport:
 			args := []string{"ssh", (*o).hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", (*o).interp, tmpf}
 			untar3 = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
@@ -430,14 +439,15 @@ func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var tar lib.RunArg
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).teleport {
+	if (*o).config == "" || (*o).call == cTeleport {
+		switch (*o).call {
+		default:
 			tar = lib.RunArg{
 				Exe:  (*o).interp,
 				Args: []string{"-c", fmt.Sprintf(tarDefault, dir, cTARC, (*o).hostname, cTARX)},
 				Env:  tarenv,
 			}
-		} else {
+		case cTeleport:
 			tar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
 				fmt.Sprintf(tarTeleport, dir, cTARC, (*o).hostname, cTARX)},
@@ -468,14 +478,15 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var tar lib.RunArg
-	if (*o).config == "" || (*o).teleport {
-		if !(*o).teleport {
+	if (*o).config == "" || (*o).call == cTeleport {
+		switch (*o).call {
+		default:
 			tar = lib.RunArg{
 				Exe:  (*o).interp,
 				Args: []string{"-c", fmt.Sprintf(tarDefault, dir, cTARC, (*o).hostname, cTARX)},
 				Env:  tarenv,
 			}
-		} else {
+		case cTeleport:
 			tar = lib.RunArg{Exe: (*o).interp, Args: []string{
 				"-c",
 				fmt.Sprintf(tarTeleport, dir, cTARC, (*o).hostname, cTARX)},
@@ -505,35 +516,33 @@ func main() {
 	var failed bool = false
 	var result string = "ok"
 
-	var mDump bool = false
-	var mReport bool = false
-
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
 	} else {
 		switch mode := call[len(call)-3:]; mode {
 		case "rrp":
-			opt.mode = oPlain
+			opt.mode = cPlain
 			log.SetOutput(io.Discard)
 		case "rrv":
-			opt.mode = oTerm
+			opt.mode = cTerm
 			log.SetOutput(new(logWriter))
 		case "rrd":
-			mDump = true
+			opt.call = cDump
 			log.SetOutput(io.Discard)
 		case "rrl":
-			mReport = true
+			opt.call = cLog
 			log.SetOutput(io.Discard)
 		case "rrs":
-			opt.sudo = true
+			opt.sudopwd = cSudoPasswd
+			opt.sudo = cSudo
 		case "rrt":
-			opt.teleport = true
+			opt.call = cTeleport
 		case "rro":
-			opt.sudo = true
-			opt.teleport = true
+			opt.call = cTeleport
+			opt.sudo = cSudo
 		case "rru":
-			opt.sudo = true
-			opt.nopasswd = true
+			opt.sudo = cSudo
+			opt.sudopwd = cSudoNopasswd
 		default:
 			valid := `rr  = local or ssh
 rrs = ssh + sudo
@@ -549,16 +558,16 @@ rrl = report`
 	}
 
 	// rrl mode
-	if mReport {
+	if cLog == opt.call {
 		rrlMain()
 		os.Exit(0)
 	}
 
 	log.SetFlags(0)
 	var serrLog *slog.Logger
-	if opt.mode != oPlain {
+	if opt.mode != cPlain {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
-			opt.mode = oTerm
+			opt.mode = cTerm
 			log.SetOutput(new(logWriter))
 			log.Printf("taarr %s “%s”", cVERSION, cCODE)
 		} else {
@@ -581,14 +590,14 @@ rrl = report`
 		}
 		printReadme := func(s string) {
 			switch opt.mode {
-			case oTerm:
+			case cTerm:
 				for _, each := range lib.FileLines(s) {
 					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
 				}
 				fmt.Printf("\n")
-			case oPlain:
+			case cPlain:
 				fmt.Print(lib.FileRead(s))
-			case oJson:
+			case cJson:
 				serrLog.Error("README output disabled in this mode.")
 				os.Exit(2)
 			}
@@ -599,10 +608,10 @@ rrl = report`
 			os.Exit(0)
 		}
 		switch opt.mode {
-		case oJson:
+		case cJson:
 			serrLog.Error(eUNSPECIFIED)
 			os.Exit(2)
-		case oTerm, oPlain:
+		case cTerm, cPlain:
 			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
 			os.Exit(2)
 		}
@@ -632,7 +641,7 @@ rrl = report`
 		}
 		printReadme := func(s string) {
 			switch opt.mode {
-			case oTerm:
+			case cTerm:
 				ps := strings.Split(s, "/")
 				s1 := ps[0]
 				var s2 string
@@ -654,9 +663,9 @@ rrl = report`
 					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
 				}
 				fmt.Printf("\n")
-			case oPlain:
+			case cPlain:
 				fmt.Print(lib.FileRead(s))
-			case oJson:
+			case cJson:
 				serrLog.Error("README output disabled in this mode.")
 				os.Exit(2)
 			}
@@ -675,10 +684,10 @@ rrl = report`
 	}
 	if len(os.Args) < offset+1 {
 		switch opt.mode {
-		case oTerm, oPlain:
+		case cTerm, cPlain:
 			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
 			os.Exit(2)
-		case oJson:
+		case cJson:
 			serrLog.Error(eUNSPECIFIED)
 			os.Exit(2)
 		}
@@ -707,30 +716,30 @@ rrl = report`
 		namespace, script = s[0], s[1]
 		if !lib.IsDir(namespace) {
 			switch opt.mode {
-			case oTerm, oPlain:
+			case cTerm, cPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", namespace)
 				os.Exit(2)
-			case oJson:
+			case cJson:
 				serrLog.Error("Namespace is not a directory", "namespace", namespace)
 				os.Exit(2)
 			}
 		}
 		if !lib.IsDir(fmt.Sprintf("%s/%s", namespace, script)) {
 			switch opt.mode {
-			case oTerm, oPlain:
+			case cTerm, cPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", namespace, script)
 				os.Exit(2)
-			case oJson:
+			case cJson:
 				serrLog.Error("namespace/script is not a directory", "namespace", namespace, "script", script)
 				os.Exit(2)
 			}
 		}
 		if !lib.IsFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
 			switch opt.mode {
-			case oTerm, oPlain:
+			case cTerm, cPlain:
 				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", namespace, script, cRUN)
 				os.Exit(2)
-			case oJson:
+			case cJson:
 				serrLog.Error("Script not found", "namespace", namespace, "script", script)
 				os.Exit(2)
 			}
@@ -773,15 +782,15 @@ rrl = report`
 			}
 		}
 		dumpLib = sh.String()
-		if opt.sudo {
-			if !opt.nopasswd {
+		if opt.sudo == cSudo {
+			if opt.sudopwd == cSudoPasswd {
 				str, err := getPassword("sudo password: ")
 				if err != nil {
 					switch opt.mode {
-					case oTerm, oPlain:
+					case cTerm, cPlain:
 						_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
 						os.Exit(2)
-					case oJson:
+					case cJson:
 						serrLog.Error("Unable to initialize STDIN or this is not a terminal.", "namespace", namespace, "script", script)
 						os.Exit(2)
 					}
@@ -828,7 +837,7 @@ rrl = report`
 	// $code is the sanitized script without rr__ variables
 
 	// rrd mode
-	if mDump {
+	if cDump == opt.call {
 		fmt.Print(dumpLib)
 		fmt.Print(code)
 		os.Exit(0)
@@ -862,24 +871,24 @@ rrl = report`
 			failed = true
 			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oJson:
+			case cJson:
 				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			case oTerm:
+			case cTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
 			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oTerm:
+			case cTerm:
 				if out.Stderr != "" || out.Error != "" {
 					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 				}
-			case oJson:
+			case cJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
 					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 				}
@@ -887,17 +896,17 @@ rrl = report`
 		}
 		if tm := since(preStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "prelude", "namespace", namespace, "script", script, "duration", tm)
-			if opt.mode == oTerm {
+			if opt.mode == cTerm {
 				log.Printf("Prelude run time: %s. Ok.", tm)
 			}
 		} else {
 			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "prelude", "namespace", namespace, "script", script, "duration", tm)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				// Nothing to do
-			case oTerm:
+			case cTerm:
 				log.Printf("Prelude run time: %s. Something went wrong.", tm)
-			case oJson:
+			case cJson:
 				serrLog.Debug("failed", "duration", tm)
 			}
 			_ = jsonFile.Close()
@@ -907,14 +916,14 @@ rrl = report`
 	mainStart := time.Now()
 	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
 	if hostname == "local" || hostname == "localhost" {
-		if opt.sudo {
+		if opt.sudo == cSudo {
 			msg := "Invoked sudo+ssh mode via local, ignored mode, just `sudo rr`."
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter("", msg)
-			case oTerm:
+			case cTerm:
 				log.Print(msg)
-			case oJson:
+			case cJson:
 				serrLog.Error(msg)
 			}
 			os.Exit(2)
@@ -949,7 +958,7 @@ rrl = report`
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
 				jsonLog.Debug("copy", "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
 				jsonLog.Info("copy", "app", "rr", "id", id, "result", "finished")
-				if opt.mode == oTerm {
+				if opt.mode == cTerm {
 					log.Printf("Finished copying files")
 				}
 			}
@@ -974,11 +983,11 @@ rrl = report`
 			failed = true
 			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oJson:
+			case cJson:
 				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			case oTerm:
+			case cTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
@@ -992,13 +1001,13 @@ rrl = report`
 			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oTerm:
+			case cTerm:
 				if out.Stderr != "" || out.Error != "" {
 					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 				}
-			case oJson:
+			case cJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
 					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 				}
@@ -1030,11 +1039,11 @@ rrl = report`
 				if step := "copy"; !ret {
 					jsonLog.Error(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
 					switch opt.mode {
-					case oPlain:
+					case cPlain:
 						stdWriter(out.Stdout, out.Stderr)
-					case oJson:
+					case cJson:
 						serrLog.Error(step, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-					case oTerm:
+					case cTerm:
 						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 						hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
@@ -1045,7 +1054,7 @@ rrl = report`
 				} else {
 					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
 					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
-					if opt.mode == oTerm {
+					if opt.mode == cTerm {
 						log.Printf("Finished copying files")
 					}
 				}
@@ -1065,11 +1074,11 @@ rrl = report`
 			failed = true
 			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oJson:
+			case cJson:
 				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			case oTerm:
+			case cTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
@@ -1083,20 +1092,20 @@ rrl = report`
 			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oTerm:
+			case cTerm:
 				if out.Stderr != "" || out.Error != "" {
 					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 				}
-			case oJson:
+			case cJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
 					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 				}
 			}
 		}
 	} else {
-		if !opt.teleport {
+		if opt.call != cTeleport {
 			switch {
 			case lib.IsFile(cHOSTS1):
 				opt.config = cHOSTS1
@@ -1126,44 +1135,44 @@ rrl = report`
 				var ret bool
 				var out lib.RunOut
 				switch opt.sudo {
-				case false:
+				default:
 					// Error ignored because tar may fail
 					_, out = quickCopy(&opt, d)
 					ret = true
-				case true && opt.nopasswd:
-					ret, out = sudoCopyNopasswd(&opt, d)
-				case true && !opt.nopasswd:
-					ret, out = sudoCopy(&opt, d)
-				default:
-					panic("BUG[001]: unhandled condition!")
+				case cSudo:
+					if opt.sudopwd == cSudoPasswd {
+						ret, out = sudoCopy(&opt, d)
+					} else {
+						ret, out = sudoCopyNopasswd(&opt, d)
+					}
 				}
 				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
 				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-				if step := "copy"; !ret && opt.sudo {
+				if step := "copy"; !ret && opt.sudo == cSudo {
 					jsonLog.Error("step", "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
 					switch opt.mode {
-					case oPlain:
+					case cPlain:
 						stdWriter(out.Stdout, out.Stderr)
-					case oTerm:
+					case cTerm:
 						ho, bo, fo := conOutput(out.Stdout, hostname, cSTDOUT)
 						he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 						hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
-					case oJson:
+					case cJson:
 						serrLog.Error(step, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 					}
 					os.Exit(1)
 				} else {
 					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
 					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
-					if opt.mode == oTerm {
+					if opt.mode == cTerm {
 						log.Printf("Finished copying files")
 					}
 				}
 			}
 		}
-		if opt.mode == oTerm {
+		if opt.mode == cTerm {
 			log.Printf("Running %s…", script)
 		}
 		jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
@@ -1179,11 +1188,11 @@ rrl = report`
 			failed = true
 			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oTerm:
+			case cTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-			case oJson:
+			case cJson:
 				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 			}
 		} else {
@@ -1197,13 +1206,13 @@ rrl = report`
 			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oTerm:
+			case cTerm:
 				if out.Stderr != "" || out.Error != "" {
 					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 				}
-			case oJson:
+			case cJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
 					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 				}
@@ -1212,17 +1221,17 @@ rrl = report`
 	}
 	if tm := since(mainStart); !failed {
 		jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
-		if opt.mode == oTerm {
+		if opt.mode == cTerm {
 			log.Printf("Run time: %s. Ok.", tm)
 		}
 	} else {
 		jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", hostname, "namespace", namespace, "script", script, "duration", tm)
 		switch opt.mode {
-		case oPlain:
+		case cPlain:
 			// Nothing to do
-		case oTerm:
+		case cTerm:
 			log.Printf("Run time: %s. Something went wrong.", tm)
-		case oJson:
+		case cJson:
 			serrLog.Debug("failed", "duration", tm)
 		}
 		_ = jsonFile.Close()
@@ -1244,24 +1253,24 @@ rrl = report`
 			failed = true
 			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oJson:
+			case cJson:
 				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			case oTerm:
+			case cTerm:
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
 			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
-			case oTerm:
+			case cTerm:
 				if out.Stderr != "" || out.Error != "" {
 					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 				}
-			case oJson:
+			case cJson:
 				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
 					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 				}
@@ -1270,17 +1279,17 @@ rrl = report`
 		tm := since(postStart)
 		if !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "epilogue", "namespace", namespace, "script", script, "duration", tm)
-			if opt.mode == oTerm {
+			if opt.mode == cTerm {
 				log.Printf("Epilogue run time: %s. Ok.", tm)
 			}
 		} else {
 			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "epilogue", "namespace", namespace, "script", script, "duration", tm)
 			switch opt.mode {
-			case oPlain:
+			case cPlain:
 				// Nothing to do
-			case oTerm:
+			case cTerm:
 				log.Printf("Epilogue run time: %s. Something went wrong.", tm)
-			case oJson:
+			case cJson:
 				serrLog.Debug("failed", "duration", tm)
 			}
 			_ = jsonFile.Close()
@@ -1288,7 +1297,7 @@ rrl = report`
 		}
 	}
 	tm := since(start)
-	if opt.mode == oTerm && (0 != len(preludeScript) || 0 != len(epilogueScript)) {
+	if opt.mode == cTerm && (0 != len(preludeScript) || 0 != len(epilogueScript)) {
 		log.Printf("Total run time: %s. All OK.", tm)
 	}
 	_ = jsonFile.Close()
