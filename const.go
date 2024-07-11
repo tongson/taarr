@@ -27,8 +27,31 @@ const cANSI = "\x1b[1G\x1b[0036m%s\x1b[0000m %s"
 const cTARC = "--no-same-owner --no-same-permissions"
 const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acls --no-selinux --no-xattrs --touch"
 
-const oJson int = 0
-const oTerm int = 1
-const oPlain int = 2
-
 const eUNSPECIFIED = "You must specify the `namespace:script`"
+
+// Output
+const (
+	cJson  = iota
+	cTerm  = iota
+	cPlain = iota
+)
+
+// Call
+const (
+	cDefault  = iota
+	cDump     = iota
+	cLog      = iota
+	cTeleport = iota
+)
+
+// Sudo?
+const (
+	cNoSudo = iota
+	cSudo   = iota
+)
+
+// Sudo password?
+const (
+	cSudoNopasswd = iota
+	cSudoPasswd   = iota
+)
