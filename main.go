@@ -134,7 +134,7 @@ func stdWriter(stdout string, stderr string) {
 }
 
 func sshExec(o *optT, script string) (bool, lib.RunOut) {
-	tmps := fmt.Sprintf(".__rr.src.%s", (*o).id)
+	tmps := fmt.Sprintf(".__rr_src_%s", (*o).id)
 	sshenv := []string{"LC_ALL=C"}
 	var ssha lib.RunArg
 	var sshb lib.RunArg
