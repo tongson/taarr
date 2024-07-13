@@ -294,6 +294,8 @@ func stdWriter(stdout string, stderr string) {
 
 func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	tmps := fmt.Sprintf(".__rr_src_%s", (*o).id)
+	// ssh hostname 'cat - > src'
+	log.Printf("CONNECTION: copying script…")
 	sshenv := []string{"LC_ALL=C"}
 	var ssha lib.RunArg
 	var sshb lib.RunArg
@@ -327,8 +329,6 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		}
 		ssha = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
-	// ssh hostname 'cat - > src'
-	log.Printf("CONNECTION: copying script…")
 	if ret, out := ssha.Run(); !ret {
 		return ret, out
 	}
