@@ -52,6 +52,12 @@ type scriptT struct {
 	interp    string
 }
 
+type b64Strings struct {
+	stdout string
+	stderr string
+	code   string
+}
+
 func logInt() {
 	tm := time.Since(start).Truncate(time.Second).String()
 	if tm == "0s" {
@@ -232,6 +238,14 @@ func setupScript(o optT, offset int) scriptT {
 	}
 	sh.WriteString(code)
 	return scriptT{nsscript: sh.String(), namespace: namespace, script: script, code: code, lib: dumpLib, prelude: preludeScript, epilogue: epilogueScript, log: opLog, interp: interp}
+}
+
+func b64(stdout string, stderr string, code string) b64Strings {
+	var s b64Strings
+	s.stdout = base64.StdEncoding.EncodeToString([]byte(stdout))
+	s.stderr = base64.StdEncoding.EncodeToString([]byte(stderr))
+	s.code = base64.StdEncoding.EncodeToString([]byte(code))
+	return s
 }
 
 func since(s time.Time) string {
@@ -890,12 +904,10 @@ rrl = report`
 		ret, out := rargs.Run()
 		he, be, fe := conOutput(out.Stderr, "prelude", cSTDERR)
 		hd, bd, fd := conOutput(out.Error, "prelude", cSTDDBG)
-		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
-		b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
+		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			switch opt.mode {
 			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
@@ -905,7 +917,7 @@ rrl = report`
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
 			case cPlain:
@@ -980,9 +992,8 @@ rrl = report`
 				}
 				// Error ignored because tar may fail
 				_, out := rargs.Run()
-				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-				jsonLog.Debug("copy", "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
+				b64Out := b64(out.Stdout, out.Stderr, "")
+				jsonLog.Debug("copy", "app", "rr", "id", id, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 				jsonLog.Info("copy", "app", "rr", "id", id, "result", "finished")
 				if opt.mode == cTerm {
 					log.Printf("Finished copying files")
@@ -1002,12 +1013,10 @@ rrl = report`
 		ret, out := rargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
-		b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
+		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			switch opt.mode {
 			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
@@ -1024,7 +1033,7 @@ rrl = report`
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
 			case cPlain:
@@ -1060,10 +1069,9 @@ rrl = report`
 					Env:  tarenv,
 				}
 				ret, out := rsargs.Run()
-				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
+				b64Out := b64(out.Stdout, out.Stderr, "")
 				if step := "copy"; !ret {
-					jsonLog.Error(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
+					jsonLog.Error(step, "app", "rr", "id", id, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 					switch opt.mode {
 					case cPlain:
 						stdWriter(out.Stdout, out.Stderr)
@@ -1078,7 +1086,7 @@ rrl = report`
 					}
 					os.Exit(1)
 				} else {
-					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
+					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
 					if opt.mode == cTerm {
 						log.Printf("Finished copying files")
@@ -1093,12 +1101,10 @@ rrl = report`
 		ret, out := nsargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
-		b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
+		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			switch opt.mode {
 			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
@@ -1115,7 +1121,7 @@ rrl = report`
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
 			case cPlain:
@@ -1172,10 +1178,9 @@ rrl = report`
 						ret, out = sudoCopyNopasswd(&opt, d)
 					}
 				}
-				b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
-				b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
+				b64Out := b64(out.Stdout, out.Stderr, "")
 				if step := "copy"; !ret && opt.sudo == cSudo {
-					jsonLog.Error("step", "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
+					jsonLog.Error("step", "app", "rr", "id", id, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 					switch opt.mode {
 					case cPlain:
 						stdWriter(out.Stdout, out.Stderr)
@@ -1190,7 +1195,7 @@ rrl = report`
 					}
 					os.Exit(1)
 				} else {
-					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64so, "stderr", b64se, "error", out.Error)
+					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
 					if opt.mode == cTerm {
 						log.Printf("Finished copying files")
@@ -1207,12 +1212,10 @@ rrl = report`
 		ret, out = sshExec(&opt, scr.nsscript)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
-		b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
+		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			switch opt.mode {
 			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
@@ -1229,7 +1232,7 @@ rrl = report`
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
 			case cPlain:
@@ -1272,12 +1275,10 @@ rrl = report`
 		ret, out := rargs.Run()
 		he, be, fe := conOutput(out.Stderr, "epilogue", cSTDERR)
 		hd, bd, fd := conOutput(out.Error, "epilogue", cSTDDBG)
-		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
-		b64se := base64.StdEncoding.EncodeToString([]byte(out.Stderr))
-		b64sc := base64.StdEncoding.EncodeToString([]byte(code))
+		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			switch opt.mode {
 			case cPlain:
 				stdWriter(out.Stdout, out.Stderr)
@@ -1287,7 +1288,7 @@ rrl = report`
 				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
 			}
 		} else {
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64sc, "stdout", b64so, "stderr", b64se, "error", out.Error)
+			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
 			switch opt.mode {
 			case cPlain:
