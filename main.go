@@ -28,15 +28,15 @@ type logWriter struct {
 }
 
 type optT struct {
-	hostname string
-	id       string
-	interp   string
-	config   string
-	password string
-	mode     int
-	call     int
-	sudo     int
-	sudopwd  int
+	hostname  string
+	id        string
+	interp    string
+	password  string
+	sshconfig string
+	mode      int
+	call      int
+	sudo      int
+	sudopwd   int
 }
 
 func logInt() {
@@ -139,7 +139,8 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	var ssha lib.RunArg
 	var sshb lib.RunArg
 	var sshc lib.RunArg
-	if (*o).config == "" || (*o).call == cTeleport {
+	switch len((*o).sshconfig) {
+	case 0:
 		switch (*o).call {
 		default:
 			args := []string{
@@ -157,10 +158,10 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 			args := []string{"ssh", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
 			ssha = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte(script)}
 		}
-	} else {
+	default:
 		args := []string{
 			"-F",
-			(*o).config,
+			(*o).sshconfig,
 			"-T",
 			(*o).hostname,
 			fmt.Sprintf("cat - > %s", tmps),
@@ -175,7 +176,8 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	var ret bool
 	var out lib.RunOut
 	soFn := soOutput((*o).hostname, (*o).mode)
-	if (*o).config == "" || (*o).call == cTeleport {
+	switch len((*o).sshconfig) {
+	case 0:
 		switch (*o).sudo {
 		default:
 			switch (*o).call {
@@ -216,15 +218,15 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 				sshb = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
 			}
 		}
-	} else {
+	default:
 		switch (*o).sudo {
 		default:
-			args := []string{"-F", (*o).config, "-T", (*o).hostname, (*o).interp, tmps}
+			args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, (*o).interp, tmps}
 			sshb = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte((*o).password), Stdout: soFn}
 		case cSudo:
 			args := []string{
 				"-F",
-				(*o).config,
+				(*o).sshconfig,
 				"-T",
 				(*o).hostname,
 				"sudo",
@@ -240,7 +242,8 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		}
 	}
 	sshCleanUpFn := func(x bool) func(string) {
-		if (*o).config == "" || (*o).call == cTeleport {
+		switch len((*o).sshconfig) {
+		case 0:
 			switch (*o).call {
 			default:
 				args := []string{
@@ -253,8 +256,8 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 				args := []string{"ssh", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
 				sshc = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
 			}
-		} else {
-			args := []string{"-F", (*o).config, "-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
+		default:
+			args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
 			sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 		}
 		return func(a string) {
@@ -295,7 +298,8 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	tarexec := fmt.Sprintf(tarcmd, tmpd, cTARC, cTARX, tmpd, tmpf)
 	sshenv := []string{"LC_ALL=C"}
 	var untar1 lib.RunArg
-	if (*o).config == "" || (*o).call == cTeleport {
+	switch len((*o).sshconfig) {
+	case 0:
 		switch (*o).call {
 		default:
 			untar1 = lib.RunArg{
@@ -317,8 +321,8 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Stdin: []byte(tarexec),
 			}
 		}
-	} else {
-		args := []string{"-F", (*o).config, "-T", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}
+	default:
+		args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}
 		untar1 = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(tarexec)}
 	}
 	if ret, out := untar1.Run(); !ret {
@@ -352,7 +356,8 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var untar2 lib.RunArg
-	if (*o).config == "" || (*o).call == cTeleport {
+	switch len((*o).sshconfig) {
+	case 0:
 		switch (*o).call {
 		default:
 			untar2 = lib.RunArg{
@@ -370,10 +375,10 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Env: tarenv,
 			}
 		}
-	} else {
+	default:
 		untar2 = lib.RunArg{Exe: (*o).interp, Args: []string{
 			"-c",
-			fmt.Sprintf(untarConfig, (*o).hostname, dir, tmpd, (*o).config, tmpf, cTARC, cTARX)},
+			fmt.Sprintf(untarConfig, (*o).hostname, dir, tmpd, (*o).sshconfig, tmpf, cTARC, cTARX)},
 			Env: tarenv,
 		}
 	}
@@ -381,7 +386,8 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 		return ret, out
 	}
 	var untar3 lib.RunArg
-	if (*o).config == "" || (*o).call == cTeleport {
+	switch len((*o).sshconfig) {
+	case 0:
 		switch (*o).call {
 		default:
 			args := []string{
@@ -406,9 +412,9 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 			args := []string{"ssh", (*o).hostname, "sudo", "-k", "--prompt=\"\"", "-S", "-s", "--", (*o).interp, tmpf}
 			untar3 = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte((*o).password)}
 		}
-	} else {
+	default:
 		args := []string{"-F",
-			(*o).config,
+			(*o).sshconfig,
 			"-T",
 			(*o).hostname,
 			"sudo",
@@ -439,7 +445,8 @@ func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var tar lib.RunArg
-	if (*o).config == "" || (*o).call == cTeleport {
+	switch len((*o).sshconfig) {
+	case 0:
 		switch (*o).call {
 		default:
 			tar = lib.RunArg{
@@ -454,9 +461,9 @@ func sudoCopyNopasswd(o *optT, dir string) (bool, lib.RunOut) {
 				Env: tarenv,
 			}
 		}
-	} else {
+	default:
 		tar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(tarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
+			fmt.Sprintf(tarConfig, dir, cTARC, (*o).sshconfig, (*o).hostname, cTARX)},
 			Env: tarenv,
 		}
 	}
@@ -478,7 +485,8 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	`
 	tarenv := []string{"LC_ALL=C"}
 	var tar lib.RunArg
-	if (*o).config == "" || (*o).call == cTeleport {
+	switch len((*o).sshconfig) {
+	case 0:
 		switch (*o).call {
 		default:
 			tar = lib.RunArg{
@@ -493,9 +501,9 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Env: tarenv,
 			}
 		}
-	} else {
+	default:
 		tar = lib.RunArg{Exe: (*o).interp, Args: []string{"-c",
-			fmt.Sprintf(tarConfig, dir, cTARC, (*o).config, (*o).hostname, cTARX)},
+			fmt.Sprintf(tarConfig, dir, cTARC, (*o).sshconfig, (*o).hostname, cTARX)},
 			Env: tarenv,
 		}
 	}
@@ -542,7 +550,7 @@ func main() {
 			opt.sudo = cSudo
 		case "rru":
 			opt.sudo = cSudo
-			opt.sudopwd = cSudoNopasswd
+			opt.sudopwd = cNoSudoPasswd
 		default:
 			valid := `rr  = local or ssh
 rrs = ssh + sudo
@@ -1108,11 +1116,11 @@ rrl = report`
 		if opt.call != cTeleport {
 			switch {
 			case lib.IsFile(cHOSTS1):
-				opt.config = cHOSTS1
+				opt.sshconfig = cHOSTS1
 			case lib.IsFile(cHOSTS2):
-				opt.config = cHOSTS2
+				opt.sshconfig = cHOSTS2
 			default:
-				opt.config = cHOSTS0
+				opt.sshconfig = cHOSTS0
 			}
 		}
 		var realhost string
