@@ -23,6 +23,7 @@ import (
 )
 
 var start = time.Now()
+var serrLog *slog.Logger
 
 type logWriter struct {
 }
@@ -37,6 +38,18 @@ type optT struct {
 	call      int
 	sudo      int
 	sudopwd   int
+}
+
+type scriptT struct {
+	namespace string
+	script    string
+	nsscript  string
+	prelude   string
+	epilogue  string
+	lib       string
+	code      string
+	log       string
+	interp    string
 }
 
 func logInt() {
@@ -73,6 +86,152 @@ func init() {
 		_ = terminal.Restore(int(os.Stdin.Fd()), initTermState)
 		os.Exit(2)
 	}()
+}
+
+func setupScript(o optT, offset int) scriptT {
+	var sh strings.Builder
+	var namespace string
+	var script string
+	var preludeScript string
+	var epilogueScript string
+	var dumpLib string
+	var code string
+	var opLog string
+
+	var s []string
+	// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
+	// Ditched because of the README feature.
+	// s := strings.Split(os.Args[offset], "/")
+	if len(s) < 2 {
+		s = strings.Split(os.Args[offset], ":")
+	}
+	namespace, script = s[0], s[1]
+	var interp string = lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
+	interp = strings.TrimSuffix(interp, "\n")
+	if interp == "" {
+		interp = "sh"
+	}
+
+	if !lib.IsDir(namespace) {
+		switch o.mode {
+		case cTerm, cPlain:
+			_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", namespace)
+			os.Exit(2)
+		case cJson:
+			serrLog.Error("Namespace is not a directory", "namespace", namespace)
+			os.Exit(2)
+		}
+	}
+	if !lib.IsDir(fmt.Sprintf("%s/%s", namespace, script)) {
+		switch o.mode {
+		case cTerm, cPlain:
+			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", namespace, script)
+			os.Exit(2)
+		case cJson:
+			serrLog.Error("namespace/script is not a directory", "namespace", namespace, "script", script)
+			os.Exit(2)
+		}
+	}
+	if !lib.IsFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
+		switch o.mode {
+		case cTerm, cPlain:
+			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", namespace, script, cRUN)
+			os.Exit(2)
+		case cJson:
+			serrLog.Error("Script not found", "namespace", namespace, "script", script)
+			os.Exit(2)
+		}
+	}
+	var arguments []string
+	if len(s) > 2 {
+		arguments = []string{}
+		arguments = append(arguments, s[2])
+		arguments = append(arguments, os.Args[offset+1:]...)
+	} else {
+		arguments = os.Args[offset+1:]
+	}
+
+	// Set LOG field
+	if eop, ok := os.LookupEnv(cOP); !ok {
+		if len(arguments) == 0 {
+			opLog = "UNDEFINED"
+		} else {
+			opLog = strings.Join(arguments, " ")
+		}
+	} else {
+		opLog = eop
+	}
+	fnWalkDir := lib.PathWalker(&sh)
+	if lib.IsDir(".lib") {
+		if err := filepath.WalkDir(".lib", fnWalkDir); err != nil {
+			_, _ = fmt.Fprint(os.Stderr, "Problem accessing .lib")
+			os.Exit(255)
+		}
+	}
+	if lib.IsDir(namespace + "/.lib") {
+		if err := filepath.WalkDir(namespace+"/.lib", fnWalkDir); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/.lib\n", namespace)
+			os.Exit(255)
+		}
+	}
+	if lib.IsDir(namespace + "/" + script + "/.lib") {
+		if err := filepath.WalkDir(namespace+"/"+script+"/.lib", fnWalkDir); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/%s/.lib\n", namespace, script)
+			os.Exit(255)
+		}
+	}
+	dumpLib = sh.String()
+	if o.sudo == cSudo {
+		if o.sudopwd == cSudoPasswd {
+			str, err := getPassword("sudo password: ")
+			if err != nil {
+				switch o.mode {
+				case cTerm, cPlain:
+					_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
+					os.Exit(2)
+				case cJson:
+					serrLog.Error("Unable to initialize STDIN or this is not a terminal.", "namespace", namespace, "script", script)
+					os.Exit(2)
+				}
+			}
+			o.password = fmt.Sprintf("%s\n", str)
+		}
+	}
+	//Pass environment variables with `rr` prefix
+	for _, e := range os.Environ() {
+		if strings.HasPrefix(e, "rr__") {
+			sh.WriteString("export " + strings.TrimPrefix(e, "rr__") + "\n")
+		}
+	}
+	if len(arguments) > 0 {
+		arguments = lib.InsertStr(arguments, "set --", 0)
+		sh.WriteString(strings.Join(arguments, " "))
+		sh.WriteString("\n")
+	}
+	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
+		if c := lib.FileRead(namespace + "/" + script + "/" + cPRE); lib.IsFile(cINC) {
+			inc := lib.FileRead(cINC) + "\n"
+			preludeScript = sh.String() + inc + c
+		} else {
+			preludeScript = sh.String() + c
+		}
+	}
+	if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
+		if c := lib.FileRead(namespace + "/" + script + "/" + cPOST); lib.IsFile(cINC) {
+			inc := lib.FileRead(cINC) + "\n"
+			epilogueScript = sh.String() + inc + c
+		} else {
+			epilogueScript = sh.String() + c
+		}
+	}
+	if c := lib.FileRead(namespace + "/" + script + "/" + cRUN); lib.IsFile(cINC) {
+		inc := lib.FileRead(cINC) + "\n"
+		code = inc + c
+	} else {
+		code = c
+	}
+	sh.WriteString(code)
+	return scriptT{nsscript: sh.String(), namespace: namespace, script: script, code: code, lib: dumpLib, prelude: preludeScript, epilogue: epilogueScript, log: opLog, interp: interp}
 }
 
 func since(s time.Time) string {
@@ -572,7 +731,6 @@ rrl = report`
 	}
 
 	log.SetFlags(0)
-	var serrLog *slog.Logger
 	if opt.mode != cPlain {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			opt.mode = cTerm
@@ -700,175 +858,35 @@ rrl = report`
 			os.Exit(2)
 		}
 	}
-	var sh strings.Builder
-	var namespace string
-	var script string
-	var nsScript string
-	var preludeScript string
-	var epilogueScript string
-	var dumpLib string
-	var code string
-	var interp string
-	var opLog string
 	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer jsonFile.Close()
 	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	{
-		var s []string
-		// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
-		// Ditched because of the README feature.
-		// s := strings.Split(os.Args[offset], "/")
-		if len(s) < 2 {
-			s = strings.Split(os.Args[offset], ":")
-		}
-		namespace, script = s[0], s[1]
-		if !lib.IsDir(namespace) {
-			switch opt.mode {
-			case cTerm, cPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", namespace)
-				os.Exit(2)
-			case cJson:
-				serrLog.Error("Namespace is not a directory", "namespace", namespace)
-				os.Exit(2)
-			}
-		}
-		if !lib.IsDir(fmt.Sprintf("%s/%s", namespace, script)) {
-			switch opt.mode {
-			case cTerm, cPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", namespace, script)
-				os.Exit(2)
-			case cJson:
-				serrLog.Error("namespace/script is not a directory", "namespace", namespace, "script", script)
-				os.Exit(2)
-			}
-		}
-		if !lib.IsFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
-			switch opt.mode {
-			case cTerm, cPlain:
-				_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", namespace, script, cRUN)
-				os.Exit(2)
-			case cJson:
-				serrLog.Error("Script not found", "namespace", namespace, "script", script)
-				os.Exit(2)
-			}
-		}
-		var arguments []string
-		if len(s) > 2 {
-			arguments = []string{}
-			arguments = append(arguments, s[2])
-			arguments = append(arguments, os.Args[offset+1:]...)
-		} else {
-			arguments = os.Args[offset+1:]
-		}
-		// Set LOG field
-		if eop, ok := os.LookupEnv(cOP); !ok {
-			if len(arguments) == 0 {
-				opLog = "UNDEFINED"
-			} else {
-				opLog = strings.Join(arguments, " ")
-			}
-		} else {
-			opLog = eop
-		}
-		fnWalkDir := lib.PathWalker(&sh)
-		if lib.IsDir(".lib") {
-			if err := filepath.WalkDir(".lib", fnWalkDir); err != nil {
-				_, _ = fmt.Fprint(os.Stderr, "Problem accessing .lib")
-				os.Exit(255)
-			}
-		}
-		if lib.IsDir(namespace + "/.lib") {
-			if err := filepath.WalkDir(namespace+"/.lib", fnWalkDir); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/.lib\n", namespace)
-				os.Exit(255)
-			}
-		}
-		if lib.IsDir(namespace + "/" + script + "/.lib") {
-			if err := filepath.WalkDir(namespace+"/"+script+"/.lib", fnWalkDir); err != nil {
-				_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/%s/.lib\n", namespace, script)
-				os.Exit(255)
-			}
-		}
-		dumpLib = sh.String()
-		if opt.sudo == cSudo {
-			if opt.sudopwd == cSudoPasswd {
-				str, err := getPassword("sudo password: ")
-				if err != nil {
-					switch opt.mode {
-					case cTerm, cPlain:
-						_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
-						os.Exit(2)
-					case cJson:
-						serrLog.Error("Unable to initialize STDIN or this is not a terminal.", "namespace", namespace, "script", script)
-						os.Exit(2)
-					}
-				}
-				opt.password = fmt.Sprintf("%s\n", str)
-			}
-		}
-		//Pass environment variables with `rr` prefix
-		for _, e := range os.Environ() {
-			if strings.HasPrefix(e, "rr__") {
-				sh.WriteString("export " + strings.TrimPrefix(e, "rr__") + "\n")
-			}
-		}
-		if len(arguments) > 0 {
-			arguments = lib.InsertStr(arguments, "set --", 0)
-			sh.WriteString(strings.Join(arguments, " "))
-			sh.WriteString("\n")
-		}
-		if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
-			if c := lib.FileRead(namespace + "/" + script + "/" + cPRE); lib.IsFile(cINC) {
-				inc := lib.FileRead(cINC) + "\n"
-				preludeScript = sh.String() + inc + c
-			} else {
-				preludeScript = sh.String() + c
-			}
-		}
-		if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
-			if c := lib.FileRead(namespace + "/" + script + "/" + cPOST); lib.IsFile(cINC) {
-				inc := lib.FileRead(cINC) + "\n"
-				epilogueScript = sh.String() + inc + c
-			} else {
-				epilogueScript = sh.String() + c
-			}
-		}
-		if c := lib.FileRead(namespace + "/" + script + "/" + cRUN); lib.IsFile(cINC) {
-			inc := lib.FileRead(cINC) + "\n"
-			code = inc + c
-		} else {
-			code = c
-		}
-		sh.WriteString(code)
-	}
-	// $nsScript is the actual script to execute
-	// $code is the sanitized script without rr__ variables
+	var scr scriptT = setupScript(opt, offset)
 
 	// rrd mode
 	if cDump == opt.call {
-		fmt.Print(dumpLib)
-		fmt.Print(code)
+		fmt.Print(scr.lib)
+		fmt.Print(scr.code)
 		os.Exit(0)
 	}
 
-	nsScript = sh.String()
+	// $nsScript is the actual script to execute
+	// $code is the sanitized script without rr__ variables
+	var namespace string = scr.namespace
+	var script string = scr.script
+	var interp = scr.interp
+	opt.interp = scr.interp
+	var code = scr.code
+	var opLog string = scr.log
 
 	// Start execution routine
-	interp = lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
-	interp = strings.TrimSuffix(interp, "\n")
-	if interp == "" {
-		opt.interp = "sh"
-		interp = "sh"
-	} else {
-		opt.interp = interp
-	}
 	jsonLog.Info(opLog, "app", "rr", "id", id, "namespace", namespace, "script", script, "target", hostname)
 	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
 		preStart := time.Now()
 		log.Printf("Found prelude script for %s:%s. Running locally…", namespace, script)
 		jsonLog.Debug("prelude", "app", "rr", "id", id, "script", script)
 		soFn := soOutput("prelude", opt.mode)
-		rargs := lib.RunArg{Exe: interp, Stdin: []byte(preludeScript), Stdout: soFn}
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(scr.prelude), Stdout: soFn}
 		ret, out := rargs.Run()
 		he, be, fe := conOutput(out.Stderr, "prelude", cSTDERR)
 		hd, bd, fd := conOutput(out.Error, "prelude", cSTDDBG)
@@ -980,7 +998,7 @@ rrl = report`
 			jsonLog.Debug(msgop, "app", "rr", "id", id, "script", script)
 		}
 		soFn := soOutput(hostname, opt.mode)
-		rargs := lib.RunArg{Exe: interp, Stdin: []byte(nsScript), Stdout: soFn}
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(scr.nsscript), Stdout: soFn}
 		ret, out := rargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
@@ -1071,7 +1089,7 @@ rrl = report`
 		log.Printf("Running %s…", script)
 		jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
 		soFn := soOutput(hostname, opt.mode)
-		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", nsScript}, Stdout: soFn}
+		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", scr.nsscript}, Stdout: soFn}
 		ret, out := nsargs.Run()
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
@@ -1186,7 +1204,7 @@ rrl = report`
 		jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
 		var ret bool
 		var out lib.RunOut
-		ret, out = sshExec(&opt, nsScript)
+		ret, out = sshExec(&opt, scr.nsscript)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
 		b64so := base64.StdEncoding.EncodeToString([]byte(out.Stdout))
@@ -1250,7 +1268,7 @@ rrl = report`
 		log.Printf("Found epilogue script for %s:%s. Running locally…", namespace, script)
 		jsonLog.Debug("epilogue", "app", "rr", "id", id, "script", script)
 		soFn := soOutput("epilogue", opt.mode)
-		rargs := lib.RunArg{Exe: interp, Stdin: []byte(epilogueScript), Stdout: soFn}
+		rargs := lib.RunArg{Exe: interp, Stdin: []byte(scr.epilogue), Stdout: soFn}
 		ret, out := rargs.Run()
 		he, be, fe := conOutput(out.Stderr, "epilogue", cSTDERR)
 		hd, bd, fd := conOutput(out.Error, "epilogue", cSTDDBG)
@@ -1305,7 +1323,7 @@ rrl = report`
 		}
 	}
 	tm := since(start)
-	if opt.mode == cTerm && (0 != len(preludeScript) || 0 != len(epilogueScript)) {
+	if opt.mode == cTerm && (0 != len(scr.prelude) || 0 != len(scr.epilogue)) {
 		log.Printf("Total run time: %s. All OK.", tm)
 	}
 	_ = jsonFile.Close()
