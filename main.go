@@ -673,7 +673,7 @@ func quickCopy(o *optT, dir string) (bool, lib.RunOut) {
 	return tar.Run()
 }
 
-func generateHashId() string {
+func generateHashID() string {
 	h := new(maphash.Hash)
 	uid := fmt.Sprintf("%016X", h.Sum64())
 	return string([]rune(uid)[:8])
@@ -843,7 +843,7 @@ rrl = report`
 
 	var offset int
 	var hostname string
-	var id string = generateHashId()
+	var id string = generateHashID()
 	opt.id = id // used for the random suffix in the temp filename
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
 		offset = 1
