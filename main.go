@@ -318,29 +318,14 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	case 0:
 		switch (*o).call {
 		default:
-			args := []string{
-				"-T",
-				(*o).hostname,
-				fmt.Sprintf("cat - > %s", tmps),
-			}
-			ssha = lib.RunArg{
-				Exe:   "ssh",
-				Args:  args,
-				Env:   sshenv,
-				Stdin: []byte(script),
-			}
+			args := []string{"-T", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
+			ssha = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 		case cTeleport:
 			args := []string{"ssh", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
 			ssha = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte(script)}
 		}
 	default:
-		args := []string{
-			"-F",
-			(*o).sshconfig,
-			"-T",
-			(*o).hostname,
-			fmt.Sprintf("cat - > %s", tmps),
-		}
+		args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
 		ssha = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
 	if ret, out := ssha.Run(); !ret {
@@ -419,11 +404,7 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		case 0:
 			switch (*o).call {
 			default:
-				args := []string{
-					"-T",
-					(*o).hostname,
-					fmt.Sprintf("rm -f %s", tmps),
-				}
+				args := []string{"-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
 				sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 			case cTeleport:
 				args := []string{"ssh", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
