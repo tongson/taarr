@@ -25,7 +25,7 @@ import (
 var start = time.Now()
 var serrLog *slog.Logger
 
-type logWriter struct {}
+type logWriter struct{}
 
 type optT struct {
 	hostname  string
@@ -236,7 +236,17 @@ func setupScript(o optT, offset int) scriptT {
 		code = c
 	}
 	sh.WriteString(code)
-	return scriptT{nsscript: sh.String(), namespace: namespace, script: script, code: code, lib: dumpLib, prelude: preludeScript, epilogue: epilogueScript, log: opLog, interp: interp}
+	return scriptT{
+		nsscript:  sh.String(),
+		namespace: namespace,
+		script:    script,
+		code:      code,
+		lib:       dumpLib,
+		prelude:   preludeScript,
+		epilogue:  epilogueScript,
+		log:       opLog,
+		interp:    interp,
+	}
 }
 
 func b64(stdout string, stderr string, code string) b64String {
