@@ -99,7 +99,7 @@ func setupScript(o optT, offset int) scriptT {
 	var script string
 	var prelude string
 	var epilogue string
-	var dumpLib string
+	var dumplib string
 	var code string
 	var oplog string
 
@@ -185,7 +185,7 @@ func setupScript(o optT, offset int) scriptT {
 			os.Exit(255)
 		}
 	}
-	dumpLib = sh.String()
+	dumplib = sh.String()
 	if o.sudo == cSudo {
 		if o.sudopwd == cSudoPasswd {
 			str, err := getPassword("sudo password: ")
@@ -241,7 +241,7 @@ func setupScript(o optT, offset int) scriptT {
 		namespace: namespace,
 		script:    script,
 		code:      code,
-		lib:       dumpLib,
+		lib:       dumplib,
 		prelude:   prelude,
 		epilogue:  epilogue,
 		log:       oplog,
