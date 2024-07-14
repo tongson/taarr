@@ -779,15 +779,6 @@ rrl = report`
 			os.Exit(2)
 		}
 	}
-	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
-		offset = 1
-		hostname = "local"
-		opt.hostname = hostname
-	} else {
-		offset = 2
-		hostname = os.Args[1]
-		opt.hostname = hostname
-	}
 
 	// Handle namespace/script readmes
 	{
@@ -844,6 +835,16 @@ rrl = report`
 				os.Exit(0)
 			}
 		}
+	}
+
+	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
+		offset = 1
+		hostname = "local"
+		opt.hostname = hostname
+	} else {
+		offset = 2
+		hostname = os.Args[1]
+		opt.hostname = hostname
 	}
 	if len(os.Args) < offset+1 {
 		switch opt.mode {
