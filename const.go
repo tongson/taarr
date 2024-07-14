@@ -52,6 +52,6 @@ const (
 
 // Sudo password?
 const (
-	cSudoNopasswd = iota
+	cNoSudoPasswd = iota
 	cSudoPasswd   = iota
 )
