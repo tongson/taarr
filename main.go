@@ -739,6 +739,8 @@ rrl = report`
 	var hostname string
 	var id string = generateHashId()
 	opt.id = id // used for the random suffix in the temp filename
+
+	// Handle top-level README
 	if len(os.Args) < 2 {
 		isReadme := func() (bool, string) {
 			match, _ := lib.FileGlob("README*")
@@ -787,7 +789,7 @@ rrl = report`
 		opt.hostname = hostname
 	}
 
-	// Handle readmes
+	// Handle namespace/script readmes
 	{
 		isReadme := func(s string) (bool, string) {
 			s = strings.TrimSuffix(s, "/")
