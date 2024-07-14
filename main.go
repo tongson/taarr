@@ -97,11 +97,11 @@ func setupScript(o optT, offset int) scriptT {
 	var sh strings.Builder
 	var namespace string
 	var script string
-	var preludeScript string
-	var epilogueScript string
+	var prelude string
+	var epilogue string
 	var dumpLib string
 	var code string
-	var opLog string
+	var oplog string
 
 	var s []string
 	// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
@@ -159,12 +159,12 @@ func setupScript(o optT, offset int) scriptT {
 	// Set LOG field
 	if eop, ok := os.LookupEnv(cOP); !ok {
 		if len(arguments) == 0 {
-			opLog = "UNDEFINED"
+			oplog = "UNDEFINED"
 		} else {
-			opLog = strings.Join(arguments, " ")
+			oplog = strings.Join(arguments, " ")
 		}
 	} else {
-		opLog = eop
+		oplog = eop
 	}
 	fnWalkDir := lib.PathWalker(&sh)
 	if lib.IsDir(".lib") {
@@ -216,17 +216,17 @@ func setupScript(o optT, offset int) scriptT {
 	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
 		if c := lib.FileRead(namespace + "/" + script + "/" + cPRE); lib.IsFile(cINC) {
 			inc := lib.FileRead(cINC) + "\n"
-			preludeScript = sh.String() + inc + c
+			prelude = sh.String() + inc + c
 		} else {
-			preludeScript = sh.String() + c
+			prelude = sh.String() + c
 		}
 	}
 	if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
 		if c := lib.FileRead(namespace + "/" + script + "/" + cPOST); lib.IsFile(cINC) {
 			inc := lib.FileRead(cINC) + "\n"
-			epilogueScript = sh.String() + inc + c
+			epilogue = sh.String() + inc + c
 		} else {
-			epilogueScript = sh.String() + c
+			epilogue = sh.String() + c
 		}
 	}
 	if c := lib.FileRead(namespace + "/" + script + "/" + cRUN); lib.IsFile(cINC) {
@@ -242,9 +242,9 @@ func setupScript(o optT, offset int) scriptT {
 		script:    script,
 		code:      code,
 		lib:       dumpLib,
-		prelude:   preludeScript,
-		epilogue:  epilogueScript,
-		log:       opLog,
+		prelude:   prelude,
+		epilogue:  epilogue,
+		log:       oplog,
 		interp:    interp,
 	}
 }
