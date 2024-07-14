@@ -735,11 +735,6 @@ rrl = report`
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		}
 	}
-	var offset int
-	var hostname string
-	var id string = generateHashId()
-	opt.id = id // used for the random suffix in the temp filename
-
 	// Handle top-level README
 	if len(os.Args) < 2 {
 		isReadme := func() (bool, string) {
@@ -837,6 +832,10 @@ rrl = report`
 		}
 	}
 
+	var offset int
+	var hostname string
+	var id string = generateHashId()
+	opt.id = id // used for the random suffix in the temp filename
 	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
 		offset = 1
 		hostname = "local"
