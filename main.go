@@ -52,7 +52,7 @@ type scriptT struct {
 	interp    string
 }
 
-type b64Strings struct {
+type b64String struct {
 	stdout string
 	stderr string
 	code   string
@@ -240,8 +240,8 @@ func setupScript(o optT, offset int) scriptT {
 	return scriptT{nsscript: sh.String(), namespace: namespace, script: script, code: code, lib: dumpLib, prelude: preludeScript, epilogue: epilogueScript, log: opLog, interp: interp}
 }
 
-func b64(stdout string, stderr string, code string) b64Strings {
-	var s b64Strings
+func b64(stdout string, stderr string, code string) b64String {
+	var s b64String
 	s.stdout = base64.StdEncoding.EncodeToString([]byte(stdout))
 	s.stderr = base64.StdEncoding.EncodeToString([]byte(stderr))
 	s.code = base64.StdEncoding.EncodeToString([]byte(code))
