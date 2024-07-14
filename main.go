@@ -25,8 +25,7 @@ import (
 var start = time.Now()
 var serrLog *slog.Logger
 
-type logWriter struct {
-}
+type logWriter struct {}
 
 type optT struct {
 	hostname  string
