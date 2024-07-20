@@ -1,3 +1,11 @@
+#### 2.3.0
+
+Compacted Monastery
+
+* Prelude (script.pre) and epilogue (script.post) scripts
+* Update dependencies
+* Major refactor
+
 #### 2.2.1
 
 Unsafe Cupcake
