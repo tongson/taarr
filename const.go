@@ -53,7 +53,7 @@ const (
 
 // Override hostname
 const (
-	cPhaseDefault  = iota
+	cPhaseMain     = iota
 	cPhasePrelude  = iota
 	cPhaseEpilogue = iota
 )
