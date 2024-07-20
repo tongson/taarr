@@ -736,7 +736,7 @@ func main() {
 			switch opt.mode {
 			case cTerm:
 				for _, each := range lib.FileLines(s) {
-					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
+					fmt.Printf(" \x1b[38;2;85;85;85m⋮\x1b[0m %s\n", each)
 				}
 				fmt.Printf("\n")
 			case cPlain:
@@ -792,10 +792,10 @@ func main() {
 				sz := len(pps)
 				line := strings.Repeat("─", sz+2)
 				fmt.Printf("%s┐\n", line)
-				fmt.Printf(" \033[37;1m%s\033[0m │\n", pps)
+				fmt.Printf(" \x1b[37;1m%s\x1b[0m │\n", pps)
 				fmt.Printf("%s┘\n", line)
 				for _, each := range lib.FileLines(s) {
-					fmt.Printf(" \033[38;2;85;85;85m⋮\033[0m %s\n", each)
+					fmt.Printf(" \x1b[38;2;85;85;85m⋮\x1b[0m %s\n", each)
 				}
 				fmt.Printf("\n")
 			case cPlain:
