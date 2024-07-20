@@ -41,15 +41,17 @@ type optT struct {
 }
 
 type scriptT struct {
-	namespace string
-	script    string
-	nsscript  string
-	prelude   string
-	epilogue  string
-	lib       string
-	code      string
-	log       string
-	interp    string
+	namespace  string
+	script     string
+	nsscript   string
+	prescript  string
+	precode    string
+	postscript string
+	postcode   string
+	lib        string
+	code       string
+	log        string
+	interp     string
 }
 
 type b64T struct {
@@ -98,8 +100,10 @@ func setupScript(o optT, offset int) scriptT {
 	var sh strings.Builder
 	var namespace string
 	var script string
-	var prelude string
-	var epilogue string
+	var precode string
+	var prescript string
+	var postcode string
+	var postscript string
 	var dumplib string
 	var code string
 	var oplog string
@@ -199,19 +203,21 @@ func setupScript(o optT, offset int) scriptT {
 		sh.WriteString("\n")
 	}
 	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
-		if c := lib.FileRead(namespace + "/" + script + "/" + cPRE); lib.IsFile(cINC) {
+		precode = lib.FileRead(namespace + "/" + script + "/" + cPRE)
+		if lib.IsFile(cINC) {
 			inc := lib.FileRead(cINC) + "\n"
-			prelude = sh.String() + inc + c
+			prescript = sh.String() + inc + precode
 		} else {
-			prelude = sh.String() + c
+			prescript = sh.String() + precode
 		}
 	}
 	if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
-		if c := lib.FileRead(namespace + "/" + script + "/" + cPOST); lib.IsFile(cINC) {
+		postcode = lib.FileRead(namespace + "/" + script + "/" + cPOST)
+		if lib.IsFile(cINC) {
 			inc := lib.FileRead(cINC) + "\n"
-			epilogue = sh.String() + inc + c
+			postscript = sh.String() + inc + postcode
 		} else {
-			epilogue = sh.String() + c
+			postscript = sh.String() + postcode
 		}
 	}
 	if c := lib.FileRead(namespace + "/" + script + "/" + cRUN); lib.IsFile(cINC) {
@@ -222,15 +228,17 @@ func setupScript(o optT, offset int) scriptT {
 	}
 	sh.WriteString(code)
 	return scriptT{
-		nsscript:  sh.String(),
-		namespace: namespace,
-		script:    script,
-		code:      code,
-		lib:       dumplib,
-		prelude:   prelude,
-		epilogue:  epilogue,
-		log:       oplog,
-		interp:    interp,
+		nsscript:   sh.String(),
+		namespace:  namespace,
+		script:     script,
+		code:       code,
+		lib:        dumplib,
+		prescript:  prescript,
+		precode:    precode,
+		postscript: postscript,
+		postcode:   postcode,
+		log:        oplog,
+		interp:     interp,
 	}
 }
 
@@ -864,10 +872,10 @@ func main() {
 		switch o.phase {
 		case cPhasePrelude:
 			hostname = "prelude"
-			code = s.prelude
+			code = s.precode
 		case cPhaseEpilogue:
 			hostname = "epilogue"
-			code = s.epilogue
+			code = s.postcode
 		default:
 			hostname = o.hostname
 			code = s.code
@@ -892,10 +900,10 @@ func main() {
 		switch o.phase {
 		case cPhasePrelude:
 			hostname = "prelude"
-			code = s.prelude
+			code = s.precode
 		case cPhaseEpilogue:
 			hostname = "epilogue"
-			code = s.epilogue
+			code = s.postcode
 		default:
 			hostname = o.hostname
 			code = s.code
@@ -926,7 +934,7 @@ func main() {
 		log.Printf("Found prelude script for %s:%s. Running locally…", scr.namespace, scr.script)
 		jsonLog.Debug("prelude", "app", "rr", "id", id, "script", scr.script)
 		soFn := soOutput("prelude", opt.mode)
-		rargs := lib.RunArg{Exe: scr.interp, Stdin: []byte(scr.prelude), Stdout: soFn}
+		rargs := lib.RunArg{Exe: scr.interp, Stdin: []byte(scr.prescript), Stdout: soFn}
 		ret, out := rargs.Run()
 		if opt.phase = cPhasePrelude; !ret {
 			failed = true
@@ -1220,7 +1228,7 @@ func main() {
 		log.Printf("Found epilogue script for %s:%s. Running locally…", scr.namespace, scr.script)
 		jsonLog.Debug("epilogue", "app", "rr", "id", id, "script", scr.script)
 		soFn := soOutput("epilogue", opt.mode)
-		rargs := lib.RunArg{Exe: scr.interp, Stdin: []byte(scr.epilogue), Stdout: soFn}
+		rargs := lib.RunArg{Exe: scr.interp, Stdin: []byte(scr.postscript), Stdout: soFn}
 		ret, out := rargs.Run()
 		if opt.phase = cPhaseEpilogue; !ret {
 			failed = true
@@ -1247,7 +1255,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	if tm := since(start); opt.mode == cTerm && (0 != len(scr.prelude) || 0 != len(scr.epilogue)) {
+	if tm := since(start); opt.mode == cTerm && (0 != len(scr.prescript) || 0 != len(scr.postscript)) {
 		log.Printf("Total run time: %s. All OK.", tm)
 	}
 	_ = jsonFile.Close()
