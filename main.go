@@ -881,8 +881,8 @@ func main() {
 		he, be, fe := conOutput(t.Stderr, "prelude", cSTDERR)
 		hd, bd, fd := conOutput(t.Error, "prelude", cSTDDBG)
 		b64Out := b64(t.Stdout, t.Stderr, c)
-		jsonLog.Debug(opLog, "app", "rr", "id", o.id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", t.Error)
-		jsonLog.Info(opLog, "app", "rr", "id", o.id, "result", result)
+		jsonLog.Debug(op, "app", "rr", "id", o.id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", t.Error)
+		jsonLog.Info(op, "app", "rr", "id", o.id, "result", result)
 		switch o.mode {
 		case cPlain:
 			stdWriter(t.Stdout, t.Stderr)
