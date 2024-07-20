@@ -1290,8 +1290,7 @@ func main() {
 				}
 			}
 		}
-		tm := since(postStart)
-		if !failed {
+		if tm := since(postStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "epilogue", "namespace", namespace, "script", script, "duration", tm)
 			if opt.mode == cTerm {
 				log.Printf("Epilogue run time: %s. Ok.", tm)
@@ -1310,8 +1309,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	tm := since(start)
-	if opt.mode == cTerm && (0 != len(scr.prelude) || 0 != len(scr.epilogue)) {
+	if tm := since(start); opt.mode == cTerm && (0 != len(scr.prelude) || 0 != len(scr.epilogue)) {
 		log.Printf("Total run time: %s. All OK.", tm)
 	}
 	_ = jsonFile.Close()
