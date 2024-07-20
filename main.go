@@ -699,14 +699,7 @@ func main() {
 			opt.sudo = cSudo
 			opt.sudopwd = cNoSudoPasswd
 		default:
-			valid := `rr  = local or ssh
-rrs = ssh + sudo
-rru = ssh + sudo + nopasswd
-rrt = teleport
-rro = teleport + sudo
-rrd = dump
-rrv = forced verbose
-rrl = report`
+			valid := cPmodes
 			_, _ = fmt.Fprintf(os.Stderr, "ERROR: Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
 			os.Exit(2)
 		}

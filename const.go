@@ -55,3 +55,13 @@ const (
 	cNoSudoPasswd = iota
 	cSudoPasswd   = iota
 )
+
+const cPmodes = `rr  = local or ssh
+rrs = ssh + sudo
+rru = ssh + sudo + nopasswd
+rrt = teleport
+rro = teleport + sudo
+rrd = dump
+rrv = forced verbose
+rrl = report`
+
