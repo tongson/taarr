@@ -860,17 +860,21 @@ func main() {
 
 	failedLogPrint := func(s scriptT, o optT, t lib.RunOut) {
 		var hostname string
+		var code string
 		switch o.phase {
 		case cPhasePrelude:
 			hostname = "prelude"
+			code = s.prelude
 		case cPhaseEpilogue:
 			hostname = "epilogue"
+			code = s.epilogue
 		default:
 			hostname = o.hostname
+			code = s.code
 		}
 		he, be, fe := conOutput(t.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(t.Error, hostname, cSTDDBG)
-		b64Out := b64(t.Stdout, t.Stderr, s.code)
+		b64Out := b64(t.Stdout, t.Stderr, code)
 		jsonLog.Error(s.log, "app", "rr", "id", o.id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", t.Error)
 		switch o.mode {
 		case cPlain:
@@ -884,17 +888,21 @@ func main() {
 
 	okLogPrint := func(s scriptT, o optT, t lib.RunOut) {
 		var hostname string
+		var code string
 		switch o.phase {
 		case cPhasePrelude:
 			hostname = "prelude"
+			code = s.prelude
 		case cPhaseEpilogue:
 			hostname = "epilogue"
+			code = s.epilogue
 		default:
 			hostname = o.hostname
+			code = s.code
 		}
 		he, be, fe := conOutput(t.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(t.Error, hostname, cSTDDBG)
-		b64Out := b64(t.Stdout, t.Stderr, s.code)
+		b64Out := b64(t.Stdout, t.Stderr, code)
 		jsonLog.Debug(s.log, "app", "rr", "id", o.id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", t.Error)
 		jsonLog.Info(s.log, "app", "rr", "id", o.id, "result", result)
 		switch o.mode {
@@ -946,6 +954,7 @@ func main() {
 		}
 	}
 	mainStart := time.Now()
+	opt.phase = cPhaseMain
 	if opt.mode == cTerm {
 		log.Printf("Running %s:%s via %s…", scr.namespace, scr.script, hostname)
 	}
