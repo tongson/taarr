@@ -862,6 +862,41 @@ func main() {
 	var code = scr.code
 	var opLog string = scr.log
 
+	failedLogPrint := func(op string, c string, o optT, t lib.RunOut) {
+		he, be, fe := conOutput(t.Stderr, "prelude", cSTDERR)
+		hd, bd, fd := conOutput(t.Error, "prelude", cSTDDBG)
+		b64Out := b64(t.Stdout, t.Stderr, c)
+		jsonLog.Error(op, "app", "rr", "id", o.id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", t.Error)
+		switch o.mode {
+		case cPlain:
+			stdWriter(t.Stdout, t.Stderr)
+		case cJson:
+			serrLog.Error(op, "stdout", t.Stdout, "stderr", t.Stderr, "error", t.Error)
+		case cTerm:
+			log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
+		}
+	}
+
+	okLogPrint := func(op string, c string, o optT, t lib.RunOut) {
+		he, be, fe := conOutput(t.Stderr, "prelude", cSTDERR)
+		hd, bd, fd := conOutput(t.Error, "prelude", cSTDDBG)
+		b64Out := b64(t.Stdout, t.Stderr, c)
+		jsonLog.Debug(opLog, "app", "rr", "id", o.id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", t.Error)
+		jsonLog.Info(opLog, "app", "rr", "id", o.id, "result", result)
+		switch o.mode {
+		case cPlain:
+			stdWriter(t.Stdout, t.Stderr)
+		case cTerm:
+			if t.Stderr != "" || t.Error != "" {
+				log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
+			}
+		case cJson:
+			if t.Stdout != "" || t.Stderr != "" || t.Error != "" {
+				serrLog.Info(opLog, "stdout", t.Stdout, "stderr", t.Stderr, "error", t.Error)
+			}
+		}
+	}
+
 	// Start execution routine
 	jsonLog.Info(opLog, "app", "rr", "id", id, "namespace", namespace, "script", script, "target", hostname)
 	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
@@ -871,35 +906,11 @@ func main() {
 		soFn := soOutput("prelude", opt.mode)
 		rargs := lib.RunArg{Exe: interp, Stdin: []byte(scr.prelude), Stdout: soFn}
 		ret, out := rargs.Run()
-		he, be, fe := conOutput(out.Stderr, "prelude", cSTDERR)
-		hd, bd, fd := conOutput(out.Error, "prelude", cSTDDBG)
-		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cJson:
-				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			case cTerm:
-				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-			}
+			failedLogPrint(opLog, code, opt, out)
 		} else {
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cTerm:
-				if out.Stderr != "" || out.Error != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-				}
-			case cJson:
-				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-				}
-			}
+			okLogPrint(opLog, code, opt, out)
 		}
 		if tm := since(preStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "prelude", "namespace", namespace, "script", script, "duration", tm)
@@ -982,20 +993,9 @@ func main() {
 		soFn := soOutput(hostname, opt.mode)
 		rargs := lib.RunArg{Exe: interp, Stdin: []byte(scr.nsscript), Stdout: soFn}
 		ret, out := rargs.Run()
-		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
-		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cJson:
-				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			case cTerm:
-				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-			}
+			failedLogPrint(opLog, code, opt, out)
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner.Split(bufio.ScanWords)
@@ -1004,20 +1004,7 @@ func main() {
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cTerm:
-				if out.Stderr != "" || out.Error != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-				}
-			case cJson:
-				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-				}
-			}
+			okLogPrint(opLog, code, opt, out)
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
 		destination := fmt.Sprintf("/proc/%s/root", hostname)
@@ -1070,20 +1057,9 @@ func main() {
 		soFn := soOutput(hostname, opt.mode)
 		nsargs := lib.RunArg{Exe: "nsenter", Args: []string{"-a", "-r", "-t", hostname, interp, "-c", scr.nsscript}, Stdout: soFn}
 		ret, out := nsargs.Run()
-		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
-		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cJson:
-				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			case cTerm:
-				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-			}
+			failedLogPrint(opLog, code, opt, out)
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner.Split(bufio.ScanWords)
@@ -1092,20 +1068,7 @@ func main() {
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cTerm:
-				if out.Stderr != "" || out.Error != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-				}
-			case cJson:
-				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-				}
-			}
+			okLogPrint(opLog, code, opt, out)
 		}
 	} else {
 		if opt.call != cTeleport {
@@ -1197,20 +1160,9 @@ func main() {
 			}
 		}
 		ret, out = sshExec(&opt, scr.nsscript)
-		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
-		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
-		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cTerm:
-				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-			case cJson:
-				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			}
+			failedLogPrint(opLog, code, opt, out)
 		} else {
 			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner.Split(bufio.ScanWords)
@@ -1219,20 +1171,7 @@ func main() {
 					result = "repaired"
 				}
 			}
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cTerm:
-				if out.Stderr != "" || out.Error != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-				}
-			case cJson:
-				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-				}
-			}
+			okLogPrint(opLog, code, opt, out)
 		}
 	}
 	if tm := since(mainStart); !failed {
@@ -1260,35 +1199,11 @@ func main() {
 		soFn := soOutput("epilogue", opt.mode)
 		rargs := lib.RunArg{Exe: interp, Stdin: []byte(scr.epilogue), Stdout: soFn}
 		ret, out := rargs.Run()
-		he, be, fe := conOutput(out.Stderr, "epilogue", cSTDERR)
-		hd, bd, fd := conOutput(out.Error, "epilogue", cSTDDBG)
-		b64Out := b64(out.Stdout, out.Stderr, code)
 		if !ret {
 			failed = true
-			jsonLog.Error(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cJson:
-				serrLog.Error(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-			case cTerm:
-				log.Printf("Failure running script!\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-			}
+			failedLogPrint(opLog, code, opt, out)
 		} else {
-			jsonLog.Debug(opLog, "app", "rr", "id", id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
-			jsonLog.Info(opLog, "app", "rr", "id", id, "result", result)
-			switch opt.mode {
-			case cPlain:
-				stdWriter(out.Stdout, out.Stderr)
-			case cTerm:
-				if out.Stderr != "" || out.Error != "" {
-					log.Printf("Done. Output:\n%s%s%s%s%s%s", he, be, fe, hd, bd, fd)
-				}
-			case cJson:
-				if out.Stdout != "" || out.Stderr != "" || out.Error != "" {
-					serrLog.Info(opLog, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
-				}
-			}
+			okLogPrint(opLog, code, opt, out)
 		}
 		if tm := since(postStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", opLog, "target", "epilogue", "namespace", namespace, "script", script, "duration", tm)
