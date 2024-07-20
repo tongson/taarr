@@ -37,6 +37,7 @@ type optT struct {
 	call      int
 	sudo      int
 	sudopwd   int
+	phase     int
 }
 
 type scriptT struct {
@@ -858,8 +859,17 @@ func main() {
 	opt.interp = scr.interp
 
 	failedLogPrint := func(s scriptT, o optT, t lib.RunOut) {
-		he, be, fe := conOutput(t.Stderr, "prelude", cSTDERR)
-		hd, bd, fd := conOutput(t.Error, "prelude", cSTDDBG)
+		var hostname string
+		switch o.phase {
+		case cPhasePrelude:
+			hostname = "prelude"
+		case cPhaseEpilogue:
+			hostname = "epilogue"
+		default:
+			hostname = o.hostname
+		}
+		he, be, fe := conOutput(t.Stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(t.Error, hostname, cSTDDBG)
 		b64Out := b64(t.Stdout, t.Stderr, s.code)
 		jsonLog.Error(s.log, "app", "rr", "id", o.id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", t.Error)
 		switch o.mode {
@@ -873,8 +883,17 @@ func main() {
 	}
 
 	okLogPrint := func(s scriptT, o optT, t lib.RunOut) {
-		he, be, fe := conOutput(t.Stderr, "prelude", cSTDERR)
-		hd, bd, fd := conOutput(t.Error, "prelude", cSTDDBG)
+		var hostname string
+		switch o.phase {
+		case cPhasePrelude:
+			hostname = "prelude"
+		case cPhaseEpilogue:
+			hostname = "epilogue"
+		default:
+			hostname = o.hostname
+		}
+		he, be, fe := conOutput(t.Stderr, hostname, cSTDERR)
+		hd, bd, fd := conOutput(t.Error, hostname, cSTDDBG)
 		b64Out := b64(t.Stdout, t.Stderr, s.code)
 		jsonLog.Debug(s.log, "app", "rr", "id", o.id, "code", b64Out.code, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", t.Error)
 		jsonLog.Info(s.log, "app", "rr", "id", o.id, "result", result)
@@ -901,7 +920,7 @@ func main() {
 		soFn := soOutput("prelude", opt.mode)
 		rargs := lib.RunArg{Exe: scr.interp, Stdin: []byte(scr.prelude), Stdout: soFn}
 		ret, out := rargs.Run()
-		if !ret {
+		if opt.phase = cPhasePrelude; !ret {
 			failed = true
 			failedLogPrint(scr, opt, out)
 		} else {
@@ -1194,7 +1213,7 @@ func main() {
 		soFn := soOutput("epilogue", opt.mode)
 		rargs := lib.RunArg{Exe: scr.interp, Stdin: []byte(scr.epilogue), Stdout: soFn}
 		ret, out := rargs.Run()
-		if !ret {
+		if opt.phase = cPhaseEpilogue; !ret {
 			failed = true
 			failedLogPrint(scr, opt, out)
 		} else {
