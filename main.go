@@ -186,22 +186,6 @@ func setupScript(o optT, offset int) scriptT {
 		}
 	}
 	dumplib = sh.String()
-	if o.sudo == cSudo {
-		if o.sudopwd == cSudoPasswd {
-			str, err := getPassword("sudo password: ")
-			if err != nil {
-				switch o.mode {
-				case cTerm, cPlain:
-					_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
-					os.Exit(2)
-				case cJson:
-					serrLog.Error("Unable to initialize STDIN or this is not a terminal.", "namespace", namespace, "script", script)
-					os.Exit(2)
-				}
-			}
-			o.password = fmt.Sprintf("%s\n", str)
-		}
-	}
 	//Pass environment variables with `rr` prefix
 	for _, e := range os.Environ() {
 		if strings.HasPrefix(e, "rr__") {
@@ -944,7 +928,9 @@ rrl = report`
 		}
 	}
 	mainStart := time.Now()
-	log.Printf("Running %s:%s via %s…", namespace, script, hostname)
+	if opt.mode == cTerm {
+		log.Printf("Running %s:%s via %s…", namespace, script, hostname)
+	}
 	if hostname == "local" || hostname == "localhost" {
 		if opt.sudo == cSudo {
 			msg := "Invoked sudo+ssh mode via local, ignored mode, just `sudo rr`."
@@ -1201,6 +1187,22 @@ rrl = report`
 		jsonLog.Debug("running", "app", "rr", "id", id, "script", script)
 		var ret bool
 		var out lib.RunOut
+		if opt.sudo == cSudo {
+			if opt.sudopwd == cSudoPasswd {
+				str, err := getPassword("sudo password: ")
+				if err != nil {
+					switch opt.mode {
+					case cTerm, cPlain:
+						_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
+						os.Exit(2)
+					case cJson:
+						serrLog.Error("Unable to initialize STDIN or this is not a terminal.", "namespace", namespace, "script", script)
+						os.Exit(2)
+					}
+				}
+				opt.password = fmt.Sprintf("%s\n", str)
+			}
+		}
 		ret, out = sshExec(&opt, scr.nsscript)
 		he, be, fe := conOutput(out.Stderr, hostname, cSTDERR)
 		hd, bd, fd := conOutput(out.Error, hostname, cSTDDBG)
