@@ -1,3 +1,12 @@
+#### 2.4.0
+
+Sulk Harmonics
+
+* Support no-namespace scripts `rr no_namespace`
+* No longer supports funky `arg:one:two` arguments
+* Update dependencies
+* Fix panic related to reading from nonexistent script directory
+
 #### 2.3.0
 
 Compacted Monastery
