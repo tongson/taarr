@@ -86,6 +86,30 @@ func TestOp(T *testing.T) {
 	})
 }
 
+func TestSingle(T *testing.T) {
+	T.Parallel()
+	msg := "Somebody set up us the bomb"
+	T.Run("environment", func(t *testing.T) {
+		env := []string{fmt.Sprintf("LOG=%s", msg)}
+		rr := RunArg{Exe: cEXE, Args: []string{"openv"}, Env: env}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), msg); !got {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("argument", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"openv", "__argument__"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), "__argument__"); !got {
+			t.Error("wants `true`")
+		}
+	})
+}
+
 func TestRepaired(T *testing.T) {
 	T.Parallel()
 	T.Run("repaired1", func(t *testing.T) {
@@ -164,25 +188,6 @@ func TestArgs(T *testing.T) {
 			os.Remove(cLIB)
 			os.Remove(vee)
 		})
-	})
-	// XXX Might remove support for calls like this.
-	T.Run("args4a", func(t *testing.T) {
-		rr := RunArg{Exe: cEXE, Args: []string{"args:args4:1"}}
-		if ret, _ := rr.Run(); !ret {
-			t.Error("wants `true`")
-		}
-	})
-	T.Run("args4b", func(t *testing.T) {
-		rr := RunArg{Exe: cEXE, Args: []string{"local", "args:args4:1"}}
-		if ret, _ := rr.Run(); !ret {
-			t.Error("wants `true`")
-		}
-	})
-	T.Run("args4c", func(t *testing.T) {
-		rr := RunArg{Exe: cEXE, Args: []string{"args:args6:1", "2", "3", "4"}}
-		if ret, _ := rr.Run(); !ret {
-			t.Error("wants `true`")
-		}
 	})
 }
 

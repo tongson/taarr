@@ -107,10 +107,28 @@ func setupScript(o optT, offset int) scriptT {
 	var dumplib string
 	var code string
 	var oplog string
+	var f bool
 
-	var s []string
-	s = strings.Split(os.Args[offset], ":")
-	namespace, script = s[0], s[1]
+	switch offset {
+	case 0:
+		namespace, script, f = os.Args[1], ".", true
+	case 1:
+		namespace, script, f = strings.Cut(os.Args[1], ":")
+	case 2:
+		namespace, script, f = strings.Cut(os.Args[2], ":")
+	default:
+		namespace, script, f = "", "", false
+	}
+	if !f {
+		switch o.mode {
+		case cTerm, cPlain:
+			_, _ = fmt.Fprintln(os.Stderr, "Namespace and script not set")
+			os.Exit(2)
+		case cJson:
+			serrLog.Error("Namespace and script not set", "namespace", "")
+			os.Exit(2)
+		}
+	}
 	if !lib.IsDir(namespace) {
 		switch o.mode {
 		case cTerm, cPlain:
@@ -147,12 +165,12 @@ func setupScript(o optT, offset int) scriptT {
 		interp = "sh"
 	}
 	var arguments []string
-	if len(s) > 2 {
+	if offset == 2 {
 		arguments = []string{}
-		arguments = append(arguments, s[2])
+		arguments = append(arguments, os.Args[2])
 		arguments = append(arguments, os.Args[offset+1:]...)
 	} else {
-		arguments = os.Args[offset+1:]
+		arguments = os.Args[2:]
 	}
 
 	// Set LOG field
@@ -825,16 +843,16 @@ func main() {
 	var hostname string
 	var id string = generateHashID()
 	opt.id = id // used for the random suffix in the temp filename
-	if strings.Contains(os.Args[1], ":") {
+	if lib.IsDir(os.Args[1]) {
+		offset = 0
+		hostname = "local"
+	} else if b, _, _ := strings.Cut(os.Args[1], ":"); lib.IsDir(b) == true {
 		offset = 1
 		hostname = "local"
-		opt.hostname = hostname
-	} else {
+	} else if b, _, _ := strings.Cut(os.Args[2], ":"); lib.IsDir(b) == true {
 		offset = 2
 		hostname = os.Args[1]
-		opt.hostname = hostname
-	}
-	if len(os.Args) < offset+1 {
+	} else {
 		switch opt.mode {
 		case cTerm, cPlain:
 			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
@@ -844,6 +862,7 @@ func main() {
 			os.Exit(2)
 		}
 	}
+	opt.hostname = hostname
 	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer jsonFile.Close()
 	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
