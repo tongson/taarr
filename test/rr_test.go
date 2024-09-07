@@ -421,3 +421,21 @@ func TestFail(T *testing.T) {
 		}
 	})
 }
+
+func TestBugs(T *testing.T) {
+	T.Parallel()
+	T.Run("001: script not a directory but a file", func(t *testing.T) {
+		_ = os.Mkdir("bugs", 0700)
+		_, _ = os.OpenFile("bugs/xxx", os.O_RDONLY|os.O_CREATE, 0600)
+		rr := RunArg{Exe: cEXE, Args: []string{"bugs:xxx"}}
+		ret, out := rr.Run()
+		_ = os.Remove("bugs/xxx")
+		_ = os.Remove("bugs")
+		if ret {
+			t.Error("wants `false`")
+		}
+		if got := strings.Contains(out.Stderr, "is not a directory"); !got {
+			t.Errorf("Unexpected output: %s\n", out.Stderr)
+		}
+	})
+}
