@@ -116,12 +116,6 @@ func setupScript(o optT, offset int) scriptT {
 		s = strings.Split(os.Args[offset], ":")
 	}
 	namespace, script = s[0], s[1]
-	var interp string = lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
-	interp = strings.TrimSuffix(interp, "\n")
-	if interp == "" {
-		interp = "sh"
-	}
-
 	if !lib.IsDir(namespace) {
 		switch o.mode {
 		case cTerm, cPlain:
@@ -151,6 +145,11 @@ func setupScript(o optT, offset int) scriptT {
 			serrLog.Error("Script not found", "namespace", namespace, "script", script)
 			os.Exit(2)
 		}
+	}
+	var interp string = lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
+	interp = strings.TrimSuffix(interp, "\n")
+	if interp == "" {
+		interp = "sh"
 	}
 	var arguments []string
 	if len(s) > 2 {
