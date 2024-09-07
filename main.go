@@ -830,7 +830,7 @@ func main() {
 	var hostname string
 	var id string = generateHashID()
 	opt.id = id // used for the random suffix in the temp filename
-	if strings.Contains(os.Args[1], "/") || strings.Contains(os.Args[1], ":") {
+	if strings.Contains(os.Args[1], ":") {
 		offset = 1
 		hostname = "local"
 		opt.hostname = hostname
