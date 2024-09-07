@@ -109,12 +109,7 @@ func setupScript(o optT, offset int) scriptT {
 	var oplog string
 
 	var s []string
-	// Old behavior. Allowed hacky tab completion by replacing the '/' with ':'.
-	// Ditched because of the README feature.
-	// s := strings.Split(os.Args[offset], "/")
-	if len(s) < 2 {
-		s = strings.Split(os.Args[offset], ":")
-	}
+	s = strings.Split(os.Args[offset], ":")
 	namespace, script = s[0], s[1]
 	if !lib.IsDir(namespace) {
 		switch o.mode {
