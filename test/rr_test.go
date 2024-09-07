@@ -350,6 +350,12 @@ func TestSsh(T *testing.T) {
 			t.Error("wants `true`")
 		}
 	})
+	T.Run("simple+single", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"foo@chroot", "remote_simple"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+	})
 	T.Run("sudo+nopasswd", func(t *testing.T) {
 		rr := RunArg{Exe: cEXE + "u", Args: []string{"bar@chroot", "remote:nopasswd"}}
 		if ret, _ := rr.Run(); !ret {

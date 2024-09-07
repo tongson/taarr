@@ -115,7 +115,11 @@ func setupScript(o optT, offset int) scriptT {
 	case 1:
 		namespace, script, f = strings.Cut(os.Args[1], ":")
 	case 2:
-		namespace, script, f = strings.Cut(os.Args[2], ":")
+		if lib.IsDir(os.Args[2]) {
+			namespace, script, f = os.Args[2], ".", true
+		} else {
+			namespace, script, f = strings.Cut(os.Args[2], ":")
+		}
 	default:
 		namespace, script, f = "", "", false
 	}
@@ -849,7 +853,7 @@ func main() {
 	} else if b, _, _ := strings.Cut(os.Args[1], ":"); lib.IsDir(b) == true {
 		offset = 1
 		hostname = "local"
-	} else if b, _, _ := strings.Cut(os.Args[2], ":"); lib.IsDir(b) == true {
+	} else if b, _, _ := strings.Cut(os.Args[2], ":"); lib.IsDir(b) == true || lib.IsDir(os.Args[2]) {
 		offset = 2
 		hostname = os.Args[1]
 	} else {
