@@ -91,7 +91,7 @@ func TestSingle(T *testing.T) {
 	msg := "Somebody set up us the bomb"
 	T.Run("environment", func(t *testing.T) {
 		env := []string{fmt.Sprintf("LOG=%s", msg)}
-		rr := RunArg{Exe: cEXE, Args: []string{"openv"}, Env: env}
+		rr := RunArg{Exe: cEXE, Args: []string{"op_env"}, Env: env}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
@@ -100,7 +100,7 @@ func TestSingle(T *testing.T) {
 		}
 	})
 	T.Run("argument", func(t *testing.T) {
-		rr := RunArg{Exe: cEXE, Args: []string{"openv", "__argument__"}}
+		rr := RunArg{Exe: cEXE, Args: []string{"op_env", "__argument__"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
 		}
