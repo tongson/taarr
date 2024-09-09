@@ -188,6 +188,9 @@ func setupScript(o optT, offset int) scriptT {
 		oplog = eop
 	}
 	fnWalkDir := lib.PathWalker(&sh)
+	if lib.IsFile(cINC) {
+		sh.WriteString(lib.FileRead(cINC) + "\n")
+	}
 	if lib.IsDir(".lib") {
 		if err := filepath.WalkDir(".lib", fnWalkDir); err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Problem accessing .lib")
@@ -220,28 +223,13 @@ func setupScript(o optT, offset int) scriptT {
 	}
 	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
 		precode = lib.FileRead(namespace + "/" + script + "/" + cPRE)
-		if lib.IsFile(cINC) {
-			inc := lib.FileRead(cINC) + "\n"
-			prescript = sh.String() + inc + precode
-		} else {
-			prescript = sh.String() + precode
-		}
+		prescript = sh.String() + precode
 	}
 	if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
 		postcode = lib.FileRead(namespace + "/" + script + "/" + cPOST)
-		if lib.IsFile(cINC) {
-			inc := lib.FileRead(cINC) + "\n"
-			postscript = sh.String() + inc + postcode
-		} else {
-			postscript = sh.String() + postcode
-		}
+		postscript = sh.String() + postcode
 	}
-	if c := lib.FileRead(namespace + "/" + script + "/" + cRUN); lib.IsFile(cINC) {
-		inc := lib.FileRead(cINC) + "\n"
-		code = inc + c
-	} else {
-		code = c
-	}
+	code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
 	sh.WriteString(code)
 	return scriptT{
 		nsscript:   sh.String(),
