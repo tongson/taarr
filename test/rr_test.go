@@ -433,6 +433,59 @@ func TestFail(T *testing.T) {
 	})
 }
 
+func TestOrder(T *testing.T) {
+	T.Run("order1", func(t *testing.T) {
+		StringToFile(cLIB, "ONE=\"one\"\nTWO=\"two\"\nTHREE=\"three\"\n")
+		rr := RunArg{Exe: "../bin/rrd", Args: []string{"order:order1", "--one", "--two", "--three"}}
+		ret, out := rr.Run()
+		if !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Split(out.Stdout, "\n")[0]; got != "ONE=\"one\"" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		if got := strings.Split(out.Stdout, "\n")[1]; got != "TWO=\"two\"" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		if got := strings.Split(out.Stdout, "\n")[2]; got != "THREE=\"three\"" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		t.Cleanup(func() {
+			os.Remove(cLIB)
+		})
+	})
+	T.Run("order2", func(t *testing.T) {
+		StringToFile(cLIB, "ONE=\"one\"\nTWO=\"two\"\nTHREE=\"three\"\n")
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"order:order1", "--one", "--two", "--three"}}
+		ret, out := rr.Run()
+		if !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Split(out.Stdout, "\n")[0]; got != "one" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		if got := strings.Split(out.Stdout, "\n")[1]; got != "two" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		if got := strings.Split(out.Stdout, "\n")[2]; got != "three" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		if got := strings.Split(out.Stdout, "\n")[3]; got != "--one" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		if got := strings.Split(out.Stdout, "\n")[4]; got != "--two" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		if got := strings.Split(out.Stdout, "\n")[5]; got != "--three" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		t.Cleanup(func() {
+			os.Remove(cLIB)
+		})
+	})
+
+}
+
 func TestBugs(T *testing.T) {
 	T.Parallel()
 	T.Run("001: script not a directory but a file", func(t *testing.T) {
