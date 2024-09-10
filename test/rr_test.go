@@ -350,10 +350,32 @@ func TestSsh(T *testing.T) {
 			t.Error("wants `true`")
 		}
 	})
-	T.Run("simple+single", func(t *testing.T) {
+	T.Run("simple+solo", func(t *testing.T) {
 		rr := RunArg{Exe: cEXE, Args: []string{"foo@chroot", "remote_simple"}}
 		if ret, _ := rr.Run(); !ret {
 			t.Error("wants `true`")
+		}
+	})
+	T.Run("arg", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"foo@chroot", "remote:arg", "this"}}
+		ret, out  := rr.Run()
+		if !ret {
+			t.Error("wants `true`")
+		}
+		stdout := out.Stdout
+		if got := strings.Split(stdout, "\n")[0]; got != "this" {
+			t.Errorf("Unexpected STDOUT: `%s`\n", got)
+		}
+	})
+	T.Run("arg+solo", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE + "p", Args: []string{"foo@chroot", "remote_arg", "this"}}
+		ret, out := rr.Run()
+		if !ret {
+			t.Error("wants `true`")
+		}
+		stdout := out.Stdout
+		if got := strings.Split(stdout, "\n")[0]; got != "this" {
+			t.Errorf("Unexpected STDOUT: `%s`\n", got)
 		}
 	})
 	T.Run("sudo+nopasswd", func(t *testing.T) {
