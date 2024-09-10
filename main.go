@@ -96,7 +96,7 @@ func init() {
 	}()
 }
 
-func setupScript(o optT, offset int) scriptT {
+func setupScript(o optT, argMode int) scriptT {
 	var sh strings.Builder
 	var namespace string
 	var script string
@@ -109,12 +109,14 @@ func setupScript(o optT, offset int) scriptT {
 	var oplog string
 	var f bool
 
-	switch offset {
-	case 0:
+	switch argMode {
+	case cArgLocalSolo:
 		namespace, script, f = os.Args[1], ".", true
-	case 1:
+	case cArgLocalHier:
 		namespace, script, f = strings.Cut(os.Args[1], ":")
-	case 2:
+	case cArgRemoteSolo:
+		namespace, script, f = os.Args[2], ".", true
+	case cArgRemoteHier:
 		if lib.IsDir(os.Args[2]) {
 			namespace, script, f = os.Args[2], ".", true
 		} else {
@@ -169,10 +171,9 @@ func setupScript(o optT, offset int) scriptT {
 		interp = "sh"
 	}
 	var arguments []string
-	if offset == 2 {
+	if argMode == cArgRemoteSolo || argMode == cArgRemoteHier {
 		arguments = []string{}
-		arguments = append(arguments, os.Args[2])
-		arguments = append(arguments, os.Args[offset+1:]...)
+		arguments = append(arguments, os.Args[3:]...)
 	} else {
 		arguments = os.Args[2:]
 	}
@@ -831,20 +832,37 @@ func main() {
 		}
 	}
 
-	var offset int
+	var argMode int
 	var hostname string
 	var id string = generateHashID()
 	opt.id = id // used for the random suffix in the temp filename
-	if lib.IsDir(os.Args[1]) {
-		offset = 0
+	switch {
+	case lib.IsDir(os.Args[1]):
+		argMode = cArgLocalSolo
 		hostname = "local"
-	} else if b, _, _ := strings.Cut(os.Args[1], ":"); lib.IsDir(b) == true {
-		offset = 1
-		hostname = "local"
-	} else if b, _, _ := strings.Cut(os.Args[2], ":"); lib.IsDir(b) == true || lib.IsDir(os.Args[2]) {
-		offset = 2
+	case strings.Contains(os.Args[1], ":"):
+		b, _, _ := strings.Cut(os.Args[1], ":")
+		if lib.IsDir(b) == true {
+			argMode = cArgLocalHier
+			hostname = "local"
+		} else {
+			argMode = cArgNone
+		}
+	case len(os.Args) > 2 && lib.IsDir(os.Args[2]):
+		argMode = cArgRemoteSolo
 		hostname = os.Args[1]
-	} else {
+	case len(os.Args) > 2 && strings.Contains(os.Args[2], ":"):
+		b, _, _ := strings.Cut(os.Args[2], ":")
+		if lib.IsDir(b) == true || lib.IsDir(os.Args[2]) {
+			argMode = cArgRemoteHier
+			hostname = os.Args[1]
+		} else {
+			argMode = cArgNone
+		}
+	default:
+		argMode = cArgNone
+	}
+	if argMode == cArgNone {
 		switch opt.mode {
 		case cTerm, cPlain:
 			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
@@ -858,7 +876,7 @@ func main() {
 	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer jsonFile.Close()
 	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	var scr scriptT = setupScript(opt, offset)
+	var scr scriptT = setupScript(opt, argMode)
 
 	// rrd mode
 	if cDump == opt.call {
