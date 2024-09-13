@@ -837,20 +837,6 @@ func main() {
 	var id string = generateHashID()
 	opt.id = id // used for the random suffix in the temp filename
 	switch {
-	case lib.IsDir(os.Args[1]):
-		argMode = cArgLocalSolo
-		hostname = "local"
-	case strings.Contains(os.Args[1], ":"):
-		b, _, _ := strings.Cut(os.Args[1], ":")
-		if lib.IsDir(b) == true {
-			argMode = cArgLocalHier
-			hostname = "local"
-		} else {
-			argMode = cArgNone
-		}
-	case len(os.Args) > 2 && lib.IsDir(os.Args[2]):
-		argMode = cArgRemoteSolo
-		hostname = os.Args[1]
 	case len(os.Args) > 2 && strings.Contains(os.Args[2], ":"):
 		b, _, _ := strings.Cut(os.Args[2], ":")
 		if lib.IsDir(b) == true || lib.IsDir(os.Args[2]) {
@@ -859,6 +845,20 @@ func main() {
 		} else {
 			argMode = cArgNone
 		}
+	case len(os.Args) > 2 && lib.IsDir(os.Args[2]):
+		argMode = cArgRemoteSolo
+		hostname = os.Args[1]
+	case strings.Contains(os.Args[1], ":"):
+		b, _, _ := strings.Cut(os.Args[1], ":")
+		if lib.IsDir(b) == true {
+			argMode = cArgLocalHier
+			hostname = "local"
+		} else {
+			argMode = cArgNone
+		}
+	case lib.IsDir(os.Args[1]):
+		argMode = cArgLocalSolo
+		hostname = "local"
 	default:
 		argMode = cArgNone
 	}
