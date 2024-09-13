@@ -730,7 +730,6 @@ func main() {
 		if isatty.IsTerminal(os.Stdout.Fd()) {
 			opt.mode = cTerm
 			log.SetOutput(new(logWriter))
-			log.Printf("taarr %s “%s”", cVERSION, cCODE)
 		} else {
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
 		}
@@ -951,6 +950,7 @@ func main() {
 	}
 
 	// Start execution routine
+	log.Printf("taarr %s “%s”", cVERSION, cCODE)
 	jsonLog.Info(scr.log, "app", "rr", "id", id, "namespace", scr.namespace, "script", scr.script, "target", hostname)
 	if lib.IsFile(scr.namespace + "/" + scr.script + "/" + cPRE) {
 		preStart := time.Now()
