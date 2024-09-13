@@ -1,7 +1,7 @@
 package main
 
-const cVERSION = "2.5.0"
-const cCODE = "Scrawny Municipal"
+const cVERSION = "2.6.0"
+const cCODE = "Crimson Ointment"
 
 const cOP = "LOG"
 const cINC = "VARS"
