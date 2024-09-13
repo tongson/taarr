@@ -732,6 +732,7 @@ func main() {
 			log.SetOutput(new(logWriter))
 		} else {
 			serrLog = slog.New(slog.NewJSONHandler(os.Stderr, nil))
+			log.SetOutput(io.Discard)
 		}
 	}
 	// Handle top-level README
