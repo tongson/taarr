@@ -358,7 +358,7 @@ func TestSsh(T *testing.T) {
 	})
 	T.Run("arg", func(t *testing.T) {
 		rr := RunArg{Exe: cEXE + "p", Args: []string{"foo@chroot", "remote:arg", "this"}}
-		ret, out  := rr.Run()
+		ret, out := rr.Run()
 		if !ret {
 			t.Error("wants `true`")
 		}
