@@ -1,3 +1,19 @@
+#### 2.6.0
+
+Crimson Ointment
+
+* Remove version information from `rrd` output
+* Clean up non-terminal STDERR output
+* Argument mode priority changed; now longest to shortest
+
+#### 2.5.0
+
+Scrawny Municipal
+
+* Fix include ordering
+* Better argument mode detection
+
+
 #### 2.4.0
 
 Sulk Harmonics
