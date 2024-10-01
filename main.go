@@ -188,6 +188,11 @@ func setupScript(o optT, argMode int) scriptT {
 	} else {
 		oplog = eop
 	}
+	if len(arguments) > 0 {
+		arguments = lib.InsertStr(arguments, "set --", 0)
+		sh.WriteString(strings.Join(arguments, " "))
+		sh.WriteString("\n")
+	}
 	fnWalkDir := lib.PathWalker(&sh)
 	if lib.IsFile(cINC) {
 		sh.WriteString(lib.FileRead(cINC) + "\n")
@@ -216,11 +221,6 @@ func setupScript(o optT, argMode int) scriptT {
 		if strings.HasPrefix(e, "rr__") {
 			sh.WriteString("export " + strings.TrimPrefix(e, "rr__") + "\n")
 		}
-	}
-	if len(arguments) > 0 {
-		arguments = lib.InsertStr(arguments, "set --", 0)
-		sh.WriteString(strings.Join(arguments, " "))
-		sh.WriteString("\n")
 	}
 	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
 		precode = lib.FileRead(namespace + "/" + script + "/" + cPRE)

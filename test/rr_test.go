@@ -463,13 +463,16 @@ func TestOrder(T *testing.T) {
 		if !ret {
 			t.Error("wants `true`")
 		}
-		if got := strings.Split(out.Stdout, "\n")[0]; got != "ONE=\"one\"" {
+		if got := strings.Split(out.Stdout, "\n")[0]; got != "set -- --one --two --three" {
 			t.Errorf("Unexpected output: `%s`\n", got)
 		}
-		if got := strings.Split(out.Stdout, "\n")[1]; got != "TWO=\"two\"" {
+		if got := strings.Split(out.Stdout, "\n")[1]; got != "ONE=\"one\"" {
 			t.Errorf("Unexpected output: `%s`\n", got)
 		}
-		if got := strings.Split(out.Stdout, "\n")[2]; got != "THREE=\"three\"" {
+		if got := strings.Split(out.Stdout, "\n")[2]; got != "TWO=\"two\"" {
+			t.Errorf("Unexpected output: `%s`\n", got)
+		}
+		if got := strings.Split(out.Stdout, "\n")[3]; got != "THREE=\"three\"" {
 			t.Errorf("Unexpected output: `%s`\n", got)
 		}
 		t.Cleanup(func() {
