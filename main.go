@@ -677,6 +677,23 @@ func generateHashID() string {
 	return string([]rune(uid)[:8])
 }
 
+func customResult(stdout *bufio.Scanner, stderr *bufio.Scanner) string {
+	var result string
+	for stderr.Scan() {
+		if strings.Contains(stderr.Text(), cREPAIRED) {
+			result = "repaired"
+		}
+	}
+	// It's unlikely we are gonna look for cCHANGED and cREPAIRED at the same time.
+	// cCHANGED (Ansible output) has priority.
+	for stdout.Scan() {
+		if strings.Contains(stdout.Text(), cCHANGED) {
+			result = "changed"
+		}
+	}
+	return result
+}
+
 func main() {
 	runtime.MemProfileRate = 0
 
@@ -1052,13 +1069,11 @@ func main() {
 			failed = true
 			failedLogPrint(scr, opt, out)
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
-			scanner.Split(bufio.ScanWords)
-			for scanner.Scan() {
-				if strings.Contains(scanner.Text(), cREPAIRED) {
-					result = "repaired"
-				}
-			}
+			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
+			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner_err.Split(bufio.ScanWords)
+			scanner_out.Split(bufio.ScanWords)
+			result = customResult(scanner_out, scanner_err)
 			okLogPrint(scr, opt, out)
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
@@ -1116,13 +1131,11 @@ func main() {
 			failed = true
 			failedLogPrint(scr, opt, out)
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
-			scanner.Split(bufio.ScanWords)
-			for scanner.Scan() {
-				if strings.Contains(scanner.Text(), cREPAIRED) {
-					result = "repaired"
-				}
-			}
+			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
+			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner_err.Split(bufio.ScanWords)
+			scanner_out.Split(bufio.ScanWords)
+			result = customResult(scanner_out, scanner_err)
 			okLogPrint(scr, opt, out)
 		}
 	} else {
@@ -1219,13 +1232,11 @@ func main() {
 			failed = true
 			failedLogPrint(scr, opt, out)
 		} else {
-			scanner := bufio.NewScanner(strings.NewReader(out.Stderr))
-			scanner.Split(bufio.ScanWords)
-			for scanner.Scan() {
-				if strings.Contains(scanner.Text(), cREPAIRED) {
-					result = "repaired"
-				}
-			}
+			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
+			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
+			scanner_err.Split(bufio.ScanWords)
+			scanner_out.Split(bufio.ScanWords)
+			result = customResult(scanner_out, scanner_err)
 			okLogPrint(scr, opt, out)
 		}
 	}

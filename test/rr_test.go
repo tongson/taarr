@@ -132,6 +132,28 @@ func TestRepaired(T *testing.T) {
 	})
 }
 
+func TestChanged(T *testing.T) {
+	T.Parallel()
+	T.Run("changed1", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"changed:nolinebreak"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), "\"msg\":\"changed\""); !got {
+			t.Error("wants `true`")
+		}
+	})
+	T.Run("changed2", func(t *testing.T) {
+		rr := RunArg{Exe: cEXE, Args: []string{"changed:linebreak"}}
+		if ret, _ := rr.Run(); !ret {
+			t.Error("wants `true`")
+		}
+		if got := strings.Contains(FileRead("LOG"), "\"msg\":\"changed\""); !got {
+			t.Error("wants `true`")
+		}
+	})
+}
+
 func TestArgs(T *testing.T) {
 	T.Parallel()
 	T.Run("args1", func(t *testing.T) {
