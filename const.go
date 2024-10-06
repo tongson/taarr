@@ -1,7 +1,7 @@
 package main
 
-const cVERSION = "2.6.0"
-const cCODE = "Crimson Ointment"
+const cVERSION = "2.7.0"
+const cCODE = "Unguarded Clover"
 
 const cOP = "LOG"
 const cINC = "VARS"

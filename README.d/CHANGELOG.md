@@ -1,3 +1,10 @@
+#### 2.7.0
+
+Unguarded Clover
+
+* Set positional parameters early
+* Support Ansible `changed=true` detection
+
 #### 2.6.0
 
 Crimson Ointment
