@@ -198,20 +198,23 @@ func setupScript(o optT, argMode int) scriptT {
 		sh.WriteString(lib.FileRead(cINC) + "\n")
 	}
 	if lib.IsDir(".lib") {
-		if err := filepath.WalkDir(".lib", fnWalkDir); err != nil {
+		alib, _ := filepath.EvalSymlinks(".lib")
+		if err := filepath.WalkDir(alib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Problem accessing .lib")
 			os.Exit(255)
 		}
 	}
-	if lib.IsDir(namespace + "/.lib") {
-		if err := filepath.WalkDir(namespace+"/.lib", fnWalkDir); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/.lib\n", namespace)
+	if nslib := namespace + "/.lib"; lib.IsDir(nslib) {
+		anslib, _ := filepath.EvalSymlinks(nslib)
+		if err := filepath.WalkDir(anslib, fnWalkDir); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s\n", nslib)
 			os.Exit(255)
 		}
 	}
-	if lib.IsDir(namespace + "/" + script + "/.lib") {
-		if err := filepath.WalkDir(namespace+"/"+script+"/.lib", fnWalkDir); err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s/%s/.lib\n", namespace, script)
+	if nsslib := namespace + "/" + script + "/.lib"; lib.IsDir(nsslib) {
+		ansslib, _ := filepath.EvalSymlinks(nsslib)
+		if err := filepath.WalkDir(ansslib, fnWalkDir); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s\n", nsslib)
 			os.Exit(255)
 		}
 	}
