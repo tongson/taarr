@@ -145,7 +145,7 @@ func setupScript(o optT, argMode int) scriptT {
 			os.Exit(2)
 		}
 	}
-	if !lib.IsDir(fmt.Sprintf("%s/%s", namespace, script)) {
+	if !lib.IsDir(namespace + "/" + script) {
 		switch o.mode {
 		case cTerm, cPlain:
 			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", namespace, script)
@@ -155,7 +155,7 @@ func setupScript(o optT, argMode int) scriptT {
 			os.Exit(2)
 		}
 	}
-	if !lib.IsFile(fmt.Sprintf("%s/%s/%s", namespace, script, cRUN)) {
+	if !lib.IsFile(namespace + "/" + script + "/" + cRUN) {
 		switch o.mode {
 		case cTerm, cPlain:
 			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", namespace, script, cRUN)
@@ -165,7 +165,7 @@ func setupScript(o optT, argMode int) scriptT {
 			os.Exit(2)
 		}
 	}
-	var interp string = lib.FileRead(fmt.Sprintf("%s/%s/%s", namespace, script, cINTERP))
+	var interp string = lib.FileRead(namespace + "/" + script + "/" + cINTERP)
 	interp = strings.TrimSuffix(interp, "\n")
 	if interp == "" {
 		interp = "sh"
@@ -300,9 +300,9 @@ func soOutput(h string, m int) func(string) {
 func conOutput(o string, h string, c string) (string, string, string) {
 	rh, rb, rf := "", "", ""
 	if o != "" {
-		rh = fmt.Sprintf(" %s%s\n", h, c)
-		rb = fmt.Sprintf("%s\n", lib.PipeStr(h, o))
-		rf = fmt.Sprintf(" %s%s\n", h, cFOOTER)
+		rh = " " + h + c + "\n"
+		rb = lib.PipeStr(h, o) + "\n"
+		rf = " " + h + cFOOTER + "\n"
 	}
 	return rh, rb, rf
 }
@@ -317,7 +317,7 @@ func stdWriter(stdout string, stderr string) {
 }
 
 func sshExec(o *optT, script string) (bool, lib.RunOut) {
-	tmps := fmt.Sprintf(".__rr_src_%s", (*o).id)
+	tmps := ".__rr_src_" + (*o).id
 	// ssh hostname 'cat - > src'
 	log.Printf("CONNECTION: copying script…")
 	sshenv := []string{"LC_ALL=C"}
@@ -328,14 +328,14 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	case 0:
 		switch (*o).call {
 		default:
-			args := []string{"-T", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
+			args := []string{"-T", (*o).hostname, "cat - > " + tmps}
 			ssha = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 		case cTeleport:
-			args := []string{"ssh", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
+			args := []string{"ssh", (*o).hostname, "cat - > " + tmps}
 			ssha = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv, Stdin: []byte(script)}
 		}
 	default:
-		args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, fmt.Sprintf("cat - > %s", tmps)}
+		args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, "cat - > " + tmps}
 		ssha = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(script)}
 	}
 	if ret, out := ssha.Run(); !ret {
@@ -414,14 +414,14 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 		case 0:
 			switch (*o).call {
 			default:
-				args := []string{"-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
+				args := []string{"-T", (*o).hostname, "rm -f " + tmps}
 				sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 			case cTeleport:
-				args := []string{"ssh", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
+				args := []string{"ssh", (*o).hostname, "rm -f " + tmps}
 				sshc = lib.RunArg{Exe: "tsh", Args: args, Env: sshenv}
 			}
 		default:
-			args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, fmt.Sprintf("rm -f %s", tmps)}
+			args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, "rm -f " + tmps}
 			sshc = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv}
 		}
 		return func(a string) {
@@ -449,8 +449,8 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 	// 2. sh -c 'tar -czf - | ssh hostname 'tar -xf -'
 	// 3. ssh hostname 'sudo untar.sh'
 	// Why three connections? sudo STDIN is for the password
-	tmpd := fmt.Sprintf(".__rr.dir.%s", (*o).id)
-	tmpf := fmt.Sprintf(".__rr.tar.%s", (*o).id)
+	tmpd := ".__rr.dir." + (*o).id
+	tmpf := ".__rr.tar." + (*o).id
 	// untar stage #3 script
 	tarcmd := `
 		set -efu
@@ -471,7 +471,7 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 				Args: []string{
 					"-T",
 					(*o).hostname,
-					fmt.Sprintf("cat - > %s", tmpf),
+					"cat - > " + tmpf,
 				},
 				Env:   sshenv,
 				Stdin: []byte(tarexec),
@@ -480,13 +480,13 @@ func sudoCopy(o *optT, dir string) (bool, lib.RunOut) {
 			untar1 = lib.RunArg{Exe: "tsh", Args: []string{
 				"ssh",
 				(*o).hostname,
-				fmt.Sprintf("cat - > %s", tmpf)},
+				"cat - > " + tmpf},
 				Env:   sshenv,
 				Stdin: []byte(tarexec),
 			}
 		}
 	default:
-		args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, fmt.Sprintf("cat - > %s", tmpf)}
+		args := []string{"-F", (*o).sshconfig, "-T", (*o).hostname, "cat - > " + tmpf}
 		untar1 = lib.RunArg{Exe: "ssh", Args: args, Env: sshenv, Stdin: []byte(tarexec)}
 	}
 	if ret, out := untar1.Run(); !ret {
@@ -800,7 +800,7 @@ func main() {
 		isReadme := func(s string) (bool, string) {
 			s = strings.TrimSuffix(s, "/")
 			s = strings.TrimSuffix(s, ":")
-			match, _ := lib.FileGlob(fmt.Sprintf("%s/%s*", s, cDOC))
+			match, _ := lib.FileGlob(s + "/" + cDOC + "*")
 			for _, m := range match {
 				if lib.IsFile(m) {
 					return true, m
@@ -822,7 +822,7 @@ func main() {
 					s2 = ps[1]
 					s3 = ps[2]
 				}
-				pps := fmt.Sprintf("rr %s:%s (%s)", s1, s2, s3)
+				pps := "rr " + s1 + ":" + s2 + " (" + s3 + ")"
 				sz := len(pps)
 				line := strings.Repeat("─", sz+2)
 				fmt.Printf("%s┐\n", line)
@@ -1080,7 +1080,7 @@ func main() {
 			okLogPrint(scr, opt, out)
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
-		destination := fmt.Sprintf("/proc/%s/root", hostname)
+		destination := "/proc/" + hostname + "/root"
 		for _, d := range []string{
 			".files/",
 			scr.namespace + "/.files/",
@@ -1227,7 +1227,7 @@ func main() {
 						os.Exit(2)
 					}
 				}
-				opt.password = fmt.Sprintf("%s\n", str)
+				opt.password = str + "\n"
 			}
 		}
 		ret, out = sshExec(&opt, scr.nsscript)
