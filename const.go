@@ -3,6 +3,7 @@ package main
 const cVERSION = "2.7.0"
 const cCODE = "Unguarded Clover"
 
+const cOK = "ok"
 const cOP = "LOG"
 const cINC = "VARS"
 const cHOSTS0 = ".ssh/config"

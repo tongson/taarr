@@ -681,7 +681,7 @@ func generateHashID() string {
 }
 
 func customResult(stdout *bufio.Scanner, stderr *bufio.Scanner) string {
-	var result string
+	var result string = cOK
 	for stderr.Scan() {
 		if strings.Contains(stderr.Text(), cREPAIRED) {
 			result = "repaired"
@@ -703,7 +703,7 @@ func main() {
 	var opt optT
 
 	var failed bool = false
-	var result string = "ok"
+	var result string = cOK
 
 	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
