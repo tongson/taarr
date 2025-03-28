@@ -1,1 +1,1 @@
-GOARCH=amd64 GOOS=darwin CGO_ENABLED=0 go build -trimpath -ldflags '-s -w' -o bin/rr.macos-intel
+GOAMD64=v2 GOARCH=amd64 GOOS=darwin go build -tags netgo,osusergo -buildmode=pie -trimpath -ldflags '-s -w' -o bin/rr.macos-intel

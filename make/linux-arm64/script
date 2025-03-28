@@ -1,1 +1,1 @@
-GOARCH=arm64 GOOS=linux CGO_ENABLED=0 go build -trimpath -ldflags '-s -w' -o bin/rr.linux-arm64
+GOARCH=arm64 GOARM64=v8.0 GOOS=linux go build -tags netgo,osusergo -buildmode=pie -trimpath -ldflags '-s -w' -o bin/rr.linux-arm64

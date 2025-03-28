@@ -1,1 +1,1 @@
-GOARCH=386 GOOS=linux CGO_ENABLED=0 go build -trimpath -ldflags '-s -w' -o bin/rr.linux-i386
+GOARCH=386 GOOS=linux go build -tags netgo,osusergo -trimpath -ldflags '-s -w' -o bin/rr.linux-i386
