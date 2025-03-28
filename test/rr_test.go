@@ -43,7 +43,7 @@ func TestRun(T *testing.T) {
 }
 
 func TestEnv(t *testing.T) {
-	testenv := []string{"rr__LOOKFORTHIS=FOO"}
+	testenv := []string{"RR_VAR_LOOKFORTHIS=FOO"}
 	rr := RunArg{Exe: cEXE + "p", Env: testenv, Args: []string{"env:test"}}
 	ret, out := rr.Run()
 	if !ret {
