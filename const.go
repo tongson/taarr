@@ -18,6 +18,7 @@ const cPOST = "script.post"
 const cINTERP = "shell"
 const cDOC = "readme"
 const cTIME = "02 Jan 06 15:04"
+const cVAR = "RR_VAR_"
 
 const cSTDOUT = " ┌─ stdout"
 const cSTDERR = " ┌─ stderr"

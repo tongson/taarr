@@ -219,10 +219,10 @@ func setupScript(o optT, argMode int) scriptT {
 		}
 	}
 	dumplib = sh.String()
-	//Pass environment variables with `rr` prefix
+	// Pass environment variables with predefined prefix
 	for _, e := range os.Environ() {
-		if strings.HasPrefix(e, "rr__") {
-			sh.WriteString("export " + strings.TrimPrefix(e, "rr__") + "\n")
+		if strings.HasPrefix(e, cVAR) {
+			sh.WriteString("export " + strings.TrimPrefix(e, cVAR) + "\n")
 		}
 	}
 	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
