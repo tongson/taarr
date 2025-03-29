@@ -1,3 +1,13 @@
+#### 3.0.0
+
+Online Harmonica
+
+* Change imported environment variable prefix from `rr__` to `RR_VAR_`
+* Fix handling `.lib` symlinks
+* Fix result log
+* Code improvements
+* Upgrade dependencies
+
 #### 2.7.0
 
 Unguarded Clover
