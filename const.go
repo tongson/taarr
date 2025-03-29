@@ -1,7 +1,7 @@
 package main
 
-const cVERSION = "2.7.0"
-const cCODE = "Unguarded Clover"
+const cVERSION = "3.0.0"
+const cCODE = "Online Harmonica"
 
 const cOK = "ok"
 const cOP = "LOG"
