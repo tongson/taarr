@@ -41,14 +41,15 @@ type optT struct {
 }
 
 type scriptT struct {
+	nsscript   string
 	namespace  string
 	script     string
-	nsscript   string
-	prescript  string
 	precode    string
-	postscript string
+	prescript  string
 	postcode   string
+	postscript string
 	lib        string
+	vars       string
 	code       string
 	log        string
 	interp     string
@@ -105,6 +106,7 @@ func setupScript(o optT, argMode int) scriptT {
 	var postcode string
 	var postscript string
 	var dumplib string
+	var ropevar strings.Builder
 	var code string
 	var oplog string
 	var f bool
@@ -222,7 +224,10 @@ func setupScript(o optT, argMode int) scriptT {
 	// Pass environment variables with predefined prefix
 	for _, e := range os.Environ() {
 		if strings.HasPrefix(e, cVAR) {
-			sh.WriteString("export " + strings.TrimPrefix(e, cVAR) + "\n")
+			fullvar := strings.TrimPrefix(e, cVAR)
+			splitvar := strings.Split(fullvar, "=")
+			ropevar.WriteString("export " + splitvar[0] + "=\"<redacted>\"" + "\n")
+			sh.WriteString("export " + fullvar + "\n")
 		}
 	}
 	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
@@ -239,8 +244,9 @@ func setupScript(o optT, argMode int) scriptT {
 		nsscript:   sh.String(),
 		namespace:  namespace,
 		script:     script,
-		code:       code,
 		lib:        dumplib,
+		vars:       ropevar.String(),
+		code:       code,
 		prescript:  prescript,
 		precode:    precode,
 		postscript: postscript,
@@ -901,6 +907,7 @@ func main() {
 	// rrd mode
 	if cDump == opt.call {
 		fmt.Print(scr.lib)
+		fmt.Print(scr.vars)
 		fmt.Print(scr.code)
 		os.Exit(0)
 	}
