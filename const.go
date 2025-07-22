@@ -1,7 +1,7 @@
 package main
 
-const cVERSION = "3.0.0"
-const cCODE = "Online Harmonica"
+const cVERSION = "3.1.0"
+const cCODE = "Affluent Handball"
 
 const cOK = "ok"
 const cOP = "LOG"
