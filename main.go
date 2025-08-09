@@ -313,7 +313,7 @@ func conOutput(o string, h string, c string) (string, string, string) {
 	rh, rb, rf := "", "", ""
 	if o != "" {
 		rh = " " + h + c + "\n"
-		rb = lib.PipeStr(h, o) + "\n"
+		rb = lib.PipeStr(h, o)
 		rf = " " + h + cFOOTER + "\n"
 	}
 	return rh, rb, rf
