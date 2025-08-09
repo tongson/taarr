@@ -16,14 +16,17 @@ const cRUN = "script"
 const cPRE = "script.pre"
 const cPOST = "script.post"
 const cINTERP = "shell"
+const cPLAN = "plan"
 const cDOC = "readme"
 const cTIME = "02 Jan 06 15:04"
 const cVAR = "RR_VAR_"
 
-const cSTDOUT = " ┌─ stdout"
-const cSTDERR = " ┌─ stderr"
-const cSTDDBG = " ┌─ debug"
-const cFOOTER = " └─"
+const cSTDOUT = " ┌── stdout"
+const cSTDERR = " ┌── stderr"
+const cSTDDBG = " ┌── debug"
+const cFOOTER = " └──"
+const cPPLAN = " ┌── plan"
+const cPPARA = " ┌── parameters"
 
 const cANSI = "\x1b[1G\x1b[0036m%s\x1b[0000m %s"
 
@@ -40,6 +43,7 @@ const (
 	cDump     = iota
 	cLog      = iota
 	cTeleport = iota
+	cPlan     = iota
 )
 
 // Sudo?
@@ -75,11 +79,14 @@ const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acl
 
 const eUNSPECIFIED = "You must specify the `namespace:script`"
 
-const cPmodes = `rr  = local or ssh
-rrs = ssh + sudo
-rru = ssh + sudo + nopasswd
-rrt = teleport
-rro = teleport + sudo
-rrd = dump
-rrv = forced verbose
-rrl = report`
+const cPmodes = `
+rr:sudo, rru = ssh + sudo + nopasswd
+rr:dump, rrd = dump
+rr:log, rrl  = changelog
+rr:plan      = plan
+rr           = local or ssh
+rrs          = ssh + sudo
+rrt          = teleport
+rro          = teleport + sudo
+rrv          = forced verbose
+`
