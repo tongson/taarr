@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -52,6 +53,7 @@ type scriptT struct {
 	vars       string
 	code       string
 	log        string
+	planargs   string
 	interp     string
 }
 
@@ -109,6 +111,7 @@ func setupScript(o optT, argMode int) scriptT {
 	var ropevar strings.Builder
 	var code string
 	var oplog string
+	var planargs string
 	var f bool
 
 	switch argMode {
@@ -191,6 +194,8 @@ func setupScript(o optT, argMode int) scriptT {
 		oplog = eop
 	}
 	if len(arguments) > 0 {
+		// For plan
+		planargs = strings.Join(arguments, " ")
 		arguments = lib.InsertStr(arguments, "set --", 0)
 		sh.WriteString(strings.Join(arguments, " "))
 		sh.WriteString("\n")
@@ -252,6 +257,7 @@ func setupScript(o optT, argMode int) scriptT {
 		postscript: postscript,
 		postcode:   postcode,
 		log:        oplog,
+		planargs:   planargs,
 		interp:     interp,
 	}
 }
@@ -711,20 +717,20 @@ func main() {
 	var failed bool = false
 	var result string = cOK
 
-	if call := os.Args[0]; len(call) < 3 || call[len(call)-2:] == "rr" {
+	if call := path.Base(os.Args[0]); len(call) < 3 || call[len(call)-2:] == "rr" {
 		log.SetOutput(io.Discard)
 	} else {
-		switch mode := call[len(call)-3:]; mode {
+		switch call {
 		case "rrp":
 			opt.mode = cPlain
 			log.SetOutput(io.Discard)
 		case "rrv":
 			opt.mode = cTerm
 			log.SetOutput(new(logWriter))
-		case "rrd":
+		case "rrd", "rr:dump":
 			opt.call = cDump
 			log.SetOutput(io.Discard)
-		case "rrl":
+		case "rrl", "rr:log":
 			opt.call = cLog
 			log.SetOutput(io.Discard)
 		case "rrs":
@@ -735,9 +741,11 @@ func main() {
 		case "rro":
 			opt.call = cTeleport
 			opt.sudo = cSudo
-		case "rru":
+		case "rru", "rr:sudo":
 			opt.sudo = cSudo
 			opt.sudopwd = cNoSudoPasswd
+		case "rr:plan":
+			opt.call = cPlan
 		default:
 			valid := cPmodes
 			_, _ = fmt.Fprintf(os.Stderr, "ERROR: Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
@@ -761,6 +769,18 @@ func main() {
 			log.SetOutput(io.Discard)
 		}
 	}
+
+	if opt.call == cPlan && len(os.Args) == 1 {
+		switch opt.mode {
+		case cTerm, cPlain:
+			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
+			os.Exit(127)
+		case cJson:
+			serrLog.Error(eUNSPECIFIED)
+			os.Exit(127)
+		}
+	}
+
 	// Handle top-level README
 	if len(os.Args) < 2 {
 		isReadme := func() (bool, string) {
@@ -909,6 +929,34 @@ func main() {
 		fmt.Print(scr.lib)
 		fmt.Print(scr.vars)
 		fmt.Print(scr.code)
+		os.Exit(0)
+	}
+
+	if cPlan == opt.call {
+		var pl strings.Builder
+		pl.WriteString(fmt.Sprintf("target:    %s\n", hostname))
+		pl.WriteString(fmt.Sprintf("namespace: %s\n", scr.namespace))
+		pl.WriteString(fmt.Sprintf("script:    %s\n", scr.script))
+		pl.WriteString(fmt.Sprintf("arguments: %s\n", scr.planargs))
+		hp, bp, fp := conOutput(pl.String(), "", cPPARA)
+		fmt.Printf("%s%s%s", hp, bp, fp)
+		if !lib.IsFile(scr.namespace + "/" + scr.script + "/" + cPLAN) {
+			_, _ = fmt.Fprintln(os.Stderr, "Plan script not found.")
+			os.Exit(127)
+		}
+		var sh strings.Builder
+		sh.WriteString(scr.vars)
+		sh.WriteString(scr.lib)
+		code := lib.FileRead(scr.namespace + "/" + scr.script + "/" + cPLAN)
+		sh.WriteString(code)
+		rargs := lib.RunArg{Exe: scr.interp, Stdin: []byte(sh.String())}
+		ret, out := rargs.Run()
+		he, be, fe := conOutput(out.Stdout, "", cPPLAN)
+		fmt.Printf("%s%s%s", he, be, fe)
+		if !ret {
+			he, be, fe := conOutput(out.Stderr, "", cSTDERR)
+			fmt.Printf("%s%s%s", he, be, fe)
+		}
 		os.Exit(0)
 	}
 
