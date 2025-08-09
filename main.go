@@ -449,8 +449,8 @@ func sshExec(o *optT, script string) (bool, lib.RunOut) {
 	// ssh hostname 'sh src'
 	log.Printf("CONNECTION: running script…")
 	ret, out = sshb.Run()
-	// ssh hostname 'rm -f src'
 	log.Printf("CONNECTION: cleaning up…")
+	// ssh hostname 'rm -f src'
 	cleanUpFn("")
 	return ret, out
 }
