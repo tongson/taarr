@@ -100,36 +100,25 @@ func init() {
 }
 
 func setupScript(o optT, argMode int) scriptT {
-	var sh strings.Builder
-	var namespace string
-	var script string
-	var precode string
-	var prescript string
-	var postcode string
-	var postscript string
-	var dumplib string
-	var ropevar strings.Builder
-	var code string
-	var oplog string
-	var planargs string
+	var s scriptT
+	var sh, ropevar strings.Builder
 	var f bool
 
 	switch argMode {
 	case cArgLocalSolo:
-		namespace, script, f = os.Args[1], ".", true
+		s.namespace, s.script, f = os.Args[1], ".", true
 	case cArgLocalHier:
-		namespace, script, f = strings.Cut(os.Args[1], ":")
+		s.namespace, s.script, f = strings.Cut(os.Args[1], ":")
 	case cArgRemoteSolo:
-		namespace, script, f = os.Args[2], ".", true
+		s.namespace, s.script, f = os.Args[2], ".", true
 	case cArgRemoteHier:
 		if lib.IsDir(os.Args[2]) {
-			namespace, script, f = os.Args[2], ".", true
+			s.namespace, s.script, f = os.Args[2], ".", true
 		} else {
-			namespace, script, f = strings.Cut(os.Args[2], ":")
+			s.namespace, s.script, f = strings.Cut(os.Args[2], ":")
 		}
-	default:
-		namespace, script, f = "", "", false
 	}
+
 	if !f {
 		switch o.mode {
 		case cTerm, cPlain:
@@ -140,45 +129,45 @@ func setupScript(o optT, argMode int) scriptT {
 			os.Exit(127)
 		}
 	}
-	if !lib.IsDir(namespace) {
+	if !lib.IsDir(s.namespace) {
 		switch o.mode {
 		case cTerm, cPlain:
-			_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", namespace)
+			_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", s.namespace)
 			os.Exit(127)
 		case cJson:
-			serrLog.Error("Namespace is not a directory", "namespace", namespace)
+			serrLog.Error("Namespace is not a directory", "namespace", s.namespace)
 			os.Exit(127)
 		}
 	}
-	if !lib.IsDir(namespace + "/" + script) {
+	if !lib.IsDir(s.namespace + "/" + s.script) {
 		switch o.mode {
 		case cTerm, cPlain:
-			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", namespace, script)
+			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", s.namespace, s.script)
 			os.Exit(127)
 		case cJson:
-			serrLog.Error("namespace/script is not a directory", "namespace", namespace, "script", script)
+			serrLog.Error("namespace/script is not a directory", "namespace", s.namespace, "script", s.script)
 			os.Exit(127)
 		}
 	}
-	if !lib.IsFile(namespace + "/" + script + "/" + cRUN) {
+	if !lib.IsFile(s.namespace + "/" + s.script + "/" + cRUN) {
 		switch o.mode {
 		case cTerm, cPlain:
-			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", namespace, script, cRUN)
+			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", s.namespace, s.script, cRUN)
 			os.Exit(127)
 		case cJson:
-			serrLog.Error("Script not found", "namespace", namespace, "script", script)
+			serrLog.Error("Script not found", "namespace", s.namespace, "script", s.script)
 			os.Exit(127)
 		}
 	}
-	var interp string = lib.FileRead(namespace + "/" + script + "/" + cINTERP)
-	interp = strings.TrimSuffix(interp, "\n")
-	if interp == "" {
-		interp = "sh"
+	s.interp = lib.FileRead(s.namespace + "/" + s.script + "/" + cINTERP)
+	s.interp = strings.TrimSuffix(s.interp, "\n")
+	if s.interp == "" {
+		s.interp = "sh"
 	}
+
 	var arguments []string
 	if argMode == cArgRemoteSolo || argMode == cArgRemoteHier {
-		arguments = []string{}
-		arguments = append(arguments, os.Args[3:]...)
+		arguments = os.Args[3:]
 	} else {
 		arguments = os.Args[2:]
 	}
@@ -186,16 +175,16 @@ func setupScript(o optT, argMode int) scriptT {
 	// Set LOG field
 	if eop, ok := os.LookupEnv(cOP); !ok {
 		if len(arguments) == 0 {
-			oplog = "UNDEFINED"
+			s.log = "UNDEFINED"
 		} else {
-			oplog = strings.Join(arguments, " ")
+			s.log = strings.Join(arguments, " ")
 		}
 	} else {
-		oplog = eop
+		s.log = eop
 	}
 	if len(arguments) > 0 {
 		// For plan
-		planargs = strings.Join(arguments, " ")
+		s.planargs = strings.Join(arguments, " ")
 		arguments = lib.InsertStr(arguments, "set --", 0)
 		sh.WriteString(strings.Join(arguments, " "))
 		sh.WriteString("\n")
@@ -211,21 +200,21 @@ func setupScript(o optT, argMode int) scriptT {
 			os.Exit(126)
 		}
 	}
-	if nslib := namespace + "/.lib"; lib.IsDir(nslib) {
+	if nslib := s.namespace + "/.lib"; lib.IsDir(nslib) {
 		anslib, _ := filepath.EvalSymlinks(nslib)
 		if err := filepath.WalkDir(anslib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s\n", nslib)
 			os.Exit(126)
 		}
 	}
-	if nsslib := namespace + "/" + script + "/.lib"; lib.IsDir(nsslib) {
+	if nsslib := s.namespace + "/" + s.script + "/.lib"; lib.IsDir(nsslib) {
 		ansslib, _ := filepath.EvalSymlinks(nsslib)
 		if err := filepath.WalkDir(ansslib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s\n", nsslib)
 			os.Exit(126)
 		}
 	}
-	dumplib = sh.String()
+	s.lib = sh.String()
 	// Pass environment variables with predefined prefix
 	for _, e := range os.Environ() {
 		if strings.HasPrefix(e, cVAR) {
@@ -235,31 +224,21 @@ func setupScript(o optT, argMode int) scriptT {
 			sh.WriteString("export " + fullvar + "\n")
 		}
 	}
-	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
-		precode = lib.FileRead(namespace + "/" + script + "/" + cPRE)
-		prescript = sh.String() + precode
+	s.vars = ropevar.String()
+
+	if lib.IsFile(s.namespace + "/" + s.script + "/" + cPRE) {
+		s.precode = lib.FileRead(s.namespace + "/" + s.script + "/" + cPRE)
+		s.prescript = sh.String() + s.precode
 	}
-	if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
-		postcode = lib.FileRead(namespace + "/" + script + "/" + cPOST)
-		postscript = sh.String() + postcode
+	if lib.IsFile(s.namespace + "/" + s.script + "/" + cPOST) {
+		s.postcode = lib.FileRead(s.namespace + "/" + s.script + "/" + cPOST)
+		s.postscript = sh.String() + s.postcode
 	}
-	code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
-	sh.WriteString(code)
-	return scriptT{
-		nsscript:   sh.String(),
-		namespace:  namespace,
-		script:     script,
-		lib:        dumplib,
-		vars:       ropevar.String(),
-		code:       code,
-		prescript:  prescript,
-		precode:    precode,
-		postscript: postscript,
-		postcode:   postcode,
-		log:        oplog,
-		planargs:   planargs,
-		interp:     interp,
-	}
+	s.code = lib.FileRead(s.namespace + "/" + s.script + "/" + cRUN)
+	sh.WriteString(s.code)
+	s.nsscript = sh.String()
+
+	return s
 }
 
 func b64(stdout string, stderr string, code string) b64T {
