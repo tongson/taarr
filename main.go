@@ -863,17 +863,23 @@ func main() {
 	opt.id = id // used for the random suffix in the temp filename
 	switch {
 	case len(os.Args) > 2 && strings.Contains(os.Args[2], ":"):
+		// RemoteHier
+		// rr host namespace:script
 		b, _, _ := strings.Cut(os.Args[2], ":")
-		if lib.IsDir(b) == true || lib.IsDir(os.Args[2]) {
+		if lib.IsDir(b) == true {
 			argMode = cArgRemoteHier
 			hostname = os.Args[1]
 		} else {
 			argMode = cArgNone
 		}
 	case len(os.Args) > 2 && lib.IsDir(os.Args[2]):
+		// RemoteSolo
+		// rr host script
 		argMode = cArgRemoteSolo
 		hostname = os.Args[1]
 	case strings.Contains(os.Args[1], ":"):
+		// LocalHier
+		// rr namespace:script
 		b, _, _ := strings.Cut(os.Args[1], ":")
 		if lib.IsDir(b) == true {
 			argMode = cArgLocalHier
@@ -882,6 +888,8 @@ func main() {
 			argMode = cArgNone
 		}
 	case lib.IsDir(os.Args[1]):
+		// LocalSolo
+		// rr script
 		argMode = cArgLocalSolo
 		hostname = "local"
 	default:
