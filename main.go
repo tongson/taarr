@@ -708,7 +708,7 @@ func main() {
 		case "rrl", "rr:log":
 			opt.call = cLog
 			log.SetOutput(io.Discard)
-		case "rrs":
+		case "rrs", "rr:passwd":
 			opt.sudopwd = cSudoPasswd
 			opt.sudo = cSudo
 		case "rrt":
@@ -716,11 +716,13 @@ func main() {
 		case "rro":
 			opt.call = cTeleport
 			opt.sudo = cSudo
-		case "rru", "rr:sudo":
+		case "rru", "rr:sudo", "rr:nopasswd":
 			opt.sudo = cSudo
 			opt.sudopwd = cNoSudoPasswd
 		case "rr:plan":
 			opt.call = cPlan
+		case "rr:libs":
+			opt.call = cLibs
 		default:
 			valid := cPmodes
 			_, _ = fmt.Fprintf(os.Stderr, "ERROR: Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
@@ -731,6 +733,11 @@ func main() {
 	// rrl mode
 	if cLog == opt.call {
 		rrlMain()
+		os.Exit(0)
+	}
+
+	if cLibs == opt.call {
+		rrfMain()
 		os.Exit(0)
 	}
 

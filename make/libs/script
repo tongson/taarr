@@ -1,0 +1,65 @@
+#sh
+test_is_var_empty() {
+	print_h2 "is_var_empty"
+	local var001="xxx"
+	print_xy "1" "Must return 0 when argument is string length > 0"
+	is_var_empty "$var001"
+	assert test "$?" -eq 0
+	print_ok
+	print_xy "2" "Must return 1 when argument is string length of 0"
+	local var002=""
+	is_var_empty "$var002"
+	assert test "$?" -eq 1
+	print_ok
+	print_xy "3" "Must return 1 when argument are just space characters"
+	local var003="    "
+	is_var_empty "$var003"
+	assert test "$?" -eq 1 
+	print_ok
+}
+
+test_is_var_empty
+
+test_is_dir_empty() {
+	print_h2 "is_dir_empty"
+	local tmpdir="$(mktemp -d)"
+	local file_path="${tmpdir}/test_file"
+	local nonexistent_path="${tmpdir}/nonexistent"
+	local dir_path="${tmpdir}/test_dir"
+	print_xy "1" "Must return 0 when directory is empty"
+	is_dir_empty "$tmpdir"
+	assert test "$?" -eq 0
+	print_ok
+	print_xy "2" "Must return 1 when checking a nonexistent directory"
+	2>&- is_dir_empty "$nonexistent_path"
+	assert test "$?" -eq 1 
+	print_ok
+	print_xy "3" "Must return 1 when checking a nonempty directory"
+	touch "$file_path"
+	is_dir_empty "$tmpdir"
+	assert builtin test "$?" -eq 1 
+	print_ok
+	rm -rf "$tmpdir"
+}
+
+test_is_dir_empty
+
+test_is_fnmatch() {
+	print_h2 "is_fnmatch"
+	local var001="*xyz*"
+	local var002="xxxyzzz"
+	print_xy "1" "Must return 0 when a match is found"
+	is_fnmatch "$var001" "$var002"
+	assert builtin test "$?" -eq 0
+	print_ok
+	local var003="*1"
+	local var004="xxxy"
+	print_xy "2" "Must return 1 when a match is not found"
+	is_fnmatch "$var003" "$var004"
+	assert builtin test "$?" -eq 1 
+	print_ok
+}
+
+test_is_fnmatch
+
+assert builtin test 0 -eq 1
