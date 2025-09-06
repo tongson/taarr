@@ -1023,7 +1023,7 @@ func main() {
 		if tm := since(preStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "prelude", "namespace", scr.namespace, "script", scr.script, "duration", tm)
 			if opt.mode == cTerm {
-				log.Printf("Prelude run time: %s. Ok.", tm)
+				log.Printf("Prelude run time: %s. Okay.", tm)
 			}
 		} else {
 			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "prelude", "namespace", scr.namespace, "script", scr.script, "duration", tm)
@@ -1280,7 +1280,7 @@ func main() {
 	if tm := since(mainStart); !failed {
 		jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", hostname, "namespace", scr.namespace, "script", scr.script, "duration", tm)
 		if opt.mode == cTerm {
-			log.Printf("Run time: %s. Ok.", tm)
+			log.Printf("Run time: %s. Okay.", tm)
 		}
 	} else {
 		jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", hostname, "namespace", scr.namespace, "script", scr.script, "duration", tm)
@@ -1311,7 +1311,7 @@ func main() {
 		if tm := since(postStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "epilogue", "namespace", scr.namespace, "script", scr.script, "duration", tm)
 			if opt.mode == cTerm {
-				log.Printf("Epilogue run time: %s. Ok.", tm)
+				log.Printf("Epilogue run time: %s. Okay.", tm)
 			}
 		} else {
 			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "epilogue", "namespace", scr.namespace, "script", scr.script, "duration", tm)
@@ -1328,7 +1328,7 @@ func main() {
 		}
 	}
 	if tm := since(start); opt.mode == cTerm && (0 != len(scr.prescript) || 0 != len(scr.postscript)) {
-		log.Printf("Total run time: %s. All OK.", tm)
+		log.Printf("Total run time: %s. All okay.", tm)
 	}
 	_ = jsonFile.Close()
 	os.Exit(0)
