@@ -99,8 +99,7 @@ func init() {
 	}()
 }
 
-func setupScript(o optT, argMode int) scriptT {
-	var s scriptT
+func setupScript(o *optT, s *scriptT, argMode int) {
 	var sh, ropeVar strings.Builder
 	var f bool
 
@@ -233,8 +232,6 @@ func setupScript(o optT, argMode int) scriptT {
 	s.code = lib.FileRead(s.namespace + "/" + s.script + "/" + cRUN)
 	sh.WriteString(s.code)
 	s.nsscript = sh.String()
-
-	return s
 }
 
 func b64(stdout string, stderr string, code string) b64T {
@@ -909,7 +906,8 @@ func main() {
 	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer jsonFile.Close()
 	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	var scr scriptT = setupScript(opt, argMode)
+	var scr scriptT
+	setupScript(&opt, &scr, argMode)
 
 	// rrd mode
 	if cDump == opt.call {
