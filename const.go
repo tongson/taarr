@@ -90,12 +90,12 @@ const (
 )
 
 const cPmodes = `
-rr:sudo, rru = ssh + sudo + nopasswd
+rr:sudo, rr:nopasswd, rru = ssh + sudo + nopasswd
 rr:dump, rrd = dump
 rr:log, rrl  = changelog
 rr:plan      = plan
 rr           = local or ssh
-rrs          = ssh + sudo
+rr:passwd, rrs = ssh + sudo
 rrt          = teleport
 rro          = teleport + sudo
 rrv          = forced verbose
