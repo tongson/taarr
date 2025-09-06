@@ -101,7 +101,7 @@ func init() {
 
 func setupScript(o optT, argMode int) scriptT {
 	var s scriptT
-	var sh, ropevar strings.Builder
+	var sh, ropeVar strings.Builder
 	var f bool
 
 	switch argMode {
@@ -216,11 +216,11 @@ func setupScript(o optT, argMode int) scriptT {
 		if strings.HasPrefix(e, cVAR) {
 			fullvar := strings.TrimPrefix(e, cVAR)
 			splitvar := strings.Split(fullvar, "=")
-			ropevar.WriteString("export " + splitvar[0] + "=\"<redacted>\"" + "\n")
+			ropeVar.WriteString("export " + splitvar[0] + "=\"<redacted>\"" + "\n")
 			sh.WriteString("export " + fullvar + "\n")
 		}
 	}
-	s.vars = ropevar.String()
+	s.vars = ropeVar.String()
 
 	if lib.IsFile(s.namespace + "/" + s.script + "/" + cPRE) {
 		s.precode = lib.FileRead(s.namespace + "/" + s.script + "/" + cPRE)
