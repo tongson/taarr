@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"path"
 	"strings"
 	"testing"
 
@@ -440,9 +441,10 @@ func TestLocalFiles(T *testing.T) {
 			t.Error("wants `true`")
 		}
 		t.Cleanup(func() {
-			os.Remove(x)
-			os.Remove(y)
-			os.Remove(z)
+			r, _ := os.OpenRoot("/tmp")
+			_ = r.RemoveAll(path.Base(x))
+			_ = r.RemoveAll(path.Base(y))
+			_ = r.Remove(path.Base(z))
 		})
 	})
 }
