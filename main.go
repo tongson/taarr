@@ -949,7 +949,7 @@ func main() {
 	// $code is the sanitized script without rr__ variables
 	opt.interp = scr.interp
 
-	failedLogPrint := func(s scriptT, o optT, t lib.RunOut) {
+	failedLogPrint := func(s *scriptT, o *optT, t lib.RunOut) {
 		var hostname string
 		var code string
 		switch o.phase {
@@ -977,7 +977,7 @@ func main() {
 		}
 	}
 
-	okLogPrint := func(s scriptT, o optT, t lib.RunOut) {
+	okLogPrint := func(s *scriptT, o *optT, t lib.RunOut) {
 		var hostname string
 		var code string
 		switch o.phase {
@@ -1022,9 +1022,9 @@ func main() {
 		ret, out := rargs.Run()
 		if opt.phase = cPhasePrelude; !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 		if tm := since(preStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "prelude", "namespace", scr.namespace, "script", scr.script, "duration", tm)
@@ -1110,14 +1110,14 @@ func main() {
 		ret, out := rargs.Run()
 		if !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
 			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
 			scanner_err.Split(bufio.ScanWords)
 			scanner_out.Split(bufio.ScanWords)
 			result = customResult(scanner_out, scanner_err)
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
 		destination := "/proc/" + hostname + "/root"
@@ -1172,14 +1172,14 @@ func main() {
 		ret, out := nsargs.Run()
 		if !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
 			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
 			scanner_err.Split(bufio.ScanWords)
 			scanner_out.Split(bufio.ScanWords)
 			result = customResult(scanner_out, scanner_err)
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 	} else {
 		if opt.call != cTeleport {
@@ -1273,14 +1273,14 @@ func main() {
 		ret, out = sshExec(&opt, scr.nsscript)
 		if !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
 			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
 			scanner_err.Split(bufio.ScanWords)
 			scanner_out.Split(bufio.ScanWords)
 			result = customResult(scanner_out, scanner_err)
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 	}
 	if tm := since(mainStart); !failed {
@@ -1310,9 +1310,9 @@ func main() {
 		ret, out := rargs.Run()
 		if opt.phase = cPhaseEpilogue; !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 		if tm := since(postStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "epilogue", "namespace", scr.namespace, "script", scr.script, "duration", tm)
