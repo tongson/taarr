@@ -80,13 +80,13 @@ const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acl
 const eUNSPECIFIED = "You must specify the `namespace:script`"
 
 const (
-	cExitUsage         = 64
-	cExitNoInput       = 66
-	cExitOsErr         = 71
-	cExitCantCreate    = 73
-	cExitCannotExecute = 126
-	cExitNotFound      = 127
-	cExitInterrupted   = 130
+	cExitUsage       = 64
+	cExitNoInput     = 66
+	cExitOsErr       = 71
+	cExitCantCreate  = 73
+	cExitCantExecute = 126
+	cExitNotFound    = 127
+	cExitInterrupted = 130
 )
 
 const cPmodes = `

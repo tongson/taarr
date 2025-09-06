@@ -193,21 +193,21 @@ func setupScript(o optT, argMode int) scriptT {
 		alib, _ := filepath.EvalSymlinks(".lib")
 		if err := filepath.WalkDir(alib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Problem accessing .lib")
-			os.Exit(cExitCannotExecute)
+			os.Exit(cExitCantExecute)
 		}
 	}
 	if nslib := s.namespace + "/.lib"; lib.IsDir(nslib) {
 		anslib, _ := filepath.EvalSymlinks(nslib)
 		if err := filepath.WalkDir(anslib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s\n", nslib)
-			os.Exit(cExitCannotExecute)
+			os.Exit(cExitCantExecute)
 		}
 	}
 	if nsslib := s.namespace + "/" + s.script + "/.lib"; lib.IsDir(nsslib) {
 		ansslib, _ := filepath.EvalSymlinks(nsslib)
 		if err := filepath.WalkDir(ansslib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s\n", nsslib)
-			os.Exit(cExitCannotExecute)
+			os.Exit(cExitCantExecute)
 		}
 	}
 	s.lib = sh.String()
