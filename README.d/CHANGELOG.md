@@ -1,3 +1,14 @@
+#### 3.1.0
+
+Affluent Handball
+
+* `rr:libs` support (bundled shell script functions)
+* `rr:plan` support (for a semblance of the plan-execute flow)
+* Upgrade dependencies
+* Code upkeep
+* Improve tests
+* Improve console output
+
 #### 3.0.0
 
 Online Harmonica
