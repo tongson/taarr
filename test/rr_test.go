@@ -3,8 +3,8 @@ package rr
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"path"
+	"regexp"
 	"strings"
 	"testing"
 
