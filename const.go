@@ -44,6 +44,7 @@ const (
 	cLog      = iota
 	cTeleport = iota
 	cPlan     = iota
+	cLibs     = iota
 )
 
 // Sudo?
