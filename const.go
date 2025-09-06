@@ -44,6 +44,7 @@ const (
 	cLog      = iota
 	cTeleport = iota
 	cPlan     = iota
+	cLibs     = iota
 )
 
 // Sudo?
@@ -79,13 +80,23 @@ const cTARX = "--no-same-owner --no-same-permissions --no-overwrite-dir --no-acl
 
 const eUNSPECIFIED = "You must specify the `namespace:script`"
 
+const (
+	cExitUsage       = 64
+	cExitNoInput     = 66
+	cExitOsErr       = 71
+	cExitCantCreate  = 73
+	cExitCantExecute = 126
+	cExitNotFound    = 127
+	cExitInterrupted = 130
+)
+
 const cPmodes = `
-rr:sudo, rru = ssh + sudo + nopasswd
+rr:sudo, rr:nopasswd, rru = ssh + sudo + nopasswd
 rr:dump, rrd = dump
 rr:log, rrl  = changelog
 rr:plan      = plan
 rr           = local or ssh
-rrs          = ssh + sudo
+rr:passwd, rrs = ssh + sudo
 rrt          = teleport
 rro          = teleport + sudo
 rrv          = forced verbose

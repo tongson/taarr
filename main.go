@@ -95,90 +95,75 @@ func init() {
 		logInt()
 		cleanUpFn("Caught signal. Exiting.\n")
 		_ = terminal.Restore(int(os.Stdin.Fd()), initTermState)
-		os.Exit(130)
+		os.Exit(cExitInterrupted)
 	}()
 }
 
 func setupScript(o optT, argMode int) scriptT {
-	var sh strings.Builder
-	var namespace string
-	var script string
-	var precode string
-	var prescript string
-	var postcode string
-	var postscript string
-	var dumplib string
-	var ropevar strings.Builder
-	var code string
-	var oplog string
-	var planargs string
+	var s scriptT
+	var sh, ropevar strings.Builder
 	var f bool
 
 	switch argMode {
 	case cArgLocalSolo:
-		namespace, script, f = os.Args[1], ".", true
+		s.namespace, s.script, f = os.Args[1], ".", true
 	case cArgLocalHier:
-		namespace, script, f = strings.Cut(os.Args[1], ":")
+		s.namespace, s.script, f = strings.Cut(os.Args[1], ":")
 	case cArgRemoteSolo:
-		namespace, script, f = os.Args[2], ".", true
+		s.namespace, s.script, f = os.Args[2], ".", true
 	case cArgRemoteHier:
-		if lib.IsDir(os.Args[2]) {
-			namespace, script, f = os.Args[2], ".", true
-		} else {
-			namespace, script, f = strings.Cut(os.Args[2], ":")
-		}
-	default:
-		namespace, script, f = "", "", false
+		s.namespace, s.script, f = strings.Cut(os.Args[2], ":")
 	}
+
 	if !f {
 		switch o.mode {
 		case cTerm, cPlain:
 			_, _ = fmt.Fprintln(os.Stderr, "Namespace and script not set")
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		case cJson:
 			serrLog.Error("Namespace and script not set", "namespace", "")
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		}
 	}
-	if !lib.IsDir(namespace) {
+	if !lib.IsDir(s.namespace) {
 		switch o.mode {
 		case cTerm, cPlain:
-			_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", namespace)
-			os.Exit(127)
+			_, _ = fmt.Fprintf(os.Stderr, "Namespace `%s` is not a directory\n", s.namespace)
+			os.Exit(cExitNotFound)
 		case cJson:
-			serrLog.Error("Namespace is not a directory", "namespace", namespace)
-			os.Exit(127)
+			serrLog.Error("Namespace is not a directory", "namespace", s.namespace)
+			os.Exit(cExitNotFound)
 		}
 	}
-	if !lib.IsDir(namespace + "/" + script) {
+	if !lib.IsDir(s.namespace + "/" + s.script) {
 		switch o.mode {
 		case cTerm, cPlain:
-			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", namespace, script)
-			os.Exit(127)
+			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s` is not a directory\n", s.namespace, s.script)
+			os.Exit(cExitNotFound)
 		case cJson:
-			serrLog.Error("namespace/script is not a directory", "namespace", namespace, "script", script)
-			os.Exit(127)
+			serrLog.Error("namespace/script is not a directory", "namespace", s.namespace, "script", s.script)
+			os.Exit(cExitNotFound)
 		}
 	}
-	if !lib.IsFile(namespace + "/" + script + "/" + cRUN) {
+	if !lib.IsFile(s.namespace + "/" + s.script + "/" + cRUN) {
 		switch o.mode {
 		case cTerm, cPlain:
-			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", namespace, script, cRUN)
-			os.Exit(127)
+			_, _ = fmt.Fprintf(os.Stderr, "`%s/%s/%s` script not found\n", s.namespace, s.script, cRUN)
+			os.Exit(cExitNotFound)
 		case cJson:
-			serrLog.Error("Script not found", "namespace", namespace, "script", script)
-			os.Exit(127)
+			serrLog.Error("Script not found", "namespace", s.namespace, "script", s.script)
+			os.Exit(cExitNotFound)
 		}
 	}
-	var interp string = lib.FileRead(namespace + "/" + script + "/" + cINTERP)
-	interp = strings.TrimSuffix(interp, "\n")
-	if interp == "" {
-		interp = "sh"
+	s.interp = lib.FileRead(s.namespace + "/" + s.script + "/" + cINTERP)
+	s.interp = strings.TrimSuffix(s.interp, "\n")
+	if s.interp == "" {
+		s.interp = "sh"
 	}
+
 	var arguments []string
 	if argMode == cArgRemoteSolo || argMode == cArgRemoteHier {
-		arguments = []string{}
-		arguments = append(arguments, os.Args[3:]...)
+		arguments = os.Args[3:]
 	} else {
 		arguments = os.Args[2:]
 	}
@@ -186,16 +171,16 @@ func setupScript(o optT, argMode int) scriptT {
 	// Set LOG field
 	if eop, ok := os.LookupEnv(cOP); !ok {
 		if len(arguments) == 0 {
-			oplog = "UNDEFINED"
+			s.log = "UNDEFINED"
 		} else {
-			oplog = strings.Join(arguments, " ")
+			s.log = strings.Join(arguments, " ")
 		}
 	} else {
-		oplog = eop
+		s.log = eop
 	}
 	if len(arguments) > 0 {
 		// For plan
-		planargs = strings.Join(arguments, " ")
+		s.planargs = strings.Join(arguments, " ")
 		arguments = lib.InsertStr(arguments, "set --", 0)
 		sh.WriteString(strings.Join(arguments, " "))
 		sh.WriteString("\n")
@@ -208,24 +193,24 @@ func setupScript(o optT, argMode int) scriptT {
 		alib, _ := filepath.EvalSymlinks(".lib")
 		if err := filepath.WalkDir(alib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprint(os.Stderr, "Problem accessing .lib")
-			os.Exit(126)
+			os.Exit(cExitCantExecute)
 		}
 	}
-	if nslib := namespace + "/.lib"; lib.IsDir(nslib) {
+	if nslib := s.namespace + "/.lib"; lib.IsDir(nslib) {
 		anslib, _ := filepath.EvalSymlinks(nslib)
 		if err := filepath.WalkDir(anslib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s\n", nslib)
-			os.Exit(126)
+			os.Exit(cExitCantExecute)
 		}
 	}
-	if nsslib := namespace + "/" + script + "/.lib"; lib.IsDir(nsslib) {
+	if nsslib := s.namespace + "/" + s.script + "/.lib"; lib.IsDir(nsslib) {
 		ansslib, _ := filepath.EvalSymlinks(nsslib)
 		if err := filepath.WalkDir(ansslib, fnWalkDir); err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "Problem accessing %s\n", nsslib)
-			os.Exit(126)
+			os.Exit(cExitCantExecute)
 		}
 	}
-	dumplib = sh.String()
+	s.lib = sh.String()
 	// Pass environment variables with predefined prefix
 	for _, e := range os.Environ() {
 		if strings.HasPrefix(e, cVAR) {
@@ -235,31 +220,21 @@ func setupScript(o optT, argMode int) scriptT {
 			sh.WriteString("export " + fullvar + "\n")
 		}
 	}
-	if lib.IsFile(namespace + "/" + script + "/" + cPRE) {
-		precode = lib.FileRead(namespace + "/" + script + "/" + cPRE)
-		prescript = sh.String() + precode
+	s.vars = ropevar.String()
+
+	if lib.IsFile(s.namespace + "/" + s.script + "/" + cPRE) {
+		s.precode = lib.FileRead(s.namespace + "/" + s.script + "/" + cPRE)
+		s.prescript = sh.String() + s.precode
 	}
-	if lib.IsFile(namespace + "/" + script + "/" + cPOST) {
-		postcode = lib.FileRead(namespace + "/" + script + "/" + cPOST)
-		postscript = sh.String() + postcode
+	if lib.IsFile(s.namespace + "/" + s.script + "/" + cPOST) {
+		s.postcode = lib.FileRead(s.namespace + "/" + s.script + "/" + cPOST)
+		s.postscript = sh.String() + s.postcode
 	}
-	code = lib.FileRead(namespace + "/" + script + "/" + cRUN)
-	sh.WriteString(code)
-	return scriptT{
-		nsscript:   sh.String(),
-		namespace:  namespace,
-		script:     script,
-		lib:        dumplib,
-		vars:       ropevar.String(),
-		code:       code,
-		prescript:  prescript,
-		precode:    precode,
-		postscript: postscript,
-		postcode:   postcode,
-		log:        oplog,
-		planargs:   planargs,
-		interp:     interp,
-	}
+	s.code = lib.FileRead(s.namespace + "/" + s.script + "/" + cRUN)
+	sh.WriteString(s.code)
+	s.nsscript = sh.String()
+
+	return s
 }
 
 func b64(stdout string, stderr string, code string) b64T {
@@ -733,7 +708,7 @@ func main() {
 		case "rrl", "rr:log":
 			opt.call = cLog
 			log.SetOutput(io.Discard)
-		case "rrs":
+		case "rrs", "rr:passwd":
 			opt.sudopwd = cSudoPasswd
 			opt.sudo = cSudo
 		case "rrt":
@@ -741,21 +716,28 @@ func main() {
 		case "rro":
 			opt.call = cTeleport
 			opt.sudo = cSudo
-		case "rru", "rr:sudo":
+		case "rru", "rr:sudo", "rr:nopasswd":
 			opt.sudo = cSudo
 			opt.sudopwd = cNoSudoPasswd
 		case "rr:plan":
 			opt.call = cPlan
+		case "rr:libs":
+			opt.call = cLibs
 		default:
 			valid := cPmodes
 			_, _ = fmt.Fprintf(os.Stderr, "ERROR: Unsupported executable name. Valid modes:\n%s\n", lib.PipeStr("", valid))
-			os.Exit(126)
+			os.Exit(cExitNotFound)
 		}
 	}
 
 	// rrl mode
 	if cLog == opt.call {
 		rrlMain()
+		os.Exit(0)
+	}
+
+	if cLibs == opt.call {
+		rrfMain()
 		os.Exit(0)
 	}
 
@@ -774,10 +756,10 @@ func main() {
 		switch opt.mode {
 		case cTerm, cPlain:
 			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		case cJson:
 			serrLog.Error(eUNSPECIFIED)
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		}
 	}
 
@@ -803,21 +785,20 @@ func main() {
 				fmt.Print(lib.FileRead(s))
 			case cJson:
 				serrLog.Error("README output disabled in this mode.")
-				os.Exit(1)
+				os.Exit(cExitUsage)
 			}
 		}
 		if found1, readme1 := isReadme(); found1 && readme1 != "" {
-			log.Printf("Showing %s…", readme1)
 			printReadme(readme1)
 			os.Exit(0)
 		}
 		switch opt.mode {
 		case cJson:
 			serrLog.Error(eUNSPECIFIED)
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		case cTerm, cPlain:
 			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		}
 	}
 
@@ -862,16 +843,14 @@ func main() {
 				fmt.Print(lib.FileRead(s))
 			case cJson:
 				serrLog.Error("README output disabled in this mode.")
-				os.Exit(1)
+				os.Exit(cExitUsage)
 			}
 		}
 		if found1, readme1 := isReadme(os.Args[1]); found1 && readme1 != "" {
-			log.Print("Showing README…")
 			printReadme(readme1)
 			os.Exit(0)
 		} else if len(os.Args) > 2 {
 			if found2, readme2 := isReadme(os.Args[2]); found2 && readme2 != "" {
-				log.Print("Showing README…")
 				printReadme(readme2)
 				os.Exit(0)
 			}
@@ -884,17 +863,23 @@ func main() {
 	opt.id = id // used for the random suffix in the temp filename
 	switch {
 	case len(os.Args) > 2 && strings.Contains(os.Args[2], ":"):
+		// RemoteHier
+		// rr host namespace:script
 		b, _, _ := strings.Cut(os.Args[2], ":")
-		if lib.IsDir(b) == true || lib.IsDir(os.Args[2]) {
+		if lib.IsDir(b) == true {
 			argMode = cArgRemoteHier
 			hostname = os.Args[1]
 		} else {
 			argMode = cArgNone
 		}
 	case len(os.Args) > 2 && lib.IsDir(os.Args[2]):
+		// RemoteSolo
+		// rr host script
 		argMode = cArgRemoteSolo
 		hostname = os.Args[1]
 	case strings.Contains(os.Args[1], ":"):
+		// LocalHier
+		// rr namespace:script
 		b, _, _ := strings.Cut(os.Args[1], ":")
 		if lib.IsDir(b) == true {
 			argMode = cArgLocalHier
@@ -903,6 +888,8 @@ func main() {
 			argMode = cArgNone
 		}
 	case lib.IsDir(os.Args[1]):
+		// LocalSolo
+		// rr script
 		argMode = cArgLocalSolo
 		hostname = "local"
 	default:
@@ -912,10 +899,10 @@ func main() {
 		switch opt.mode {
 		case cTerm, cPlain:
 			_, _ = fmt.Fprintln(os.Stderr, eUNSPECIFIED)
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		case cJson:
 			serrLog.Error(eUNSPECIFIED)
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		}
 	}
 	opt.hostname = hostname
@@ -942,7 +929,7 @@ func main() {
 		fmt.Printf("%s%s%s", hp, bp, fp)
 		if !lib.IsFile(scr.namespace + "/" + scr.script + "/" + cPLAN) {
 			_, _ = fmt.Fprintln(os.Stderr, "Plan script not found.")
-			os.Exit(127)
+			os.Exit(cExitNotFound)
 		}
 		var sh strings.Builder
 		sh.WriteString(scr.vars)
@@ -1044,7 +1031,7 @@ func main() {
 		if tm := since(preStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "prelude", "namespace", scr.namespace, "script", scr.script, "duration", tm)
 			if opt.mode == cTerm {
-				log.Printf("Prelude run time: %s. Ok.", tm)
+				log.Printf("Prelude run time: %s. Okay.", tm)
 			}
 		} else {
 			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "prelude", "namespace", scr.namespace, "script", scr.script, "duration", tm)
@@ -1057,7 +1044,7 @@ func main() {
 				serrLog.Debug("failed", "duration", tm)
 			}
 			_ = jsonFile.Close()
-			os.Exit(1)
+			os.Exit(cExitOsErr)
 		}
 	}
 	mainStart := time.Now()
@@ -1076,7 +1063,7 @@ func main() {
 			case cJson:
 				serrLog.Error(msg)
 			}
-			os.Exit(1)
+			os.Exit(cExitUsage)
 		}
 		tar := `
 			set -efu
@@ -1170,7 +1157,7 @@ func main() {
 						log.Printf("Error encountered.\n%s%s%s%s%s%s%s%s%s", ho, bo, fo, he, be, fe, hd, bd, fd)
 						log.Printf("Failure copying files!")
 					}
-					os.Exit(1)
+					os.Exit(cExitCantCreate)
 				} else {
 					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
@@ -1253,7 +1240,7 @@ func main() {
 					case cJson:
 						serrLog.Error(step, "stdout", out.Stdout, "stderr", out.Stderr, "error", out.Error)
 					}
-					os.Exit(1)
+					os.Exit(cExitCantCreate)
 				} else {
 					jsonLog.Debug(step, "app", "rr", "id", id, "stdout", b64Out.stdout, "stderr", b64Out.stderr, "error", out.Error)
 					jsonLog.Info(step, "app", "rr", "id", id, "result", "copied")
@@ -1276,10 +1263,10 @@ func main() {
 					switch opt.mode {
 					case cTerm, cPlain:
 						_, _ = fmt.Fprintf(os.Stderr, "Unable to initialize STDIN or this is not a terminal.\n")
-						os.Exit(66)
+						os.Exit(cExitNoInput)
 					case cJson:
 						serrLog.Error("Unable to initialize STDIN or this is not a terminal.", "namespace", scr.namespace, "script", scr.script)
-						os.Exit(66)
+						os.Exit(cExitNoInput)
 					}
 				}
 				opt.password = str + "\n"
@@ -1301,7 +1288,7 @@ func main() {
 	if tm := since(mainStart); !failed {
 		jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", hostname, "namespace", scr.namespace, "script", scr.script, "duration", tm)
 		if opt.mode == cTerm {
-			log.Printf("Run time: %s. Ok.", tm)
+			log.Printf("Run time: %s. Okay.", tm)
 		}
 	} else {
 		jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", hostname, "namespace", scr.namespace, "script", scr.script, "duration", tm)
@@ -1314,7 +1301,7 @@ func main() {
 			serrLog.Debug("failed", "duration", tm)
 		}
 		_ = jsonFile.Close()
-		os.Exit(1)
+		os.Exit(cExitOsErr)
 	}
 	if lib.IsFile(scr.namespace + "/" + scr.script + "/" + cPOST) {
 		postStart := time.Now()
@@ -1332,7 +1319,7 @@ func main() {
 		if tm := since(postStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "epilogue", "namespace", scr.namespace, "script", scr.script, "duration", tm)
 			if opt.mode == cTerm {
-				log.Printf("Epilogue run time: %s. Ok.", tm)
+				log.Printf("Epilogue run time: %s. Okay.", tm)
 			}
 		} else {
 			jsonLog.Debug("failed", "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "epilogue", "namespace", scr.namespace, "script", scr.script, "duration", tm)
@@ -1345,11 +1332,11 @@ func main() {
 				serrLog.Debug("failed", "duration", tm)
 			}
 			_ = jsonFile.Close()
-			os.Exit(1)
+			os.Exit(cExitOsErr)
 		}
 	}
 	if tm := since(start); opt.mode == cTerm && (0 != len(scr.prescript) || 0 != len(scr.postscript)) {
-		log.Printf("Total run time: %s. All OK.", tm)
+		log.Printf("Total run time: %s. All okay.", tm)
 	}
 	_ = jsonFile.Close()
 	os.Exit(0)

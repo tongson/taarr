@@ -1,7 +1,7 @@
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/tongson/gl v0.0.0-20250728131147-da5926cd0646 h1:xodiSEHluUeTTdVhJJYzl+ANTDzHKpoCe2YRMjE2V64=
-github.com/tongson/gl v0.0.0-20250728131147-da5926cd0646/go.mod h1:fU6I0Ftr9DkKCYHb2TQmMmEGowPXcOqHUrikGo8CUrM=
+github.com/tongson/gl v0.0.0-20250901161128-92c7e29f0ef6 h1:DaHQ8AhwxfhU9eP+6iUwb3zeDHXCWt0pOBh9UmqfH7U=
+github.com/tongson/gl v0.0.0-20250901161128-92c7e29f0ef6/go.mod h1:tEZWI+ydBTZD7KskcHPVLHLcz2jSTlddslRq6x2b9Yc=
 golang.org/x/sys v0.6.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.35.0 h1:vz1N37gP5bs89s7He8XuIYXpyY0+QlsKmzipCbUtyxI=
 golang.org/x/sys v0.35.0/go.mod h1:BJP2sWEmIv4KK5OTEluFJCKSidICx8ciO85XgH3Ak8k=

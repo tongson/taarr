@@ -1,0 +1,102 @@
+# panic function with line number reporting
+# Usage: panic "Error message" [line_number]
+__panic() {
+	err_msg="$1"
+	line_number="$2"
+	# The [ -n "$variable" ] construct checks if the variable is not an empty string.
+	if [ -n "$line_number" ]; then
+		printf "Error on line %s: %s\n" "$line_number" "$err_msg" >&2
+	else
+		printf "Error: %s\n" "$err_msg" >&2
+	fi
+	exit 1
+}
+
+# assert
+# Usage: assert command [arg1] [arg2] ...
+assert() {
+	local caller_lineno=""
+
+	# Check if the first argument is a positive integer.
+	# If so, treat it as the line number and shift it from the argument list.
+	case "$1" in
+	# This portable case pattern matches a string containing only digits.
+	*[!0-9]*) ;; # Contains non-digits, so it's part of the command.
+	"") ;;       # Is empty, so definitely not a line number.
+	*)
+		# It's a number. Assume it's the line number.
+		caller_lineno="$1"
+		shift
+		;;
+	esac
+
+	# Now, check if a command was provided after potentially shifting.
+	if [ $# -eq 0 ]; then
+		__panic "Assertion failed: Missing command to execute." "$caller_lineno"
+	fi
+
+	# Execute the command and its arguments directly.
+	# Stderr and stdout are redirected to /dev/null to keep test output clean.
+	if ! "$@" >/dev/null 2>&1; then
+		# For a readable error message, reconstruct the command string.
+		full_command=""
+		for arg in "$@"; do
+			# Add quotes around arguments with spaces for readability in the error.
+			case "$arg" in
+			*\ * | *\'* | *\"*)
+				full_command="$full_command \"$arg\""
+				;;
+			*)
+				full_command="$full_command $arg"
+				;;
+			esac
+		done
+		# Remove the leading space from the reconstructed command.
+		full_command="${full_command# }"
+
+		__panic "Assertion failed: The command '$full_command' returned a non-zero exit code." "$caller_lineno"
+	fi
+}
+
+# print to STDERR and exit with code 1
+panic() {
+	print_err "$1"
+	exit 1
+}
+
+# unsafe assert
+qassert() {
+	if [ $# -lt 1 ]; then
+		panic "Assertion failed: Missing condition"
+	fi
+	if ! eval "$1" >/dev/null 2>&1; then
+		local msg="${2:-Assertion failed: $1}"
+		panic "$msg"
+	fi
+}
+
+is_var_empty() {
+	if [ -z "$1" ]; then
+		return 1
+	fi
+	if [ -z "$(printf %s "$1" | tr -d '[:space:]')" ]; then
+		return 1
+	fi
+	return 0
+}
+
+is_dir_empty() (
+	cd "$1" || return 1
+	set -- .[!.]*
+	test -f "$1" && return 1
+	set -- ..?*
+	test -f "$1" && return 1
+	set -- *
+	test -f "$1" && return 1
+	return 0
+)
+
+is_fnmatch() {
+	# shellcheck disable=SC2254
+	case "$2" in $1) return 0 ;; *) return 1 ;; esac
+}

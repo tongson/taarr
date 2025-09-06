@@ -1,0 +1,41 @@
+debian_install() {
+	env LC_ALL=C DEBIAN_PRIORITY=critical DEBIAN_FRONTEND=noninteractive \
+		apt-get install -yqq \
+		--option Dpkg::Use-Pty=0 \
+		--option Dpkg::Options::=--force-unsafe-io \
+		--option Dpkg::Options::=--force-confold \
+		--option Dpkg::Options::=--force-confdef \
+		--option APT::Install-Suggests=0 \
+		--option APT::Get::AutomaticRemove=1 \
+		--no-install-recommends "${@}"
+}
+
+debian_upgrade() {
+	env LC_ALL=C DEBIAN_PRIORITY=critical DEBIAN_FRONTEND=noninteractive \
+		apt-get dist-upgrade -yqq \
+		--option Dpkg::Use-Pty=0 \
+		--option Dpkg::Options::=--force-unsafe-io \
+		--option Dpkg::Options::=--force-confold \
+		--option Dpkg::Options::=--force-confdef \
+		--option APT::Install-Suggests=0 \
+		--option APT::Get::AutomaticRemove=1 \
+		--no-install-recommends
+}
+
+debian_rmusers() {
+	for users in games gnats irc list news sync uucp; do
+		2>/dev/null userdel -r "$users" || :
+	done
+}
+
+debian_rmsuid() {
+	for p in /usr/bin/fusermount /usr/bin/mount /usr/bin/ping /usr/bin/ping6 /usr/bin/su /usr/bin/umount /usr/bin/chage /usr/bin/chfn /usr/bin/chsh /usr/bin/mlocate /usr/bin/mtr /usr/bin/newgrp /usr/bin/pkexec /usr/bin/traceroute6 /usr/bin/wall; do
+		if [ -e "$p" ]; then
+			oct=$(stat -c "%a" $p | sed 's/^4/0/')
+			ug=$(stat -c "%U %G" $p)
+			2>/dev/null dpkg-statoverride --remove $p || :
+			2>/dev/null dpkg-statoverride --add "$ug" "$oct" $p || :
+			chmod -s $p
+		fi
+	done
+}

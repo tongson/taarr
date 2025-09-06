@@ -1,0 +1,3 @@
+rr_files() {
+	find "$1" -type d -name '.files*' -exec find {} -type f -printf '\t/%P\n' \;
+}

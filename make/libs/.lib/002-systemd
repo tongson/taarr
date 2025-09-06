@@ -1,0 +1,14 @@
+systemd_enable() {
+	systemctl daemon-reload
+	systemctl enable "${1}"
+	systemctl restart "${1}"
+}
+systemd_reload() {
+	if ! systemctl is-active "${1}" 
+	then
+		systemd_enable "${1}"
+	else
+		systemctl daemon-reload
+		systemctl reload "${1}"
+	fi
+}
