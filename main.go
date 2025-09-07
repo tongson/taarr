@@ -99,9 +99,8 @@ func init() {
 	}()
 }
 
-func setupScript(o optT, argMode int) scriptT {
-	var s scriptT
-	var sh, ropevar strings.Builder
+func setupScript(o *optT, s *scriptT, argMode int) {
+	var sh, ropeVar strings.Builder
 	var f bool
 
 	switch argMode {
@@ -216,11 +215,11 @@ func setupScript(o optT, argMode int) scriptT {
 		if strings.HasPrefix(e, cVAR) {
 			fullvar := strings.TrimPrefix(e, cVAR)
 			splitvar := strings.Split(fullvar, "=")
-			ropevar.WriteString("export " + splitvar[0] + "=\"<redacted>\"" + "\n")
+			ropeVar.WriteString("export " + splitvar[0] + "=\"<redacted>\"" + "\n")
 			sh.WriteString("export " + fullvar + "\n")
 		}
 	}
-	s.vars = ropevar.String()
+	s.vars = ropeVar.String()
 
 	if lib.IsFile(s.namespace + "/" + s.script + "/" + cPRE) {
 		s.precode = lib.FileRead(s.namespace + "/" + s.script + "/" + cPRE)
@@ -233,8 +232,6 @@ func setupScript(o optT, argMode int) scriptT {
 	s.code = lib.FileRead(s.namespace + "/" + s.script + "/" + cRUN)
 	sh.WriteString(s.code)
 	s.nsscript = sh.String()
-
-	return s
 }
 
 func b64(stdout string, stderr string, code string) b64T {
@@ -830,11 +827,12 @@ func main() {
 					s3 = ps[2]
 				}
 				pps := "rr " + s1 + ":" + s2 + " (" + s3 + ")"
+				fmt.Print("┌──")
 				sz := len(pps)
-				line := strings.Repeat("─", sz+2)
+				line := strings.Repeat("─", sz)
 				fmt.Printf("%s┐\n", line)
-				fmt.Printf(" \x1b[37;1m%s\x1b[0m │\n", pps)
-				fmt.Printf("%s┘\n", line)
+				fmt.Printf("│ \x1b[37;1m%s\x1b[0m │\n", pps)
+				fmt.Printf("└──%s┘\n", line)
 				for _, each := range lib.FileLines(s) {
 					fmt.Printf(" \x1b[38;2;85;85;85m⋮\x1b[0m %s\n", each)
 				}
@@ -909,7 +907,8 @@ func main() {
 	jsonFile, _ := os.OpenFile(cLOG, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
 	defer jsonFile.Close()
 	jsonLog := slog.New(slog.NewJSONHandler(jsonFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	var scr scriptT = setupScript(opt, argMode)
+	var scr scriptT
+	setupScript(&opt, &scr, argMode)
 
 	// rrd mode
 	if cDump == opt.call {
@@ -951,7 +950,7 @@ func main() {
 	// $code is the sanitized script without rr__ variables
 	opt.interp = scr.interp
 
-	failedLogPrint := func(s scriptT, o optT, t lib.RunOut) {
+	failedLogPrint := func(s *scriptT, o *optT, t lib.RunOut) {
 		var hostname string
 		var code string
 		switch o.phase {
@@ -979,7 +978,7 @@ func main() {
 		}
 	}
 
-	okLogPrint := func(s scriptT, o optT, t lib.RunOut) {
+	okLogPrint := func(s *scriptT, o *optT, t lib.RunOut) {
 		var hostname string
 		var code string
 		switch o.phase {
@@ -1024,9 +1023,9 @@ func main() {
 		ret, out := rargs.Run()
 		if opt.phase = cPhasePrelude; !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 		if tm := since(preStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "prelude", "namespace", scr.namespace, "script", scr.script, "duration", tm)
@@ -1112,14 +1111,14 @@ func main() {
 		ret, out := rargs.Run()
 		if !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
 			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
 			scanner_err.Split(bufio.ScanWords)
 			scanner_out.Split(bufio.ScanWords)
 			result = customResult(scanner_out, scanner_err)
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 	} else if _, err := strconv.ParseInt(hostname, 10, 64); err == nil {
 		destination := "/proc/" + hostname + "/root"
@@ -1174,14 +1173,14 @@ func main() {
 		ret, out := nsargs.Run()
 		if !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
 			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
 			scanner_err.Split(bufio.ScanWords)
 			scanner_out.Split(bufio.ScanWords)
 			result = customResult(scanner_out, scanner_err)
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 	} else {
 		if opt.call != cTeleport {
@@ -1275,14 +1274,14 @@ func main() {
 		ret, out = sshExec(&opt, scr.nsscript)
 		if !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
 			scanner_err := bufio.NewScanner(strings.NewReader(out.Stderr))
 			scanner_out := bufio.NewScanner(strings.NewReader(out.Stdout))
 			scanner_err.Split(bufio.ScanWords)
 			scanner_out.Split(bufio.ScanWords)
 			result = customResult(scanner_out, scanner_err)
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 	}
 	if tm := since(mainStart); !failed {
@@ -1312,9 +1311,9 @@ func main() {
 		ret, out := rargs.Run()
 		if opt.phase = cPhaseEpilogue; !ret {
 			failed = true
-			failedLogPrint(scr, opt, out)
+			failedLogPrint(&scr, &opt, out)
 		} else {
-			okLogPrint(scr, opt, out)
+			okLogPrint(&scr, &opt, out)
 		}
 		if tm := since(postStart); !failed {
 			jsonLog.Debug(result, "app", "rr", "id", id, "start", start.Format(cTIME), "task", scr.log, "target", "epilogue", "namespace", scr.namespace, "script", scr.script, "duration", tm)

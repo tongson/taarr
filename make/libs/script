@@ -62,4 +62,6 @@ test_is_fnmatch() {
 
 test_is_fnmatch
 
+print_h2 "test assert failure"
+print_xy "1" "Must exit with code 1 and output to STDERR"
 assert builtin test 0 -eq 1
