@@ -827,11 +827,12 @@ func main() {
 					s3 = ps[2]
 				}
 				pps := "rr " + s1 + ":" + s2 + " (" + s3 + ")"
+				fmt.Print("┌──")
 				sz := len(pps)
-				line := strings.Repeat("─", sz+2)
+				line := strings.Repeat("─", sz)
 				fmt.Printf("%s┐\n", line)
-				fmt.Printf(" \x1b[37;1m%s\x1b[0m │\n", pps)
-				fmt.Printf("%s┘\n", line)
+				fmt.Printf("│ \x1b[37;1m%s\x1b[0m │\n", pps)
+				fmt.Printf("└──%s┘\n", line)
 				for _, each := range lib.FileLines(s) {
 					fmt.Printf(" \x1b[38;2;85;85;85m⋮\x1b[0m %s\n", each)
 				}
